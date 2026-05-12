@@ -1,16 +1,18 @@
-import { PrismaClient } from '@prisma/client'
+/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: any | undefined
 }
 
-function createPrismaClient() {
+function createPrismaClient(): any {
   const connectionString = process.env.DATABASE_URL!
   const adapter = new PrismaPg(connectionString)
+  const { PrismaClient } = require('@prisma/client')
   return new PrismaClient({ adapter })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+export const prisma: any = globalForPrisma.prisma ?? createPrismaClient()
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
