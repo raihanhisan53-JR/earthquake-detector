@@ -5,10 +5,14 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { LogOut, Activity, Map, History, Play, Wind, Cpu, BarChart3, Video } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
-interface DashboardProps {
-  user: User
-}
+// Dynamic imports untuk komponen berat
+const EarthquakeCard = dynamic(() => import('./EarthquakeCard'), { ssr: false })
+const AnalitikCard = dynamic(() => import('./AnalitikCard'), { ssr: false })
+const EventLogCard = dynamic(() => import('./EventLogCard'), { ssr: false })
+
+interface DashboardProps { user: User }
 
 export default function Dashboard({ user }: DashboardProps) {
   const router = useRouter()
@@ -36,67 +40,76 @@ export default function Dashboard({ user }: DashboardProps) {
     { id: 'riwayat', label: 'Riwayat', icon: History },
   ]
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+            <EarthquakeCard />
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
+              <Cpu size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+              <p>ESP32 Sensor</p>
+              <p style={{ fontSize: '13px' }}>Hubungkan sensor ESP32 untuk monitoring lokal</p>
+            </div>
+          </div>
+        )
+      case 'gempa':
+        return <EarthquakeCard fullView />
+      case 'analitik':
+        return <AnalitikCard />
+      case 'riwayat':
+        return <EventLogCard />
+      default:
+        return (
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <Activity size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
+            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
+              {tabs.find(t => t.id === activeTab)?.label}
+            </p>
+            <p style={{ fontSize: '13px' }}>Komponen ini sedang dalam pengembangan</p>
+          </div>
+        )
+    }
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Sidebar */}
       <aside style={{
-        width: '240px',
-        background: 'var(--bg-secondary)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        padding: '16px 0',
-        position: 'fixed',
-        height: '100vh',
-        overflowY: 'auto',
+        width: '240px', background: 'var(--bg-secondary)', borderRight: '1px solid var(--border)',
+        display: 'flex', flexDirection: 'column', padding: '16px 0',
+        position: 'fixed', height: '100vh', overflowY: 'auto',
       }}>
-        {/* Logo */}
         <div style={{ padding: '0 16px 16px', borderBottom: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" style={{ width: '32px', borderRadius: '8px' }} />
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>
-              Earthquake Detector
-            </span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>Earthquake Detector</span>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: '8px 8px' }}>
+        <nav style={{ flex: 1, padding: '8px' }}>
           {tabs.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                border: 'none',
-                background: activeTab === id ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
-                color: activeTab === id ? '#a78bfa' : 'var(--text-secondary)',
-                fontSize: '13px',
-                fontWeight: activeTab === id ? '600' : '400',
-                cursor: 'pointer',
-                textAlign: 'left',
-                marginBottom: '2px',
-                transition: 'all 0.15s',
-              }}
-            >
-              <Icon size={16} />
-              {label}
+            <button key={id} onClick={() => setActiveTab(id)} style={{
+              display: 'flex', alignItems: 'center', gap: '10px', width: '100%',
+              padding: '10px 12px', borderRadius: '8px', border: 'none',
+              background: activeTab === id ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
+              color: activeTab === id ? '#a78bfa' : 'var(--text-secondary)',
+              fontSize: '13px', fontWeight: activeTab === id ? '600' : '400',
+              cursor: 'pointer', textAlign: 'left', marginBottom: '2px', transition: 'all 0.15s',
+            }}>
+              <Icon size={16} />{label}
             </button>
           ))}
         </nav>
 
-        {/* User */}
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
             {profilePhoto ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={profilePhoto} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
             ) : (
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '600' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '600', color: '#fff' }}>
                 {profileName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -105,24 +118,12 @@ export default function Dashboard({ user }: DashboardProps) {
               <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Google Account</div>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: '8px',
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            <LogOut size={14} />
-            Sign out
+          <button onClick={handleLogout} style={{
+            display: 'flex', alignItems: 'center', gap: '8px', width: '100%',
+            padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)',
+            background: 'transparent', color: 'var(--text-secondary)', fontSize: '13px', cursor: 'pointer',
+          }}>
+            <LogOut size={14} />Sign out
           </button>
         </div>
       </aside>
@@ -136,20 +137,7 @@ export default function Dashboard({ user }: DashboardProps) {
           <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '14px' }}>
             Sistem monitoring gempa bumi real-time — Data BMKG & Sensor ESP32
           </p>
-
-          {/* Content placeholder - akan diisi dengan komponen */}
-          <div style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border)',
-            borderRadius: '16px',
-            padding: '32px',
-            textAlign: 'center',
-            color: 'var(--text-secondary)',
-          }}>
-            <Activity size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
-            <p style={{ fontSize: '16px', marginBottom: '8px' }}>Tab: {activeTab}</p>
-            <p style={{ fontSize: '13px' }}>Komponen sedang dimigrasikan dari Firebase ke Supabase + Prisma</p>
-          </div>
+          {renderContent()}
         </div>
       </main>
     </div>
