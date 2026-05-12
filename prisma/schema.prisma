@@ -1,0 +1,87 @@
+// Prisma Schema - Earthquake Detector
+// Database: Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER - Data pengguna (sync dari Supabase Auth)
+// ============================================
+model User {
+  id        String   @id // Supabase Auth UUID
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  provider  String?  // "google", "email"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  earthquakeLogs EarthquakeLog[]
+
+  @@map("users")
+}
+
+// ============================================
+// EARTHQUAKE_LOG - Riwayat gempa yang terdeteksi
+// ============================================
+model EarthquakeLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  level     Level    @default(WASPADA)
+  magnitude Float
+  location  String
+  source    Source   @default(BMKG)
+  status    String   @default("NEW")
+  detail    String?
+  latitude  Float?
+  longitude Float?
+  depth     Float?   // kedalaman dalam km
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Optional: siapa yang mencatat (bisa null = sistem)
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp(sort: Desc)])
+  @@index([source])
+  @@index([level])
+  @@map("earthquake_logs")
+}
+
+// ============================================
+// SENSOR_READING - Data sensor ESP32
+// ============================================
+model SensorReading {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  pgaCms2    Float    @map("pga_cms2")     // PGA dalam cm/s²
+  pgaPeak    Float    @map("pga_peak")     // PGA peak
+  alertLevel Int      @default(0) @map("alert_level") // 0=aman, 1=waspada, 2=bahaya
+  status     String   @default("AMAN")
+  sensorIp   String?  @map("sensor_ip")
+
+  @@index([timestamp(sort: Desc)])
+  @@map("sensor_readings")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum Level {
+  AMAN
+  WASPADA
+  BAHAYA
+}
+
+enum Source {
+  BMKG
+  USGS
+  ESP32
+  FALLBACK
+}
