@@ -44,29 +44,37 @@ export default function Dashboard({ user }: DashboardProps) {
     switch (activeTab) {
       case 'overview':
         return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <EarthquakeCard />
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>
-              <Cpu size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
-              <p>ESP32 Sensor</p>
-              <p style={{ fontSize: '13px' }}>Hubungkan sensor ESP32 untuk monitoring lokal</p>
+          <div className="tab-content">
+            <div className="overview-header">
+              <h2 className="overview-title">Ringkasan</h2>
+              <p className="overview-desc">Ringkasan cepat: gempa terbaru dan status sensor.</p>
+            </div>
+            <div className="overview-grid">
+              <div className="grid-left">
+                <EarthquakeCard />
+              </div>
+              <div className="grid-right" style={{ background: 'var(--bg-card, rgba(17,24,39,0.8))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary, #9ca3af)', minHeight: '300px' }}>
+                <Cpu size={48} style={{ opacity: 0.3, marginBottom: '16px' }} />
+                <p style={{ fontWeight: '600' }}>ESP32 Sensor</p>
+                <p style={{ fontSize: '13px', textAlign: 'center', marginTop: '8px' }}>Hubungkan sensor ESP32 untuk monitoring seismik lokal</p>
+              </div>
             </div>
           </div>
         )
       case 'gempa':
-        return <EarthquakeCard fullView />
+        return <div className="tab-content"><EarthquakeCard fullView /></div>
       case 'analitik':
-        return <AnalitikCard />
+        return <div className="tab-content"><AnalitikCard /></div>
       case 'riwayat':
-        return <EventLogCard />
+        return <div className="tab-content"><EventLogCard /></div>
       default:
         return (
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-            <Activity size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
-            <p style={{ fontSize: '16px', marginBottom: '8px' }}>
-              {tabs.find(t => t.id === activeTab)?.label}
-            </p>
-            <p style={{ fontSize: '13px' }}>Komponen ini sedang dalam pengembangan</p>
+          <div className="tab-content">
+            <div style={{ background: 'var(--bg-card, rgba(17,24,39,0.8))', border: '1px solid var(--border, rgba(255,255,255,0.08))', borderRadius: '16px', padding: '48px', textAlign: 'center', color: 'var(--text-secondary, #9ca3af)' }}>
+              <Activity size={48} style={{ margin: '0 auto 16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', marginBottom: '8px' }}>{tabs.find(t => t.id === activeTab)?.label}</p>
+              <p style={{ fontSize: '13px' }}>Komponen ini sedang dalam pengembangan</p>
+            </div>
           </div>
         )
     }
@@ -107,7 +115,7 @@ export default function Dashboard({ user }: DashboardProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
             {profilePhoto ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={profilePhoto} alt="Avatar" style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+              <img src={profilePhoto} alt="Avatar" referrerPolicy="no-referrer" style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover' }} />
             ) : (
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '600', color: '#fff' }}>
                 {profileName.charAt(0).toUpperCase()}
