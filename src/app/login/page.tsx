@@ -30,23 +30,40 @@ export default function LoginPage() {
     try {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) throw error
+        if (error) {
+          if (error.message.includes('Email not confirmed')) {
+            // Coba resend confirmation atau langsung login ulang
+            setError('Email belum dikonfirmasi. Cek inbox atau gunakan Google login.')
+          } else if (error.message.includes('Invalid login credentials')) {
+            setError('Email atau password salah.')
+          } else {
+            setError(error.message)
+          }
+        }
+        // Jika berhasil, Supabase akan update session dan page.tsx akan redirect otomatis
       } else {
-        const { error } = await supabase.auth.signUp({ email, password })
-        if (error) throw error
-        setError('✅ Akun dibuat! Silakan masuk.')
-        setMode('login')
+        const { data, error } = await supabase.auth.signUp({ email, password })
+        if (error) {
+          if (error.message.includes('User already registered')) {
+            setError('Email sudah terdaftar. Silakan masuk.')
+            setMode('login')
+          } else {
+            setError(error.message)
+          }
+          return
+        }
+        // Jika email confirmation disabled, user langsung ter-login
+        if (data.session) {
+          // Session sudah ada, redirect akan terjadi otomatis
+          window.location.href = '/'
+        } else {
+          // Email confirmation masih aktif
+          setError('✅ Akun dibuat! Cek email untuk konfirmasi, atau gunakan Google login.')
+          setMode('login')
+        }
       }
     } catch (err: any) {
-      const msg = err.message || ''
-      if (msg.includes('Invalid login credentials')) {
-        setError('Email atau password salah.')
-      } else if (msg.includes('User already registered')) {
-        setError('Email sudah terdaftar. Silakan masuk.')
-        setMode('login')
-      } else {
-        setError(msg || 'Terjadi kesalahan.')
-      }
+      setError(err.message || 'Terjadi kesalahan.')
     } finally {
       setLoading(false)
     }
