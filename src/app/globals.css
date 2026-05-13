@@ -7695,3 +7695,319 @@ body:has(.alarm-banner) .dashboard-layout {
   background: rgba(220, 38, 38, 0.1);
   color: var(--danger);
 }
+
+/* ════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE FIX — scrollable, tappable di HP
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Alarm banner saat gempa ESP32 terdeteksi ── */
+.alarm-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  animation: pulse-alarm 1s ease-in-out infinite;
+}
+
+@keyframes pulse-alarm {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.8; }
+}
+
+.alarm-icon { font-size: 20px; flex-shrink: 0; }
+
+.alarm-dismiss {
+  margin-left: auto;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.alarm-dismiss:hover { background: rgba(255,255,255,0.35); }
+
+/* ── ESP32 status badge di overview ── */
+.esp-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.esp-status-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.esp-status-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.esp-status-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.overview-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+}
+
+.overview-header-left { flex: 1; min-width: 0; }
+.overview-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.overview-desc  { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE MOBILE (≤ 768px)
+   ════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Izinkan scroll di HP — ini bug utama yang bikin HP tidak bisa scroll */
+  html, body {
+    overflow-x: hidden;
+    height: auto !important;
+    overscroll-behavior-y: contain;
+  }
+
+  .dashboard-layout {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dashboard-body {
+    overflow: visible !important;
+    flex: 1;
+    display: block;
+  }
+
+  .main-content {
+    overflow-y: visible !important;
+    height: auto !important;
+    padding-bottom: 60px;
+  }
+
+  /* Sidebar mobile: slide-in overlay */
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100dvh !important;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 280px !important;
+    min-width: 280px !important;
+    overflow-y: auto;
+  }
+
+  .sidebar.sidebar--mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  /* Topbar mobile */
+  .topbar {
+    padding: 10px 16px;
+    min-height: 58px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-left h1 { font-size: 16px; }
+  .topbar-left p  { font-size: 11px; }
+
+  /* Tombol dan action harus bisa diklik — minimal 44px */
+  .action-btn,
+  .mobile-menu-btn,
+  .btn,
+  .btn-outline,
+  .nav-item {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Desktop sidebar button: tampil di mobile */
+  .mobile-menu-btn { display: flex !important; }
+
+  /* Content padding di mobile */
+  .tab-content {
+    padding: 14px 14px !important;
+  }
+
+  /* Overview grid: 1 kolom di mobile */
+  .overview-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  /* Overview header: stack vertikal */
+  .overview-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .esp-status-badge { justify-content: flex-start; }
+
+  /* Quick access: 2 kolom di mobile */
+  .quick-access-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px;
+  }
+
+  /* Card */
+  .card { border-radius: var(--radius-sm); }
+
+  /* Alarm banner */
+  .alarm-banner {
+    flex-wrap: wrap;
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  /* App notice stack */
+  .app-notice-stack {
+    top: 66px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+
+  /* BMKG body: stack vertikal */
+  .bmkg-body, .bmkg-layout {
+    flex-direction: column !important;
+  }
+
+  /* Sensor stats grid: 2 kolom */
+  .sensor-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px;
+  }
+
+  /* Chart: tinggi lebih kecil di HP */
+  .chart-container { height: 140px !important; }
+
+  /* CCTV full width */
+  .cctv-grid { grid-template-columns: 1fr !important; }
+
+  /* Analitik grid */
+  .analitik-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ════════════════════════════════════════════════════
+   RESPONSIVE TABLET (769px – 1024px)
+   ════════════════════════════════════════════════════ */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .overview-grid { grid-template-columns: 1fr !important; }
+  .tab-content   { padding: 18px 20px; }
+  .quick-access-grid { grid-template-columns: repeat(3, 1fr) !important; }
+}
+
+/* ════════════════════════════════════════════════════
+   TOUCH DEVICE: hapus hover stuck, aktifkan tap
+   ════════════════════════════════════════════════════ */
+@media (hover: none) and (pointer: coarse) {
+  .nav-item:hover,
+  .btn:hover,
+  .action-btn:hover,
+  .quick-access-card:hover {
+    background: unset;
+  }
+
+  /* Semua tombol: tap feedback */
+  button, .btn, .action-btn, .nav-item, .quick-access-card {
+    -webkit-tap-highlight-color: rgba(109, 40, 217, 0.2);
+    touch-action: manipulation;
+    cursor: pointer;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILE SIDEBAR FIX — class yang dipakai Sidebar.jsx
+   adalah "mobile-open", bukan "sidebar--mobile-open"
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Overlay: tampilkan di mobile */
+  .mobile-overlay {
+    display: block !important;
+    pointer-events: none;
+  }
+
+  .mobile-overlay.visible {
+    pointer-events: all;
+  }
+
+  /* Sidebar: defaultnya tersembunyi di mobile */
+  .sidebar {
+    transform: translateX(-100%) !important;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important;
+  }
+
+  /* Saat mobile-open aktif: tampilkan sidebar */
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Tombol close di sidebar: tampil di mobile */
+  .mobile-close-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--bg-hover);
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+  }
+
+  /* Hamburger menu button di topbar */
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-right: 10px;
+  }
+}

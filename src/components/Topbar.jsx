@@ -18,23 +18,36 @@ import {
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
 
-const getProfileName = (user) => user?.displayName || user?.email?.split('@')[0] || 'Operator';
+const getProfileName = (user) => {
+  // Supabase: user_metadata.full_name atau email
+  return user?.user_metadata?.full_name 
+    || user?.user_metadata?.name
+    || user?.email?.split('@')[0] 
+    || 'Operator'
+}
 
 const getProfileInitials = (user) => {
-  const base = getProfileName(user).trim();
-  const parts = base.split(/\s+/).filter(Boolean);
+  const base = getProfileName(user).trim()
+  const parts = base.split(/\s+/).filter(Boolean)
   if (parts.length >= 2) {
-    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase()
   }
-  return base.slice(0, 2).toUpperCase() || 'OP';
-};
+  return base.slice(0, 2).toUpperCase() || 'OP'
+}
+
+const getProfilePhoto = (user) => {
+  // Supabase: user_metadata.avatar_url atau picture
+  return user?.user_metadata?.avatar_url 
+    || user?.user_metadata?.picture 
+    || ''
+}
 
 const getProviderLabel = (user) => {
-  const providerId = user?.providerData?.[0]?.providerId || '';
-  if (providerId === 'google.com') return 'Google Account';
-  if (providerId === 'password') return 'Email & Password';
-  return 'Secure Session';
-};
+  const provider = user?.app_metadata?.provider || ''
+  if (provider === 'google') return 'Google Account'
+  if (provider === 'email') return 'Email & Password'
+  return 'Secure Session'
+}
 
 // ─── Audio singleton di luar React ───────────────────────────────────────────
 // Disimpan di module scope agar tidak hilang saat re-render
@@ -111,7 +124,7 @@ export default function Topbar({
 
   const profileName = user ? getProfileName(user) : '';
   const profileEmail = user?.email || '';
-  const profilePhoto = user?.photoURL || '';
+  const profilePhoto = user ? getProfilePhoto(user) : '';
   const profileInitials = user ? getProfileInitials(user) : '';
   const providerLabel = user ? getProviderLabel(user) : '';
 
