@@ -7,6 +7,8 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapPinned, Play, CloudSun, Wind, Cpu, History, Video } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useBMKG } from '@/hooks/useBMKG'
+import { useBMKGMap } from '@/hooks/useBMKGMap'
 
 // Dynamic imports - semua komponen di-load client-side saja
 const EarthquakeCard = dynamic(() => import('./EarthquakeCard'), { ssr: false })
@@ -75,6 +77,10 @@ export default function Dashboard({ user }: DashboardProps) {
     noticeTimersRef.current.set(id, timeoutId)
     return id
   }, [dismissNotice])
+
+  // ── Auto-fetch BMKG & USGS untuk auto-save ke Supabase (jalan di semua tab) ──
+  useBMKG()
+  useBMKGMap()
 
   // ── Notifications (BMKG + USGS + ESP32) ──
   const {
