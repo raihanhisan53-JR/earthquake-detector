@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic'
 
 // Dynamic imports untuk komponen berat
 const EarthquakeCard = dynamic(() => import('./EarthquakeCard'), { ssr: false })
-const AnalitikCard = dynamic(() => import('./AnalitikCard'), { ssr: false })
+const AnalitikCard = dynamic(() => import('./AnalitikCard.jsx'), { ssr: false })
 const EventLogCard = dynamic(() => import('./EventLogCard'), { ssr: false })
 
 interface DashboardProps { user: User }
