@@ -36,7 +36,7 @@ const getProfileInitials = (user) => {
 }
 
 const getProfilePhoto = (user) => {
-  // Supabase: user_metadata.avatar_url atau picture
+  // Supabase Google: user_metadata.avatar_url atau picture
   return user?.user_metadata?.avatar_url 
     || user?.user_metadata?.picture 
     || ''
@@ -47,6 +47,14 @@ const getProviderLabel = (user) => {
   if (provider === 'google') return 'Google Account'
   if (provider === 'email') return 'Email & Password'
   return 'Secure Session'
+}
+
+// Warna avatar berdasarkan nama (konsisten)
+const getAvatarColor = (name) => {
+  const colors = ['#8b5cf6','#6366f1','#3b82f6','#0ea5e9','#10b981','#f59e0b','#ef4444']
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
 }
 
 // ─── Audio singleton di luar React ───────────────────────────────────────────
@@ -304,7 +312,8 @@ export default function Topbar({
               <button type="button" className={`account-trigger ${accountOpen ? 'open' : ''}`}
                 onClick={() => { setShowIpPanel(false); setAccountOpen((v) => !v); }}
                 aria-expanded={accountOpen}>
-                <span className={`account-avatar ${profilePhoto ? '' : 'account-avatar--generated'}`}>
+                <span className={`account-avatar ${profilePhoto ? '' : 'account-avatar--generated'}`}
+                  style={!profilePhoto ? { background: `linear-gradient(135deg, ${getAvatarColor(profileName)}, ${getAvatarColor(profileName + '1')})` } : {}}>
                   {profilePhoto
                     ? <img src={profilePhoto} alt={profileName} referrerPolicy="no-referrer" />
                     : <span>{profileInitials}</span>}

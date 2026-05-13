@@ -24,25 +24,18 @@ export async function POST(request: Request) {
     const { data: { user } } = await supabase.auth.getUser()
 
     const body = await request.json()
-    const { magnitude, location, source, level, detail, latitude, longitude, depth, externalId } = body
+    const { magnitude, location, source, level, detail, latitude, longitude, depth } = body
 
-    // Cek duplikat berdasarkan externalId (jika ada) atau location+magnitude dalam 10 menit terakhir
-    if (externalId) {
-      const existing = await prisma.earthquakeLog.findFirst({
-        where: { detail: { contains: externalId } }
-      })
-      if (existing) return NextResponse.json(existing) // sudah ada, skip
-    } else {
-      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
-      const existing = await prisma.earthquakeLog.findFirst({
-        where: {
-          location: location || 'Unknown',
-          magnitude: parseFloat(magnitude) || 0,
-          timestamp: { gte: tenMinutesAgo }
-        }
-      })
-      if (existing) return NextResponse.json(existing) // duplikat, skip
-    }
+    // Cek duplikat: gempa yang sama dalam 1 menit terakhir saja
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
+    const existing = await prisma.earthquakeLog.findFirst({
+      where: {
+        location: location || 'Unknown',
+        magnitude: parseFloat(magnitude) || 0,
+        timestamp: { gte: oneMinuteAgo }
+      }
+    })
+    if (existing) return NextResponse.json(existing)
 
     const earthquake = await prisma.earthquakeLog.create({
       data: {

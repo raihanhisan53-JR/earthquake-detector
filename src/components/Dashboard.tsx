@@ -189,33 +189,26 @@ export default function Dashboard({ user }: DashboardProps) {
           <div className="tab-content">
             <div className="overview-header">
               <h2 className="overview-title">Ringkasan</h2>
-              <p className="overview-desc">
-                Ringkasan cepat: gempa terbaru dan status sensor. Peta lengkap, detail gempa, cuaca, dan video edukasi ada di tab masing-masing.
-              </p>
+              <p className="overview-desc">Gempa terbaru dan status sensor lokal.</p>
               <div className="esp-status-badge">
                 <div className={`status-dot ${esp32.connected ? 'online' : 'offline'}`} />
                 <span>{esp32.connected ? `ESP32 Online · ${esp32.esp32Ip}` : 'ESP32 Offline'}</span>
               </div>
             </div>
 
-            {/* Alarm banner saat ESP32 deteksi gempa */}
             {isEsp32Alert && (
               <div className="alarm-banner" role="alert" aria-live="assertive">
                 <span className="alarm-banner__icon">🚨</span>
                 <span className="alarm-banner__text">
-                  ALARM AKTIF — Getaran Level {esp32.alertLevel} terdeteksi! Status: {esp32.status}
+                  ALARM — Getaran Level {esp32.alertLevel} · {esp32.status}
                 </span>
-                <button className="alarm-banner__stop" onClick={() => esp32.resetAlert()}>
-                  ■ RESET
-                </button>
+                <button className="alarm-banner__stop" onClick={() => esp32.resetAlert()}>■ RESET</button>
               </div>
             )}
 
             <div className="overview-grid">
               <div className="grid-left"><EarthquakeCard /></div>
-              <div className="grid-right">
-                <SeismographCard {...seismographProps} />
-              </div>
+              <div className="grid-right"><SeismographCard {...seismographProps} /></div>
             </div>
 
             <div className="quick-access-section">
