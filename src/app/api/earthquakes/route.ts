@@ -17,14 +17,32 @@ export async function GET() {
   }
 }
 
-// POST - Simpan earthquake log baru
+// POST - Simpan earthquake log baru (dengan duplicate check)
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     const body = await request.json()
-    const { magnitude, location, source, level, detail, latitude, longitude, depth } = body
+    const { magnitude, location, source, level, detail, latitude, longitude, depth, externalId } = body
+
+    // Cek duplikat berdasarkan externalId (jika ada) atau location+magnitude dalam 10 menit terakhir
+    if (externalId) {
+      const existing = await prisma.earthquakeLog.findFirst({
+        where: { detail: { contains: externalId } }
+      })
+      if (existing) return NextResponse.json(existing) // sudah ada, skip
+    } else {
+      const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000)
+      const existing = await prisma.earthquakeLog.findFirst({
+        where: {
+          location: location || 'Unknown',
+          magnitude: parseFloat(magnitude) || 0,
+          timestamp: { gte: tenMinutesAgo }
+        }
+      })
+      if (existing) return NextResponse.json(existing) // duplikat, skip
+    }
 
     const earthquake = await prisma.earthquakeLog.create({
       data: {
@@ -43,7 +61,6 @@ export async function POST(request: Request) {
     return NextResponse.json(earthquake, { status: 201 })
   } catch (error) {
     console.error('POST /api/earthquakes error:', error)
-    // Return success silently to avoid spamming errors
     return NextResponse.json({ ok: true })
   }
 }
