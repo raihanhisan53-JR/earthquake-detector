@@ -12,7 +12,8 @@ export async function GET() {
     return NextResponse.json(earthquakes)
   } catch (error) {
     console.error('GET /api/earthquakes error:', error)
-    return NextResponse.json({ error: 'Gagal mengambil data' }, { status: 500 })
+    // Return empty array instead of 500 if DB not connected
+    return NextResponse.json([])
   }
 }
 
