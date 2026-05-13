@@ -11,7 +11,7 @@ const BMKG_LIST   = 'https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json';
 const BMKG_LATEST = 'https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json';
 const AUTO_REFRESH_MS = 30_000;
 
-const parseF = (v: unknown, fb = 0) => { const n = parseFloat(String(v)); return isFinite(n) ? n : fb; };
+const parseF = (v, fb = 0) => { const n = parseFloat(String(v)); return isFinite(n) ? n : fb; };
 
 const getMagColor = (m) => {
   if (m >= 7) return '#dc2626';
