@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapPinned, Play, CloudSun, Wind, Cpu, History, Video, Globe } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { useNotifications } from '@/hooks/useNotifications'
 
 // Dynamic imports
 const EarthquakeCard = dynamic(() => import('./EarthquakeCard'), { ssr: false })
@@ -37,6 +38,20 @@ export default function Dashboard({ user }: DashboardProps) {
   const [alarmActive, setAlarmActive] = useState(false)
   const mainContentRef = useRef<HTMLElement>(null)
   const noticeTimersRef = useRef(new Map())
+
+  // ── Notifications (BMKG + USGS + ESP32) ──
+  const {
+    notifications,
+    unreadCount,
+    panelOpen: notifPanelOpen,
+    openPanel: openNotifPanel,
+    closePanel: closeNotifPanel,
+    clearAll: clearNotifications,
+  } = useNotifications({
+    esp32AlertLevel: 0,
+    esp32Connected: false,
+    notificationsEnabled,
+  })
 
   const handleSetActiveTab = (tab: string) => {
     setActiveTab(tab)
@@ -202,12 +217,12 @@ export default function Dashboard({ user }: DashboardProps) {
         sidebarCollapsed={sidebarCollapsed}
         toggleSidebar={() => setSidebarCollapsed(v => !v)}
         notifyUser={notifyUser}
-        notifications={[]}
-        unreadCount={0}
-        notifPanelOpen={false}
-        openNotifPanel={() => {}}
-        closeNotifPanel={() => {}}
-        clearNotifications={() => {}}
+        notifications={notifications}
+        unreadCount={unreadCount}
+        notifPanelOpen={notifPanelOpen}
+        openNotifPanel={openNotifPanel}
+        closeNotifPanel={closeNotifPanel}
+        clearNotifications={clearNotifications}
       />
 
       <div className="dashboard-body">
