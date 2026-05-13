@@ -4,11 +4,11 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Wind, Cpu, History, Video, Globe } from 'lucide-react'
+import { MapPinned, Play, CloudSun, Wind, Cpu, History, Video } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
 
-// Dynamic imports
+// Dynamic imports - semua komponen di-load client-side saja
 const EarthquakeCard = dynamic(() => import('./EarthquakeCard'), { ssr: false })
 const AnalitikCard = dynamic(() => import('./AnalitikCard.jsx'), { ssr: false })
 const EventLogCard = dynamic(() => import('./EventLogCard'), { ssr: false })
@@ -26,36 +26,33 @@ interface DashboardProps { user: User }
 export default function Dashboard({ user }: DashboardProps) {
   const router = useRouter()
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('activeTab') || 'overview'
-    return 'overview'
-  })
+  // Gunakan useState dengan initializer function yang aman untuk SSR
+  const [activeTab, setActiveTabState] = useState('overview')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [theme, setTheme] = useState('dark')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [appNotices, setAppNotices] = useState<any[]>([])
-  const [alarmActive, setAlarmActive] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const mainContentRef = useRef<HTMLElement>(null)
   const noticeTimersRef = useRef(new Map())
 
-  // ── Notifications (BMKG + USGS + ESP32) ──
-  const {
-    notifications,
-    unreadCount,
-    panelOpen: notifPanelOpen,
-    openPanel: openNotifPanel,
-    closePanel: closeNotifPanel,
-    clearAll: clearNotifications,
-  } = useNotifications({
-    esp32AlertLevel: 0,
-    esp32Connected: false,
-    notificationsEnabled,
-  })
+  // Hydration fix: load localStorage values setelah mount
+  useEffect(() => {
+    setMounted(true)
+    const savedTab = localStorage.getItem('activeTab') || 'overview'
+    const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    const savedNotif = localStorage.getItem('notificationsEnabled')
+    setActiveTabState(savedTab)
+    setSidebarCollapsed(savedCollapsed)
+    setTheme(savedTheme)
+    if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
+  }, [])
 
   const handleSetActiveTab = (tab: string) => {
-    setActiveTab(tab)
-    if (typeof window !== 'undefined') localStorage.setItem('activeTab', tab)
+    setActiveTabState(tab)
+    localStorage.setItem('activeTab', tab)
   }
 
   const handleLogout = async () => {
@@ -79,9 +76,28 @@ export default function Dashboard({ user }: DashboardProps) {
     return id
   }, [dismissNotice])
 
+  // ── Notifications (BMKG + USGS + ESP32) ──
+  const {
+    notifications,
+    unreadCount,
+    panelOpen: notifPanelOpen,
+    openPanel: openNotifPanel,
+    closePanel: closeNotifPanel,
+    clearAll: clearNotifications,
+  } = useNotifications({
+    esp32AlertLevel: 0,
+    esp32Connected: false,
+    notificationsEnabled,
+  })
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
   }, [theme])
+
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed))
+  }, [sidebarCollapsed])
 
   useEffect(() => {
     if (mainContentRef.current) mainContentRef.current.scrollTop = 0
@@ -181,6 +197,9 @@ export default function Dashboard({ user }: DashboardProps) {
   }
 
   const isCompact = activeTab !== 'overview'
+
+  // Jangan render sampai client-side mount selesai (mencegah hydration mismatch)
+  if (!mounted) return null
 
   return (
     <div className="dashboard-layout">

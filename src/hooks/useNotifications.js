@@ -67,8 +67,8 @@ export function useNotifications({ esp32AlertLevel = 0, esp32Connected = false, 
         try {
           new Notification(notif.title, {
             body: notif.body,
-            icon: '/logo.svg',
-            badge: '/logo.svg',
+            icon: '/logo.png',
+            badge: '/logo.png',
             tag: id,
             requireInteraction: notif.magnitude >= 6, // gempa besar tetap tampil sampai diklik
           });
@@ -80,7 +80,7 @@ export function useNotifications({ esp32AlertLevel = 0, esp32Connected = false, 
             try {
               new Notification(notif.title, {
                 body: notif.body,
-                icon: '/logo.svg',
+                icon: '/logo.png',
                 tag: id,
               });
             } catch { /* ignore */ }
