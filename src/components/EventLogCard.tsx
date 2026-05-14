@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import { History, Search, Trash2, XCircle, Cloud, FileJson, FileSpreadsheet } from 'lucide-react'
+import { History, Search, Trash2, XCircle, Cloud, FileJson, FileSpreadsheet, Activity } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface EarthquakeEvent {
@@ -21,6 +21,13 @@ const getLevelMeta = (rawLevel: string) => {
   return { label: 'Baru', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.12)' }
 }
 
+const SOURCE_COLORS: Record<string, string> = {
+  BMKG: '#6d28d9',
+  USGS: '#0891b2',
+  ESP32: '#059669',
+  FALLBACK: '#64748b',
+}
+
 export default function EventLogCard() {
   const [events, setEvents] = useState<EarthquakeEvent[]>([])
   const [query, setQuery] = useState('')
@@ -29,13 +36,11 @@ export default function EventLogCard() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Load initial data
     fetch('/api/earthquakes')
       .then(r => r.json())
       .then((data: EarthquakeEvent[]) => setEvents(data))
       .catch(console.error)
 
-    // Realtime subscription via Supabase
     const channel = supabase
       .channel('earthquake_logs')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'earthquake_logs' },
@@ -65,9 +70,9 @@ export default function EventLogCard() {
     const l = String(e.level || 'NEW').toUpperCase()
     if (l === 'BAHAYA') acc.bahaya++
     else if (l === 'WASPADA') acc.waspada++
-    else acc.new++
+    else acc.baru++
     return acc
-  }, { bahaya: 0, waspada: 0, new: 0 }), [events])
+  }, { bahaya: 0, waspada: 0, baru: 0 }), [events])
 
   const handleDelete = async (id: string) => {
     setEvents(events.filter(e => e.id !== id))
@@ -75,19 +80,19 @@ export default function EventLogCard() {
   }
 
   const handleClear = async () => {
-    if (!window.confirm('Hapus semua riwayat?')) return
+    if (!window.confirm('Hapus semua riwayat gempa?')) return
     setEvents([])
     await fetch('/api/earthquakes', { method: 'DELETE' }).catch(console.error)
   }
 
   const exportCSV = () => {
     if (!filteredEvents.length) return
-    const headers = ['ID', 'Waktu', 'Level', 'Magnitude', 'Lokasi', 'Sumber', 'Status', 'Detail']
-    const rows = filteredEvents.map(e => [e.id, e.timestamp, e.level, e.magnitude, e.location, e.source, e.status, e.detail || ''])
+    const headers = ['Waktu', 'Level', 'Magnitude', 'Lokasi', 'Sumber', 'Status']
+    const rows = filteredEvents.map(e => [e.timestamp, e.level, e.magnitude, e.location, e.source, e.status])
     const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = `quake_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
+    const a = document.createElement('a'); a.href = url; a.download = `gempa_${new Date().toISOString().slice(0, 10)}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -97,22 +102,23 @@ export default function EventLogCard() {
         <h2>
           <History size={20} />
           <span>Riwayat Insiden Gempa</span>
-          <span className="event-sync-badge cloud"><Cloud size={12} /> Supabase</span>
+          <span className="event-sync-badge cloud"><Cloud size={12} /> Supabase Live</span>
         </h2>
         <div className="header-actions">
           <button className="btn-icon" onClick={exportCSV} title="Export CSV" disabled={!filteredEvents.length}><FileSpreadsheet size={16} /></button>
-          <button className="btn-icon" onClick={() => { const b = new Blob([JSON.stringify(filteredEvents, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'quake.json'; a.click() }} title="Export JSON" disabled={!filteredEvents.length}><FileJson size={16} /></button>
+          <button className="btn-icon" onClick={() => { const b = new Blob([JSON.stringify(filteredEvents, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'gempa.json'; a.click() }} title="Export JSON" disabled={!filteredEvents.length}><FileJson size={16} /></button>
           <button className="btn-icon btn-danger" onClick={handleClear} title="Hapus Semua" disabled={!events.length}><Trash2 size={16} /></button>
         </div>
       </div>
 
       <div className="card-body">
+        {/* Stats row */}
         <div className="event-summary-grid">
           {[
             { label: 'Total', value: events.length, color: 'var(--text-primary)', accent: 'var(--accent)' },
             { label: 'Bahaya', value: levelCounts.bahaya, color: '#ef4444', accent: '#ef4444' },
             { label: 'Waspada', value: levelCounts.waspada, color: '#f59e0b', accent: '#f59e0b' },
-            { label: 'Baru', value: levelCounts.new, color: '#3b82f6', accent: '#3b82f6' },
+            { label: 'Baru', value: levelCounts.baru, color: '#3b82f6', accent: '#3b82f6' },
           ].map(card => (
             <div key={card.label} className="event-summary-item" style={{ borderTopColor: card.accent }}>
               <span className="event-summary-label">{card.label}</span>
@@ -121,60 +127,75 @@ export default function EventLogCard() {
           ))}
         </div>
 
+        {/* Toolbar — single clean row */}
         <div className="event-toolbar">
           <div className="event-search">
-            <Search size={16} />
-            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Cari..." />
+            <Search size={15} />
+            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Cari lokasi, sumber..." />
           </div>
-          <div className="event-filters">
-            {['SEMUA', 'BAHAYA', 'WASPADA', 'NEW'].map(f => (
-              <button key={f} type="button" className={`event-filter-pill ${levelFilter === f ? 'active' : ''}`} onClick={() => setLevelFilter(f)}>
-                {f === 'SEMUA' ? 'Semua Status' : f === 'BAHAYA' ? 'Bahaya' : f === 'WASPADA' ? 'Waspada' : 'Baru'}
-              </button>
-            ))}
-          </div>
-          <div className="event-filters" style={{ marginTop: '0.75rem' }}>
-            {['SEMUA', 'BMKG', 'USGS', 'ESP32'].map(s => (
-              <button key={s} type="button" className={`event-filter-pill ${sourceFilter === s ? 'active' : ''}`} onClick={() => setSourceFilter(s)}>
-                {s === 'SEMUA' ? 'Semua Sumber' : s}
-              </button>
-            ))}
-          </div>
+          <select
+            className="event-select"
+            value={levelFilter}
+            onChange={e => setLevelFilter(e.target.value)}
+            aria-label="Filter status"
+          >
+            <option value="SEMUA">Semua Status</option>
+            <option value="BAHAYA">Bahaya</option>
+            <option value="WASPADA">Waspada</option>
+            <option value="NEW">Baru</option>
+          </select>
+          <select
+            className="event-select"
+            value={sourceFilter}
+            onChange={e => setSourceFilter(e.target.value)}
+            aria-label="Filter sumber"
+          >
+            <option value="SEMUA">Semua Sumber</option>
+            <option value="BMKG">BMKG</option>
+            <option value="USGS">USGS</option>
+            <option value="ESP32">ESP32</option>
+          </select>
         </div>
 
-        <div className="event-counter">{filteredEvents.length} dari {events.length} kejadian</div>
+        <div className="event-counter">
+          {filteredEvents.length} dari {events.length} kejadian
+        </div>
 
         <div className="event-table-wrapper">
           {filteredEvents.length === 0 ? (
             <div className="event-empty">
-              <History size={40} />
-              <p>{events.length === 0 ? 'Belum ada aktivitas.' : 'Tidak ada yang cocok.'}</p>
+              <History size={36} />
+              <p>{events.length === 0 ? 'Belum ada aktivitas tercatat.' : 'Tidak ada kejadian yang cocok.'}</p>
             </div>
           ) : (
-            <table className="event-table">
-              <thead>
-                <tr>
-                  <th>Waktu</th><th>Status</th><th>Kekuatan</th><th>Lokasi</th><th>Sumber</th><th style={{ textAlign: 'right' }}>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.map(event => {
-                  const meta = getLevelMeta(event.level)
-                  return (
-                    <tr key={event.id} className={`event-row ${String(event.level || 'new').toLowerCase()}`}>
-                      <td className="event-time-cell">{event.timestamp}</td>
-                      <td><span className="event-level-badge" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span></td>
-                      <td><span className="event-magnitude">{event.magnitude}</span></td>
-                      <td className="event-location-cell">{event.location || '-'}</td>
-                      <td className="event-source-cell">{event.source || '-'}</td>
-                      <td style={{ textAlign: 'right' }}>
-                        <button className="btn-delete-single" onClick={() => handleDelete(event.id)} title="Hapus"><XCircle size={16} /></button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="event-feed">
+              {filteredEvents.map(event => {
+                const meta = getLevelMeta(event.level)
+                const srcColor = SOURCE_COLORS[String(event.source).toUpperCase()] || '#64748b'
+                return (
+                  <div key={event.id} className={`event-feed-item ${String(event.level || 'new').toLowerCase()}`}>
+                    <div
+                      className="event-feed-icon"
+                      style={{ background: meta.bg, color: meta.color }}
+                    >
+                      <Activity size={16} />
+                    </div>
+                    <div className="event-feed-content">
+                      <div className="event-feed-header">
+                        <span className="event-feed-location">{event.location || 'Lokasi tidak diketahui'}</span>
+                        <span className="event-feed-time">{event.timestamp}</span>
+                      </div>
+                      <div className="event-feed-details">
+                        <span className="event-level-badge" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span>
+                        <span className="event-feed-mag">M {event.magnitude}</span>
+                        <span className="event-feed-source-tag" style={{ background: `${srcColor}18`, color: srcColor }}>{event.source || '-'}</span>
+                      </div>
+                    </div>
+                    <button className="btn-delete-single" onClick={() => handleDelete(event.id)} title="Hapus"><XCircle size={15} /></button>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
       </div>

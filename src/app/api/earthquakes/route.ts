@@ -26,13 +26,14 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { magnitude, location, source, level, detail, latitude, longitude, depth } = body
 
-    // Cek duplikat: gempa yang sama dalam 1 menit terakhir saja
-    const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
+    // Cek duplikat: gempa yang sama (lokasi+magnitude+source) dalam 5 menit terakhir saja
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
     const existing = await prisma.earthquakeLog.findFirst({
       where: {
         location: location || 'Unknown',
         magnitude: parseFloat(magnitude) || 0,
-        timestamp: { gte: oneMinuteAgo }
+        source: source || 'BMKG',
+        timestamp: { gte: fiveMinutesAgo }
       }
     })
     if (existing) return NextResponse.json(existing)
