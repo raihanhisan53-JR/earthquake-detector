@@ -43,7 +43,7 @@ async function fetchJSON(url, timeoutMs = 8000) {
 function playSiren({ durationMs = 6000, level = 1 } = {}) {
   if (typeof window === 'undefined') return;
   try {
-    const audio = new Audio('/siren-alert.mp3');
+    const audio = new Audio('/tornado-siren.mp3');
     // Volume berdasarkan level bahaya
     audio.volume = level >= 4 ? 1.0 : level >= 2 ? 0.6 : 0.3;
     audio.play().catch(err => console.warn('[Siren] Autoplay gagal:', err));
