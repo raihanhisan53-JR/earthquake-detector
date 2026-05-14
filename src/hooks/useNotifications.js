@@ -38,52 +38,23 @@ async function fetchJSON(url, timeoutMs = 8000) {
 }
 
 // ══════════════════════════════════════════════════════
-// WEB AUDIO SIREN — menggunakan Web Audio API
-// Bunyi sirine naik-turun selama durasi tertentu
+// MP3 AUDIO SIREN — Menggunakan file war siren MP3
 // ══════════════════════════════════════════════════════
-function playSiren({ durationMs = 4000, level = 1 } = {}) {
+function playSiren({ durationMs = 6000, level = 1 } = {}) {
   if (typeof window === 'undefined') return;
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx = new AudioCtx();
-
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
+    const audio = new Audio('/siren-alert.mp3');
     // Volume berdasarkan level bahaya
-    const volume = level >= 4 ? 0.5 : level >= 2 ? 0.35 : 0.2;
-    gain.gain.setValueAtTime(volume, ctx.currentTime);
+    audio.volume = level >= 4 ? 1.0 : level >= 2 ? 0.6 : 0.3;
+    audio.play().catch(err => console.warn('[Siren] Autoplay gagal:', err));
 
-    // Fade out di akhir
-    gain.gain.setValueAtTime(volume, ctx.currentTime + durationMs / 1000 - 0.3);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + durationMs / 1000);
-
-    osc.type = 'sawtooth';
-
-    // Sweep sirine: naik dari 440Hz ke 880Hz dan turun, berulang
-    const now    = ctx.currentTime;
-    const sweepHz = level >= 4 ? 0.35 : 0.5; // detik per sweep
-    const sweepCount = Math.ceil(durationMs / 1000 / sweepHz);
-
-    for (let i = 0; i < sweepCount; i++) {
-      const t = now + i * sweepHz;
-      osc.frequency.setValueAtTime(440, t);
-      osc.frequency.linearRampToValueAtTime(880, t + sweepHz * 0.5);
-      osc.frequency.linearRampToValueAtTime(440, t + sweepHz);
-    }
-
-    osc.start(now);
-    osc.stop(now + durationMs / 1000);
-
-    // Cleanup
-    osc.onended = () => {
-      try { gain.disconnect(); osc.disconnect(); ctx.close(); } catch { /* ignore */ }
-    };
+    // Stop audio setelah durasi selesai
+    setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, durationMs);
   } catch (err) {
-    console.warn('[Siren] Web Audio gagal:', err);
+    console.warn('[Siren] Audio gagal:', err);
   }
 }
 
@@ -91,20 +62,9 @@ function playSiren({ durationMs = 4000, level = 1 } = {}) {
 function playBeep() {
   if (typeof window === 'undefined') return;
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    const ctx  = new AudioCtx();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.4);
-    osc.onended = () => { try { ctx.close(); } catch { /* ignore */ } };
+    const audio = new Audio('/alert.m4a'); // Asumsi ada file alert.m4a untuk suara pendek
+    audio.volume = 0.5;
+    audio.play().catch(err => console.warn('[Beep] Autoplay gagal:', err));
   } catch { /* ignore */ }
 }
 
