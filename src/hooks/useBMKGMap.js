@@ -14,12 +14,11 @@ const FALLBACK_POINTS = [
   { id: 'fallback-2', lat: -8.65, lon: 115.22, magnitude: 4.1, wilayah: 'Bali', waktu: 'Data cadangan', kedalaman: '12 km', depthKm: 12, region: 'Bali-Nusa Tenggara', potensi: 'Tidak berpotensi tsunami', source: 'FALLBACK', epochMs: null },
 ];
 
-const BMKG_URL = 'https://data.bmkg.go.id/DataMKG/TEWS/gempadirasakan.json';
+const BMKG_URL = '/api/bmkg-dirasakan';
 const USGS_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson';
 
 const buildCodetabsBmkgUrl = (cacheBust) => {
-  const target = cacheBust ? `${BMKG_URL}?ts=${Date.now()}` : BMKG_URL;
-  return `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`;
+  return cacheBust ? `${BMKG_URL}?ts=${Date.now()}` : BMKG_URL;
 };
 
 const fetchWithTimeout = async (url, timeoutMs = 8000) => {

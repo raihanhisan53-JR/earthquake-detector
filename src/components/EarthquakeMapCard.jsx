@@ -824,8 +824,8 @@ export default function EarthquakeMapCard({
           <div className="map-source-toggle">
             {[
               { key: 'Semua', label: 'Semua',    color: '#6d28d9' },
-              { key: 'BMKG',  label: '🇮🇩 BMKG', color: '#059669', onClick: () => setSearchTarget({ lat: -2.5, lon: 118, zoom: 5 }) },
-              { key: 'USGS',  label: '🌐 USGS',  color: '#0891b2', onClick: () => setSearchTarget({ lat: 20, lon: 0, zoom: 2 }) },
+              { key: 'BMKG',  label: '🇮🇩 BMKG', color: '#059669', onClick: () => { setFollowLatest(false); setSearchTarget({ lat: -2.5, lon: 118, zoom: 5 }); } },
+              { key: 'USGS',  label: '🌐 USGS',  color: '#0891b2', onClick: () => { setFollowLatest(false); setSearchTarget({ lat: 20, lon: 0, zoom: 2 }); } },
             ].map(({ key, label, color, onClick }) => (
               <button
                 key={key}
