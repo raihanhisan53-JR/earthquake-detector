@@ -359,6 +359,7 @@ export default function EarthquakeMapCard({
   const [listLimit, setListLimit] = useState(storedPrefs.listLimit);
   const [sortBy, setSortBy] = useState(storedPrefs.sortBy);
   const [markerColorMode, setMarkerColorMode] = useState(storedPrefs.markerColorMode);
+  const [dataSourceFilter, setDataSourceFilter] = useState('Semua');
   const [clockTick, setClockTick] = useState(0);
   const [selectedPointId, setSelectedPointId] = useState(null);
   const [showPlateBoundaries, setShowPlateBoundaries] = useState(storedPrefs.showPlateBoundaries);
@@ -400,7 +401,8 @@ export default function EarthquakeMapCard({
       const byMagnitude = point.magnitude >= minMagnitude;
       const byRegion = region === 'Semua' || point.region === region;
       const byTime = passesTimeWindow(point, windowMs, t);
-      return byMagnitude && byRegion && byTime;
+      const bySource = dataSourceFilter === 'Semua' || point.source === dataSourceFilter;
+      return byMagnitude && byRegion && byTime && bySource;
     });
 
     // Sort by oldest first if time lapse is running
@@ -415,7 +417,8 @@ export default function EarthquakeMapCard({
   useEffect(() => {
     if (!isTimeLapse) return;
     const totalPts = sourcePoints.filter((point) => {
-      return point.magnitude >= minMagnitude && (region === 'Semua' || point.region === region) && passesTimeWindow(point, windowMs, Date.now());
+      const bySource = dataSourceFilter === 'Semua' || point.source === dataSourceFilter;
+      return point.magnitude >= minMagnitude && (region === 'Semua' || point.region === region) && passesTimeWindow(point, windowMs, Date.now()) && bySource;
     }).length;
     
     if (timeLapseIndex >= totalPts - 1) {
@@ -453,7 +456,10 @@ export default function EarthquakeMapCard({
       return null;
     }
     const relaxed = sourcePoints
-      .filter((p) => p.magnitude >= minMagnitude && (region === 'Semua' || p.region === region))
+      .filter((p) => {
+        const bySource = dataSourceFilter === 'Semua' || p.source === dataSourceFilter;
+        return p.magnitude >= minMagnitude && (region === 'Semua' || p.region === region) && bySource;
+      })
       .sort((a, b) => {
         const ta = Number.isFinite(a.epochMs) ? a.epochMs : Number.NEGATIVE_INFINITY;
         const tb = Number.isFinite(b.epochMs) ? b.epochMs : Number.NEGATIVE_INFINITY;
@@ -471,7 +477,10 @@ export default function EarthquakeMapCard({
     }
 
     const relaxed = sourcePoints
-      .filter((p) => p.magnitude >= minMagnitude && (region === 'Semua' || p.region === region))
+      .filter((p) => {
+        const bySource = dataSourceFilter === 'Semua' || p.source === dataSourceFilter;
+        return p.magnitude >= minMagnitude && (region === 'Semua' || p.region === region) && bySource;
+      })
       .sort((a, b) => {
         const ta = Number.isFinite(a.epochMs) ? a.epochMs : Number.NEGATIVE_INFINITY;
         const tb = Number.isFinite(b.epochMs) ? b.epochMs : Number.NEGATIVE_INFINITY;
@@ -801,6 +810,14 @@ export default function EarthquakeMapCard({
             {regions.map((item) => (
               <option key={item} value={item}>{item}</option>
             ))}
+          </select>
+        </div>
+        <div className="map-control-item">
+          <label htmlFor="dataSourceFilter">Sumber Data</label>
+          <select id="dataSourceFilter" value={dataSourceFilter} onChange={(event) => setDataSourceFilter(event.target.value)}>
+            <option value="Semua">Semua Sumber</option>
+            <option value="BMKG">BMKG (Lokal)</option>
+            <option value="USGS">USGS (Global)</option>
           </select>
         </div>
         <div className="map-control-item">
