@@ -25,6 +25,7 @@ export default function EventLogCard() {
   const [events, setEvents] = useState<EarthquakeEvent[]>([])
   const [query, setQuery] = useState('')
   const [levelFilter, setLevelFilter] = useState('SEMUA')
+  const [sourceFilter, setSourceFilter] = useState('SEMUA')
   const supabase = createClient()
 
   useEffect(() => {
@@ -53,11 +54,12 @@ export default function EventLogCard() {
     return events.filter(event => {
       const level = String(event.level || 'NEW').toUpperCase()
       const matchLevel = levelFilter === 'SEMUA' || level === levelFilter
+      const matchSource = sourceFilter === 'SEMUA' || String(event.source || '').toUpperCase() === sourceFilter
       const haystack = [event.timestamp, event.level, String(event.magnitude), event.location, event.source, event.detail]
         .filter(Boolean).join(' ').toLowerCase()
-      return matchLevel && (q.length === 0 || haystack.includes(q))
+      return matchLevel && matchSource && (q.length === 0 || haystack.includes(q))
     })
-  }, [events, levelFilter, query])
+  }, [events, levelFilter, sourceFilter, query])
 
   const levelCounts = useMemo(() => events.reduce((acc, e) => {
     const l = String(e.level || 'NEW').toUpperCase()
@@ -127,7 +129,14 @@ export default function EventLogCard() {
           <div className="event-filters">
             {['SEMUA', 'BAHAYA', 'WASPADA', 'NEW'].map(f => (
               <button key={f} type="button" className={`event-filter-pill ${levelFilter === f ? 'active' : ''}`} onClick={() => setLevelFilter(f)}>
-                {f === 'SEMUA' ? 'Semua' : f === 'BAHAYA' ? 'Bahaya' : f === 'WASPADA' ? 'Waspada' : 'Baru'}
+                {f === 'SEMUA' ? 'Semua Status' : f === 'BAHAYA' ? 'Bahaya' : f === 'WASPADA' ? 'Waspada' : 'Baru'}
+              </button>
+            ))}
+          </div>
+          <div className="event-filters" style={{ marginTop: '0.75rem' }}>
+            {['SEMUA', 'BMKG', 'USGS', 'ESP32'].map(s => (
+              <button key={s} type="button" className={`event-filter-pill ${sourceFilter === s ? 'active' : ''}`} onClick={() => setSourceFilter(s)}>
+                {s === 'SEMUA' ? 'Semua Sumber' : s}
               </button>
             ))}
           </div>

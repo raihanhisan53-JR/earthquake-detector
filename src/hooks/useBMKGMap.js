@@ -184,7 +184,6 @@ export function useBMKGMap() {
 
   const publishIncidents = (nextPoints) => {
     nextPoints
-      .filter((point) => point.magnitude >= 4)
       .slice(0, 15)
       .forEach((point) => {
         const incidentId = `${point.source || 'SRC'}-${point.id}`;

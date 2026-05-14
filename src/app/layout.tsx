@@ -4,7 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Earthquake Detector',
   description: 'Sistem deteksi dan monitoring gempa bumi real-time',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/logo.png', apple: '/logo.png', shortcut: '/logo.png' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
