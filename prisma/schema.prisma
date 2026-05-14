@@ -23,6 +23,7 @@ model User {
 
   // Relations
   earthquakeLogs EarthquakeLog[]
+  settings       UserSettings?
 
   @@map("users")
 }
@@ -84,4 +85,18 @@ enum Source {
   USGS
   ESP32
   FALLBACK
+}
+
+// ============================================
+// USER_SETTINGS - Preferensi notifikasi pengguna
+// ============================================
+model UserSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifyRegion    String   @default("Semua") @map("notify_region")
+  notifyThreshold Float    @default(4.0) @map("notify_threshold")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
 }

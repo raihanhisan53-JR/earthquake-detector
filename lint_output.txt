@@ -1,0 +1,210 @@
+npm warn Unknown global config "python". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> nextjs@0.1.0 lint
+> eslint
+
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/app/login/page.tsx
+  65:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/AnalitikCard.jsx
+    1:1   error    Do not use "@ts-nocheck" because it alters compilation errors                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/ban-ts-comment
+    7:3   warning  'ArrowUp' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+    7:12  warning  'ArrowDown' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    7:23  warning  'Minus' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  169:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  167 |   useEffect(() => {
+  168 |     if (latest) {
+> 169 |       setFeltCount(Math.floor(Math.random() * 5000) + 100);
+      |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  170 |       setHasFelt(false);
+  171 |     }
+  172 |   }, [latest]);                                                react-hooks/set-state-in-effect
+  224:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  222 |
+  223 |   useEffect(() => {
+> 224 |     fetchData();
+      |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  225 |     timerRef.current   = window.setInterval(() => fetchData(), AUTO_REFRESH_MS);
+  226 |     cdTimerRef.current = window.setInterval(() => {
+  227 |       cdRef.current -= 1;  react-hooks/set-state-in-effect
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/Dashboard.tsx
+  38:52  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  51:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/Dashboard.tsx:51:5
+  49 |   // Hydration fix: baca localStorage setelah mount
+  50 |   useEffect(() => {
+> 51 |     setMounted(true)
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  52 |     const savedTab       = localStorage.getItem('activeTab') || 'overview'
+  53 |     const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+  54 |     const savedTheme     = localStorage.getItem('theme') || 'dark'  react-hooks/set-state-in-effect
+  79:92  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/EarthquakeMapCard.jsx
+    3:99  warning  'FastForward' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  312:9   warning  'alertsReadyRef' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  337:15  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  335 |   const filteredPoints = useMemo(() => {
+  336 |     void clockTick;
+> 337 |     const t = Date.now();
+      |               ^^^^^^^^^^ Cannot call impure function
+  338 |     let pts = sourcePoints.filter((point) => {
+  339 |       const byMagnitude = point.magnitude >= minMagnitude;
+  340 |       const byRegion = region === 'Semua' || point.region === region;                                                                                                                                                                                                                                                          react-hooks/purity
+  362:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  360 |     if (timeLapseIndex >= totalPts - 1) {
+  361 |       // pause when finished
+> 362 |       setIsTimeLapse(false);
+      |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  363 |       return;
+  364 |     }
+  365 |  react-hooks/set-state-in-effect
+  405:15  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  403 |   const mapMarkers = useMemo(() => {
+  404 |     void clockTick;
+> 405 |     const t = Date.now();
+      |               ^^^^^^^^^^ Cannot call impure function
+  406 |     if (!windowMs || mode === 'simulation') {
+  407 |       return filteredPoints.map((point) => ({ point, dimmed: false }));
+  408 |     }                                                                                                                                                                                                                                                                                                                  react-hooks/purity
+  545:9   error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  543 |
+  544 |     const eventAgeMs = Number.isFinite(latestAlertPoint.epochMs)
+> 545 |       ? Date.now() - latestAlertPoint.epochMs
+      |         ^^^^^^^^^^ Cannot call impure function
+  546 |       : Number.POSITIVE_INFINITY;
+  547 |     // Allow alerts for events up to 60 minutes old to account for BMKG processing delay
+  548 |     const isFreshRealtimeEvent = mode === 'simulation' || eventAgeMs <= 60 * 60 * 1000;                                                                                                                                                                                                     react-hooks/purity
+  555:17  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  553 |     }
+  554 |
+> 555 |     const now = Date.now();
+      |                 ^^^^^^^^^^ Cannot call impure function
+  556 |     const tooSoonSinceLastAlert = now - lastAlertTimestampRef.current < 15000;
+  557 |
+  558 |     if (!shouldRaiseAlert || !isFreshRealtimeEvent || !notificationsEnabled) {                                                                                                                                                                                                                                                                                                                               react-hooks/purity
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/LiveCCTVCard.jsx
+    3:35  warning  'Video' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    3:56  warning  'Wind' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    3:62  warning  'AlertCircle' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  235:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  265:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  350:20  error    'YouTubeClickCard' is not defined                                                                                                                                                                                                                                                        react/jsx-no-undef
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/Sidebar.jsx
+   2:10   warning  'ChevronLeft' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   2:23   warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   2:119  warning  'ShieldCheck' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  11:3    warning  'toggleCollapsed' is assigned a value but never used                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  41:15   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/Topbar.jsx
+   67:36  warning  '_' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   94:60  warning  '_' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  139:21  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  137 |   const providerLabel = user ? getProviderLabel(user) : '';
+  138 |
+> 139 |   useEffect(() => { setIpInput(esp32Ip); }, [esp32Ip]);
+      |                     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  140 |
+  141 |   // Clock
+  142 |   useEffect(() => {  react-hooks/set-state-in-effect
+  318:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @next/next/no-img-element
+  336:27  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @next/next/no-img-element
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/components/VisualisasiCard.jsx
+   90:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  140:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  161:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/hooks/useBMKG.ts
+   2:34  warning  'useRef' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  52:10  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/hooks/useBMKG.ts:52:10
+  50 |
+  51 |   useEffect(() => {
+> 52 |     void fetchData()
+     |          ^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |     const id = setInterval(() => void fetchData(), 5 * 60 * 1000)
+  54 |     return () => clearInterval(id)
+  55 |   }, [fetchData])  react-hooks/set-state-in-effect
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/hooks/useESP32.js
+  320:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  318 |   useEffect(() => {
+  319 |     if (esp32Ip) {
+> 320 |       connectToESP32(esp32Ip);
+      |       ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  321 |     }
+  322 |
+  323 |     return () => {  react-hooks/set-state-in-effect
+
+/home/energy/.gemini/antigravity/scracth/earthquake-detector/nextjs/src/hooks/useHaptics.js
+  31:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 40 problems (16 errors, 24 warnings)
+

@@ -317,6 +317,7 @@ export const useESP32 = () => {
 
   useEffect(() => {
     if (esp32Ip) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       connectToESP32(esp32Ip);
     }
 

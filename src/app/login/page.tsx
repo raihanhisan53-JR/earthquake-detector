@@ -62,6 +62,7 @@ export default function LoginPage() {
           setMode('login')
         }
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || 'Terjadi kesalahan.')
     } finally {

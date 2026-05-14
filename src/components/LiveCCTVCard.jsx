@@ -346,8 +346,6 @@ export default function LiveCCTVCard() {
               {/* Content */}
               {feed.type === 'premium-link'
                 ? <PremiumLinkCard feed={feed} />
-                : feed.type === 'youtube-click'
-                ? <YouTubeClickCard feed={feed} />
                 : <EmbedFeed feed={feed} />
               }
 

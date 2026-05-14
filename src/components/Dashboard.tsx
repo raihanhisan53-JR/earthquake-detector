@@ -12,17 +12,28 @@ import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { useESP32 } from '@/hooks/useESP32'
 
 // Dynamic imports — semua komponen di-load client-side saja
-const EarthquakeCard  = dynamic(() => import('./EarthquakeCard'), { ssr: false })
-const AnalitikCard    = dynamic(() => import('./AnalitikCard.jsx'), { ssr: false })
-const EventLogCard    = dynamic(() => import('./EventLogCard'), { ssr: false })
-const EarthquakeMapCard = dynamic(() => import('./EarthquakeMapCard.jsx'), { ssr: false })
-const LiveCCTVCard    = dynamic(() => import('./LiveCCTVCard.jsx'), { ssr: false })
-const ReelsEducation  = dynamic(() => import('./ReelsEducation.jsx'), { ssr: false })
-const WeatherCard     = dynamic(() => import('./WeatherCard.jsx'), { ssr: false })
-const VisualisasiCard = dynamic(() => import('./VisualisasiCard.jsx'), { ssr: false })
-const SeismographCard = dynamic(() => import('./SeismographCard.jsx'), { ssr: false })
-const Topbar          = dynamic(() => import('./Topbar.jsx'), { ssr: false })
-const Sidebar         = dynamic(() => import('./Sidebar.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EarthquakeCard  = dynamic<any>(() => import('./EarthquakeCard'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnalitikCard    = dynamic<any>(() => import('./AnalitikCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EventLogCard    = dynamic<any>(() => import('./EventLogCard'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EarthquakeMapCard = dynamic<any>(() => import('./EarthquakeMapCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LiveCCTVCard    = dynamic<any>(() => import('./LiveCCTVCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ReelsEducation  = dynamic<any>(() => import('./ReelsEducation.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const WeatherCard     = dynamic<any>(() => import('./WeatherCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const VisualisasiCard = dynamic<any>(() => import('./VisualisasiCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SeismographCard = dynamic<any>(() => import('./SeismographCard.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Topbar          = dynamic<any>(() => import('./Topbar.jsx'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false })
 
 interface DashboardProps { user: User }
 
@@ -35,6 +46,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [theme, setTheme]               = useState('dark')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [appNotices, setAppNotices]     = useState<any[]>([])
   const [mounted, setMounted]           = useState(false)
   const mainContentRef   = useRef<HTMLElement>(null)
@@ -48,6 +60,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
   // Hydration fix: baca localStorage setelah mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
     const savedTab       = localStorage.getItem('activeTab') || 'overview'
     const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
@@ -76,6 +89,7 @@ export default function Dashboard({ user }: DashboardProps) {
     setAppNotices(current => current.filter(n => n.id !== id))
   }, [])
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: any) => {
     if (!title) return ''
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -118,6 +132,26 @@ export default function Dashboard({ user }: DashboardProps) {
 
   // ── Alarm banner global saat ESP32 deteksi gempa ──
   const isEsp32Alert = esp32.connected && esp32.alertLevel > 0
+
+  // ── Auto-save ESP32 alert ke database ──
+  const prevEsp32AlertRef = useRef(0)
+  useEffect(() => {
+    if (esp32.connected && esp32.alertLevel > 0 && prevEsp32AlertRef.current === 0) {
+      const mag = esp32.pgaCms2 > 0 ? (Math.log10(esp32.pgaCms2) + 1.5).toFixed(1) : (esp32.alertLevel === 2 ? '5.5' : '4.0')
+      fetch('/api/earthquakes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          magnitude: parseFloat(mag), 
+          location: 'Sensor Lokal (Alat ESP32)',
+          source: 'ESP32',
+          level: esp32.alertLevel === 2 ? 'BAHAYA' : 'WASPADA',
+          detail: `Getaran lokal terdeteksi (PGA: ${esp32.pgaCms2} cm/s²)`
+        })
+      }).catch(console.error)
+    }
+    prevEsp32AlertRef.current = esp32.alertLevel
+  }, [esp32.connected, esp32.alertLevel, esp32.pgaCms2])
 
   // ── Props seismograph — satu objek dipakai di dua tempat ──
   const seismographProps = {

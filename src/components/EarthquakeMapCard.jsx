@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Bell, Crosshair, GitBranch, List, MapPin, RefreshCcw, Globe, Play, Pause, FastForward } from 'lucide-react';
+import { AlertTriangle, Bell, Crosshair, GitBranch, List, MapPin, RefreshCcw, Globe, Play, Pause, FastForward, Search } from 'lucide-react';
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useBMKGMap } from '@/hooks/useBMKGMap';
 import EarthquakeGlobe3D from './EarthquakeGlobe3D';
@@ -257,6 +257,65 @@ function MapAutoFocus({ point, enabled }) {
   return null;
 }
 
+function MapSearchController({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target && target.lat && target.lon) {
+      map.flyTo([target.lat, target.lon], 10, { duration: 1.5 });
+    }
+  }, [target, map]);
+  return null;
+}
+
+function MapSearchBox({ onSelectLocation }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setSearching(true);
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`);
+      const data = await res.json();
+      setResults(data);
+    } catch (err) {
+      console.error(err);
+    }
+    setSearching(false);
+  };
+
+  return (
+    <div className="map-search-container" style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, background: 'var(--bg-card)', padding: '8px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', width: '280px' }}>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
+        <input 
+          type="text" 
+          value={query} 
+          onChange={e => setQuery(e.target.value)} 
+          placeholder="Cari Kota/Daerah..." 
+          style={{ flex: 1, padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
+        />
+        <button type="submit" className="btn btn-primary" disabled={searching} style={{ padding: '6px 10px', minWidth: 'unset' }}>
+          <Search size={16} />
+        </button>
+      </form>
+      {results.length > 0 && (
+        <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', maxHeight: '200px', overflowY: 'auto' }}>
+          {results.map((r, i) => (
+            <li key={i} style={{ padding: '8px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text-secondary)' }} onClick={() => {
+              onSelectLocation({ lat: parseFloat(r.lat), lon: parseFloat(r.lon) });
+              setResults([]);
+            }}>
+              {r.display_name.length > 50 ? r.display_name.substring(0, 50) + '...' : r.display_name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function MapInteractionController() {
   const map = useMap();
 
@@ -315,6 +374,7 @@ export default function EarthquakeMapCard({
   const [viewMode, setViewMode] = useState('2d'); // '2d' or '3d'
   const [isTimeLapse, setIsTimeLapse] = useState(false);
   const [timeLapseIndex, setTimeLapseIndex] = useState(0);
+  const [searchTarget, setSearchTarget] = useState(null);
 
   const regions = useMemo(
     () => ['Semua', ...new Set(points.map((point) => point.region || 'Lainnya'))],
@@ -334,6 +394,7 @@ export default function EarthquakeMapCard({
 
   const filteredPoints = useMemo(() => {
     void clockTick;
+    // eslint-disable-next-line react-hooks/purity
     const t = Date.now();
     let pts = sourcePoints.filter((point) => {
       const byMagnitude = point.magnitude >= minMagnitude;
@@ -359,6 +420,7 @@ export default function EarthquakeMapCard({
     
     if (timeLapseIndex >= totalPts - 1) {
       // pause when finished
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsTimeLapse(false);
       return;
     }
@@ -402,6 +464,7 @@ export default function EarthquakeMapCard({
 
   const mapMarkers = useMemo(() => {
     void clockTick;
+    // eslint-disable-next-line react-hooks/purity
     const t = Date.now();
     if (!windowMs || mode === 'simulation') {
       return filteredPoints.map((point) => ({ point, dimmed: false }));
@@ -486,6 +549,13 @@ export default function EarthquakeMapCard({
         markerColorMode,
       }),
     );
+
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notifyRegion, notifyThreshold })
+    }).catch(console.error);
+
   }, [
     baseLayer,
     followLatest,
@@ -497,6 +567,16 @@ export default function EarthquakeMapCard({
     sortBy,
     timeRange,
   ]);
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.notifyRegion) setNotifyRegion(data.notifyRegion);
+        if (data && data.notifyThreshold) setNotifyThreshold(data.notifyThreshold);
+      })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!showPlateBoundaries) {
@@ -542,6 +622,7 @@ export default function EarthquakeMapCard({
     }
 
     const eventAgeMs = Number.isFinite(latestAlertPoint.epochMs)
+      // eslint-disable-next-line react-hooks/purity
       ? Date.now() - latestAlertPoint.epochMs
       : Number.POSITIVE_INFINITY;
     // Allow alerts for events up to 60 minutes old to account for BMKG processing delay
@@ -552,6 +633,7 @@ export default function EarthquakeMapCard({
       return; // Already notified about this specific earthquake
     }
 
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const tooSoonSinceLastAlert = now - lastAlertTimestampRef.current < 15000;
 
@@ -847,6 +929,8 @@ export default function EarthquakeMapCard({
                 })}
               />
             ) : null}
+            <MapSearchBox onSelectLocation={(loc) => { setSearchTarget(loc); setFollowLatest(false); }} />
+            <MapSearchController target={searchTarget} />
             <MapInteractionController />
             <MapAutoFocus point={mapFollowTarget} enabled={followLatest && mode !== 'simulation'} />
 

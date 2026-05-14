@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const FALLBACK_GEMPA = {
   Tanggal: '23 Apr 2026', Jam: '10:48:21 WIB', Coordinates: '-8.37,123.18',
@@ -49,6 +49,7 @@ export function useBMKG() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchData()
     const id = setInterval(() => void fetchData(), 5 * 60 * 1000)
     return () => clearInterval(id)

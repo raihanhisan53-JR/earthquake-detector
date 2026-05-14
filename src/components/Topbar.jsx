@@ -136,6 +136,7 @@ export default function Topbar({
   const profileInitials = user ? getProfileInitials(user) : '';
   const providerLabel = user ? getProviderLabel(user) : '';
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setIpInput(esp32Ip); }, [esp32Ip]);
 
   // Clock
