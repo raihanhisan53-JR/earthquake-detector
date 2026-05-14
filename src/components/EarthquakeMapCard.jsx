@@ -260,8 +260,9 @@ function MapAutoFocus({ point, enabled }) {
 function MapSearchController({ target }) {
   const map = useMap();
   useEffect(() => {
-    if (target && target.lat && target.lon) {
-      map.flyTo([target.lat, target.lon], 10, { duration: 1.5 });
+    if (target && target.lat != null && target.lon != null) {
+      const zoom = target.zoom ?? 10;
+      map.flyTo([target.lat, target.lon], zoom, { duration: 1.5 });
     }
   }, [target, map]);
   return null;
@@ -346,7 +347,7 @@ export default function EarthquakeMapCard({
   notificationsEnabled = true,
   notifyUser = () => {},
 }) {
-  const { points, loading, error, refresh, health } = useBMKGMap();
+  const { points, bmkgPoints, usgsPoints, loading, error, refresh, health } = useBMKGMap();
   const storedPrefs = useMemo(() => getStoredMapPreferences(), []);
   const [minMagnitude, setMinMagnitude] = useState(3);
   const [region, setRegion] = useState('Semua');
@@ -359,7 +360,9 @@ export default function EarthquakeMapCard({
   const [listLimit, setListLimit] = useState(storedPrefs.listLimit);
   const [sortBy, setSortBy] = useState(storedPrefs.sortBy);
   const [markerColorMode, setMarkerColorMode] = useState(storedPrefs.markerColorMode);
+  // 'Semua' | 'BMKG' | 'USGS'
   const [dataSourceFilter, setDataSourceFilter] = useState('Semua');
+  const [searchTarget, setSearchTarget] = useState(null);
   const [clockTick, setClockTick] = useState(0);
   const [selectedPointId, setSelectedPointId] = useState(null);
   const [showPlateBoundaries, setShowPlateBoundaries] = useState(storedPrefs.showPlateBoundaries);
@@ -370,21 +373,25 @@ export default function EarthquakeMapCard({
   const lastAlertIdRef = useRef('');
   const lastAlertTimestampRef = useRef(0);
   const alertsReadyRef = useRef(false);
-
-  // Ultimate Features States
-  const [viewMode, setViewMode] = useState('2d'); // '2d' or '3d'
+  const [viewMode, setViewMode] = useState('2d');
   const [isTimeLapse, setIsTimeLapse] = useState(false);
   const [timeLapseIndex, setTimeLapseIndex] = useState(0);
-  const [searchTarget, setSearchTarget] = useState(null);
+
+  // Pilih titik berdasarkan sumber aktif
+  const activePoints = useMemo(() => {
+    if (dataSourceFilter === 'BMKG') return bmkgPoints;
+    if (dataSourceFilter === 'USGS') return usgsPoints;
+    return points; // Semua
+  }, [dataSourceFilter, bmkgPoints, usgsPoints, points]);
 
   const regions = useMemo(
-    () => ['Semua', ...new Set(points.map((point) => point.region || 'Lainnya'))],
-    [points],
+    () => ['Semua', ...new Set(activePoints.map((p) => p.region || 'Lainnya'))],
+    [activePoints],
   );
 
   const sourcePoints = useMemo(
-    () => (mode === 'simulation' && simulatedPoint ? [simulatedPoint, ...points] : points),
-    [mode, simulatedPoint, points],
+    () => (mode === 'simulation' && simulatedPoint ? [simulatedPoint, ...activePoints] : activePoints),
+    [mode, simulatedPoint, activePoints],
   );
   const windowMs = resolveTimeWindowMs(timeRange);
 
@@ -812,13 +819,25 @@ export default function EarthquakeMapCard({
             ))}
           </select>
         </div>
-        <div className="map-control-item">
-          <label htmlFor="dataSourceFilter">Sumber Data</label>
-          <select id="dataSourceFilter" value={dataSourceFilter} onChange={(event) => setDataSourceFilter(event.target.value)}>
-            <option value="Semua">Semua Sumber</option>
-            <option value="BMKG">BMKG (Lokal)</option>
-            <option value="USGS">USGS (Global)</option>
-          </select>
+        <div className="map-control-item map-source-toggle-item">
+          <label>Sumber Data</label>
+          <div className="map-source-toggle">
+            {[
+              { key: 'Semua', label: 'Semua',    color: '#6d28d9' },
+              { key: 'BMKG',  label: '🇮🇩 BMKG', color: '#059669', onClick: () => setSearchTarget({ lat: -2.5, lon: 118, zoom: 5 }) },
+              { key: 'USGS',  label: '🌐 USGS',  color: '#0891b2', onClick: () => setSearchTarget({ lat: 20, lon: 0, zoom: 2 }) },
+            ].map(({ key, label, color, onClick }) => (
+              <button
+                key={key}
+                type="button"
+                className={`map-source-btn ${dataSourceFilter === key ? 'active' : ''}`}
+                style={dataSourceFilter === key ? { borderColor: color, color: color, background: `${color}18` } : {}}
+                onClick={() => { setDataSourceFilter(key); if (onClick) onClick(); }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="map-control-item">
           <label htmlFor="timeRange">Rentang Waktu</label>

@@ -86,7 +86,7 @@ function playSiren(onOk, onErr) {
     });
   }
 
-  trySource('/siren-alert.mp3', '/alert.m4a');
+  trySource('/tornado-siren.mp3', '/alert.m4a');
 }
 
 function stopSiren() {

@@ -1,73 +1,57 @@
-"use client"
-/**
- * useNotifications — Real-time earthquake & sensor notification system
- * Sources: BMKG (primary), USGS (secondary), ESP32 (local sensor)
- * Features: Browser Push Notifications + Web Audio Siren
- */
+'use client'
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-const BMKG_URL   = 'https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json';
-const USGS_URL   = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson';
-const PROXY_BMKG = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json');
-const PROXY_USGS = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_hour.geojson');
+// ══════════════════════════════════════════════════════
+// SINGLETON AUDIO — satu objek audio global, tidak ghost
+// ══════════════════════════════════════════════════════
+let sirenAudio = null;
+let beepAudio  = null;
+let sirenTimer = null;
 
-const BMKG_INTERVAL_MS  = 30_000;
-const USGS_INTERVAL_MS  = 60_000;
-const MAX_NOTIFICATIONS = 50;
-
-const MAG_LEVEL = (m) => {
-  if (m >= 7) return { label: 'Major',    color: '#dc2626', bg: 'rgba(220,38,38,0.12)',  icon: '🔴' };
-  if (m >= 6) return { label: 'Strong',   color: '#ef4444', bg: 'rgba(239,68,68,0.10)',  icon: '🟠' };
-  if (m >= 5) return { label: 'Moderate', color: '#f97316', bg: 'rgba(249,115,22,0.10)', icon: '🟡' };
-  if (m >= 4) return { label: 'Light',    color: '#3b82f6', bg: 'rgba(59,130,246,0.10)', icon: '🔵' };
-  return              { label: 'Minor',   color: '#22c55e', bg: 'rgba(34,197,94,0.10)',  icon: '🟢' };
-};
-
-const makeId = (source, key) => `${source}::${key}`;
-
-async function fetchJSON(url, timeoutMs = 8000) {
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } finally {
-    clearTimeout(tid);
+function stopAllAudio() {
+  if (sirenTimer) { clearTimeout(sirenTimer); sirenTimer = null; }
+  if (sirenAudio) {
+    try { sirenAudio.pause(); sirenAudio.currentTime = 0; } catch {}
+    sirenAudio = null;
+  }
+  if (beepAudio) {
+    try { beepAudio.pause(); beepAudio.currentTime = 0; } catch {}
+    beepAudio = null;
   }
 }
 
-// ══════════════════════════════════════════════════════
-// MP3 AUDIO SIREN — Menggunakan file war siren MP3
-// ══════════════════════════════════════════════════════
-function playSiren({ durationMs = 6000, level = 1 } = {}) {
+function playSiren({ durationMs = 8000, level = 1 } = {}) {
   if (typeof window === 'undefined') return;
+  stopAllAudio(); // Stop sebelumnya dulu
   try {
-    const audio = new Audio('/tornado-siren.mp3');
-    // Volume berdasarkan level bahaya
-    audio.volume = level >= 4 ? 1.0 : level >= 2 ? 0.6 : 0.3;
-    audio.play().catch(err => console.warn('[Siren] Autoplay gagal:', err));
-
-    // Stop audio setelah durasi selesai
-    setTimeout(() => {
-      audio.pause();
-      audio.currentTime = 0;
+    sirenAudio = new Audio('/tornado-siren.mp3');
+    sirenAudio.volume = level >= 4 ? 1.0 : level >= 2 ? 0.75 : 0.4;
+    sirenAudio.loop   = false;
+    sirenAudio.play().catch(err => console.warn('[Siren] Autoplay gagal:', err));
+    sirenTimer = setTimeout(() => {
+      if (sirenAudio) {
+        try { sirenAudio.pause(); sirenAudio.currentTime = 0; } catch {}
+        sirenAudio = null;
+      }
     }, durationMs);
   } catch (err) {
     console.warn('[Siren] Audio gagal:', err);
   }
 }
 
-// Sirine pendek untuk notifikasi ringan
 function playBeep() {
   if (typeof window === 'undefined') return;
+  if (beepAudio) {
+    try { beepAudio.pause(); beepAudio.currentTime = 0; } catch {}
+  }
   try {
-    const audio = new Audio('/alert.m4a'); // Asumsi ada file alert.m4a untuk suara pendek
-    audio.volume = 0.5;
-    audio.play().catch(err => console.warn('[Beep] Autoplay gagal:', err));
+    beepAudio = new Audio('/alert.m4a');
+    beepAudio.volume = 0.5;
+    beepAudio.play().catch(err => console.warn('[Beep] Autoplay gagal:', err));
   } catch { /* ignore */ }
 }
 
+// ══════════════════════════════════════════════════════
 export function useNotifications({
   esp32AlertLevel = 0,
   esp32Connected  = false,
@@ -78,218 +62,77 @@ export function useNotifications({
   const [unreadCount, setUnreadCount]     = useState(0);
   const [panelOpen, setPanelOpen]         = useState(false);
 
-  const seenRef       = useRef(new Set());
-  const prevEsp32Ref  = useRef(0);
-  const bmkgTimerRef  = useRef(null);
-  const usgsTimerRef  = useRef(null);
-  // Track siren state untuk mencegah spam
-  const sirenActiveRef = useRef(false);
+  const esp32PrevLevelRef    = useRef(0);
+  const sirenActiveRef       = useRef(false);
 
-  const addNotification = useCallback((notif) => {
-    const id = notif.id || makeId(notif.source, Date.now());
-    if (seenRef.current.has(id)) return;
-    seenRef.current.add(id);
+  // ── Uji Alarm ──────────────────────────────────────
+  const triggerTestAlarm = useCallback(() => {
+    if (!sirenEnabled) return;
+    stopAllAudio(); // pastikan audio lama berhenti
+    sirenActiveRef.current = true;
+    playSiren({ durationMs: 8000, level: 3 });
+    addNotification({
+      type: 'warning',
+      title: 'Uji Alarm',
+      message: 'Sirine tornado aktif — ini hanya tes.',
+    });
+  }, [sirenEnabled]);
 
-    const full = { ...notif, id, timestamp: Date.now(), read: false };
-    setNotifications((prev) => [full, ...prev].slice(0, MAX_NOTIFICATIONS));
-    setUnreadCount((n) => n + 1);
-
-    // ── Browser Push Notification ke laptop/desktop ──
-    if (notificationsEnabled && typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        try {
-          new Notification(notif.title, {
-            body: notif.body,
-            icon: '/logo.png',
-            badge: '/logo.png',
-            tag: id,
-            requireInteraction: (notif.magnitude ?? 0) >= 6 || notif.source === 'ESP32',
-          });
-        } catch { /* ignore */ }
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().then((perm) => {
-          if (perm === 'granted') {
-            try { new Notification(notif.title, { body: notif.body, icon: '/logo.png', tag: id }); }
-            catch { /* ignore */ }
-          }
-        });
-      }
-    }
-
-    // ── Web Audio Siren ──
-    if (sirenEnabled && !sirenActiveRef.current) {
-      const mag   = notif.magnitude ?? 0;
-      const level = notif.level?.label;
-
-      if (notif.source === 'ESP32') {
-        // Sensor lokal: sirine penuh
-        sirenActiveRef.current = true;
-        playSiren({ durationMs: 5000, level: esp32AlertLevel });
-        setTimeout(() => { sirenActiveRef.current = false; }, 6000);
-      } else if (mag >= 7 || level === 'Major') {
-        // Gempa besar: sirine panjang
-        sirenActiveRef.current = true;
-        playSiren({ durationMs: 6000, level: 4 });
-        setTimeout(() => { sirenActiveRef.current = false; }, 7000);
-      } else if (mag >= 5) {
-        // Gempa sedang: sirine pendek
-        sirenActiveRef.current = true;
-        playSiren({ durationMs: 3000, level: 2 });
-        setTimeout(() => { sirenActiveRef.current = false; }, 4000);
-      } else if (mag >= 4) {
-        // Gempa ringan: beep saja
-        playBeep();
-      }
-    }
-  }, [notificationsEnabled, sirenEnabled, esp32AlertLevel]);
-
-  // ── BMKG polling ──
-  const fetchBMKG = useCallback(async () => {
-    try {
-      let data;
-      try { data = await fetchJSON(BMKG_URL, 5000); }
-      catch { data = await fetchJSON(PROXY_BMKG, 8000); }
-
-      const g = data?.Infogempa?.gempa;
-      if (!g) return;
-
-      const mag   = parseFloat(g.Magnitude) || 0;
-      const id    = makeId('bmkg', `${g.Tanggal}-${g.Jam}-${g.Magnitude}`);
-      const level = MAG_LEVEL(mag);
-
-      if (mag >= 4.0) {
-        addNotification({
-          id,
-          source:      'BMKG',
-          sourceColor: '#f59e0b',
-          title:       `${level.icon} Gempa M${mag.toFixed(1)} — BMKG`,
-          body:        `${g.Wilayah} · ${g.Jam} · ${g.Kedalaman}`,
-          magnitude:   mag,
-          location:    g.Wilayah,
-          depth:       g.Kedalaman,
-          time:        g.Jam,
-          date:        g.Tanggal,
-          potensi:     g.Potensi,
-          level,
-          type:        'earthquake',
-        });
-      }
-    } catch { /* silent fail */ }
-  }, [addNotification]);
-
-  // ── USGS polling — filter wilayah Indonesia ──
-  const fetchUSGS = useCallback(async () => {
-    try {
-      let data;
-      try { data = await fetchJSON(USGS_URL, 8000); }
-      catch { data = await fetchJSON(PROXY_USGS, 10000); }
-
-      const features = data?.features || [];
-
-      // Filter: Indonesia lat -11 to 6, lon 95 to 141
-      const indonesia = features.filter((f) => {
-        const [lon, lat] = f.geometry?.coordinates || [];
-        return lat >= -11 && lat <= 6 && lon >= 95 && lon <= 141;
-      });
-
-      indonesia.forEach((f) => {
-        const p   = f.properties;
-        const mag = p.mag || 0;
-        if (mag < 4.0) return;
-
-        const id    = makeId('usgs', f.id);
-        const level = MAG_LEVEL(mag);
-        const time  = new Date(p.time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-        addNotification({
-          id,
-          source:      'USGS',
-          sourceColor: '#3b82f6',
-          title:       `${level.icon} Gempa M${mag.toFixed(1)} — USGS`,
-          body:        `${p.place} · ${time}`,
-          magnitude:   mag,
-          location:    p.place,
-          depth:       `${Math.round(f.geometry?.coordinates?.[2] || 0)} km`,
-          time,
-          date:        new Date(p.time).toLocaleDateString('id-ID'),
-          potensi:     mag >= 7 ? 'Berpotensi tsunami' : 'Tidak berpotensi tsunami',
-          level,
-          type:        'earthquake',
-          url:         p.url,
-        });
-      });
-    } catch { /* silent fail */ }
-  }, [addNotification]);
-
-  // ── ESP32 sensor alert ──
-  useEffect(() => {
-    const prev = prevEsp32Ref.current;
-
-    if (esp32AlertLevel > 0 && prev === 0 && esp32Connected) {
-      const lv = esp32AlertLevel;
-      const levelLabel = lv >= 4 ? 'BAHAYA' : lv >= 2 ? 'WASPADA' : 'MINOR';
-
-      addNotification({
-        id:          makeId('esp32', Date.now()),
-        source:      'ESP32',
-        sourceColor: '#a855f7',
-        title:       `⚡ Getaran Terdeteksi — Sensor Lokal`,
-        body:        `Level ${lv} · Status: ${levelLabel} · Sensor MPU6500`,
-        magnitude:   null,
-        level: {
-          label: levelLabel,
-          color: lv >= 4 ? '#ef4444' : '#f97316',
-          bg:    'rgba(168,85,247,0.1)',
-          icon:  '⚡',
-        },
-        type: 'sensor',
-      });
-    }
-
-    prevEsp32Ref.current = esp32AlertLevel;
-  }, [esp32AlertLevel, esp32Connected, addNotification]);
-
-  // ── Minta izin notifikasi saat pertama mount ──
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
+  // ── Stop Alarm ─────────────────────────────────────
+  const stopAlarm = useCallback(() => {
+    stopAllAudio();
+    sirenActiveRef.current = false;
   }, []);
 
-  // ── Start polling BMKG & USGS ──
+  // ── Notifikasi ESP32 ────────────────────────────────
   useEffect(() => {
-    fetchBMKG();
-    fetchUSGS();
-    bmkgTimerRef.current = setInterval(fetchBMKG, BMKG_INTERVAL_MS);
-    usgsTimerRef.current = setInterval(fetchUSGS, USGS_INTERVAL_MS);
-    return () => {
-      clearInterval(bmkgTimerRef.current);
-      clearInterval(usgsTimerRef.current);
-    };
-  }, [fetchBMKG, fetchUSGS]);
+    if (!esp32Connected || !notificationsEnabled) return;
+    const prev = esp32PrevLevelRef.current;
+    if (esp32AlertLevel <= prev) {
+      esp32PrevLevelRef.current = esp32AlertLevel;
+      return;
+    }
+    esp32PrevLevelRef.current = esp32AlertLevel;
 
-  const markAllRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    setUnreadCount(0);
+    if (esp32AlertLevel >= 3) {
+      if (sirenEnabled) { sirenActiveRef.current = true; playSiren({ level: esp32AlertLevel }); }
+      addNotification({ type: 'error', title: '🚨 Gempa Terdeteksi Sensor!', message: `Level bahaya ESP32: ${esp32AlertLevel}` });
+    } else if (esp32AlertLevel >= 1) {
+      playBeep();
+      addNotification({ type: 'warning', title: '⚠️ Getaran Terdeteksi', message: `Sensor level: ${esp32AlertLevel}` });
+    }
+  }, [esp32AlertLevel, esp32Connected, notificationsEnabled, sirenEnabled]);
+
+  // ── Helper: tambah notifikasi ───────────────────────
+  const addNotification = useCallback((n) => {
+    const id = `${Date.now()}-${Math.random()}`;
+    setNotifications(prev => [{ ...n, id, time: new Date().toLocaleTimeString('id-ID') }, ...prev].slice(0, 20));
+    setUnreadCount(c => c + 1);
   }, []);
+
+  const dismissNotification = useCallback((id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const markAllRead = useCallback(() => setUnreadCount(0), []);
 
   const clearAll = useCallback(() => {
     setNotifications([]);
     setUnreadCount(0);
-    seenRef.current.clear();
   }, []);
-
-  const openPanel  = useCallback(() => { setPanelOpen(true); markAllRead(); }, [markAllRead]);
-  const closePanel = useCallback(() => setPanelOpen(false), []);
 
   return {
     notifications,
     unreadCount,
     panelOpen,
-    openPanel,
-    closePanel,
+    setPanelOpen,
+    addNotification,
+    dismissNotification,
     markAllRead,
     clearAll,
-    addNotification,
+    triggerTestAlarm,
+    stopAlarm,
+    playSiren,
+    playBeep,
   };
 }

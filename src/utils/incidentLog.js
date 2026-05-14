@@ -17,12 +17,13 @@ export const saveIncidents = (incidents) => {
 }
 
 export const appendIncident = async (incident) => {
-  // 1. Simpan di localStorage
+  // 1. Simpan di localStorage (cegah duplikat lokal via ID)
   const current = readIncidents()
+  if (current.some(i => i.id === incident.id)) return  // sudah ada, skip
   const next = [{ ...incident }, ...current]
   saveIncidents(next)
 
-  // 2. Simpan ke Supabase via API
+  // 2. Simpan ke Supabase via API — kirim externalId agar dedup akurat
   try {
     await fetch('/api/earthquakes', {
       method: 'POST',
@@ -33,10 +34,11 @@ export const appendIncident = async (incident) => {
         source: incident.source || 'BMKG',
         level: incident.level || 'WASPADA',
         detail: incident.detail || '',
+        externalId: incident.id, // stable ID dari BMKG/USGS
       }),
     })
   } catch {
-    // silent fail - data aman di localStorage
+    // silent fail — data aman di localStorage
   }
 }
 

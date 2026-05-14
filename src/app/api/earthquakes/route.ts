@@ -12,39 +12,49 @@ export async function GET() {
     return NextResponse.json(earthquakes)
   } catch (error) {
     console.error('GET /api/earthquakes error:', error)
-    // Return empty array instead of 500 if DB not connected
     return NextResponse.json([])
   }
 }
 
-// POST - Simpan earthquake log baru (dengan duplicate check)
+// POST - Simpan earthquake log baru
+// Menggunakan externalId sebagai primary dedup key (stabil lintas sesi)
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     const body = await request.json()
-    const { magnitude, location, source, level, detail, latitude, longitude, depth } = body
+    const { magnitude, location, source, level, detail, latitude, longitude, depth, externalId } = body
 
-    // Cek duplikat: gempa yang sama (lokasi+magnitude+source) dalam 5 menit terakhir saja
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+    // Cek duplikat via externalId (stable ID dari BMKG/USGS) — prioritas utama
+    if (externalId) {
+      const byExternalId = await prisma.earthquakeLog.findFirst({
+        where: { detail: { contains: `[id:${externalId}]` } }
+      })
+      if (byExternalId) return NextResponse.json(byExternalId)
+    }
+
+    // Fallback dedup: sama lokasi+magnitude+source dalam 2 jam
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
     const existing = await prisma.earthquakeLog.findFirst({
       where: {
         location: location || 'Unknown',
         magnitude: parseFloat(magnitude) || 0,
-        source: source || 'BMKG',
-        timestamp: { gte: fiveMinutesAgo }
+        source: (source || 'BMKG') as 'BMKG' | 'USGS' | 'ESP32' | 'FALLBACK',
+        timestamp: { gte: twoHoursAgo }
       }
     })
     if (existing) return NextResponse.json(existing)
+
+    const detailStr = `${detail || ''}${externalId ? ` [id:${externalId}]` : ''}`
 
     const earthquake = await prisma.earthquakeLog.create({
       data: {
         magnitude: parseFloat(magnitude) || 0,
         location: location || 'Unknown',
-        source: source || 'BMKG',
-        level: level || 'WASPADA',
-        detail: detail || '',
+        source: (source || 'BMKG') as 'BMKG' | 'USGS' | 'ESP32' | 'FALLBACK',
+        level: (level || 'WASPADA') as 'AMAN' | 'WASPADA' | 'BAHAYA',
+        detail: detailStr,
         latitude: latitude ? parseFloat(latitude) : null,
         longitude: longitude ? parseFloat(longitude) : null,
         depth: depth ? parseFloat(depth) : null,

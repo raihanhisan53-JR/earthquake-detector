@@ -2135,6 +2135,39 @@ body {
   grid-column: span 2;
 }
 
+/* ── Source Toggle Buttons ── */
+.map-source-toggle-item {
+  grid-column: span 2;
+}
+
+.map-source-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.map-source-btn {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.map-source-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.map-source-btn.active {
+  font-weight: 700;
+}
+
 .map-control-item label {
   font-size: 11px;
   font-weight: 600;
