@@ -24,9 +24,21 @@ const sanitizeIp = (value) =>
 const toBaseUrl = (ip) => {
   const sanitized = sanitizeIp(ip);
   if (!sanitized) return '';
-  // Jika sudah ada protokol, gunakan apa adanya
   if (sanitized.startsWith('http://') || sanitized.startsWith('https://')) return sanitized;
   return `http://${sanitized}`;
+};
+
+// Pakai proxy Vercel saat di HTTPS untuk hindari CORS/Mixed Content
+const fetchESP32 = async (ip, path = 'api') => {
+  const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  if (isHttps) {
+    // Pakai proxy Next.js API
+    return fetch(`/api/esp32?ip=${encodeURIComponent(ip)}&path=${encodeURIComponent(path)}`, {
+      cache: 'no-store',
+    });
+  }
+  // Local development: fetch langsung
+  return fetch(`http://${ip}/${path}`, { cache: 'no-store' });
 };
 
 const parseNumeric = (value, fallback = 0) => {
@@ -121,10 +133,11 @@ export const useESP32 = () => {
     requestLockRef.current = true;
 
     try {
-      // Coba /api/status dulu (format lama), fallback ke /api (OBSIDIAN format)
-      let response = await fetch(`${baseUrl}/api/status`, { cache: 'no-store' }).catch(() => null);
+      // Pakai proxy saat HTTPS, langsung saat HTTP
+      const ip = sanitizeIp(baseUrl)
+      let response = await fetchESP32(ip, 'api/status').catch(() => null);
       if (!response || !response.ok) {
-        response = await fetch(`${baseUrl}/api`, { cache: 'no-store' });
+        response = await fetchESP32(ip, 'api');
       }
       if (!response.ok) {
         throw new Error(`ESP32 status error ${response.status}`);
