@@ -36,7 +36,6 @@ const Topbar          = dynamic<any>(() => import('./Topbar.jsx'), { ssr: false 
 const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AriaChat        = dynamic<any>(() => import('./AriaChat'), { ssr: false })
-const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false })
 
 interface DashboardProps { user: User }
 
