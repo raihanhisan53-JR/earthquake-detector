@@ -328,8 +328,10 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
             flex: 1, padding: '10px 16px',
             background: 'rgba(255,255,255,0.05)',
             border: '1px solid rgba(139,92,246,0.3)',
-            borderRadius: '12px', color: '#f1f5f9',
+            borderRadius: '12px',
+            color: 'var(--text-primary, #f1f5f9)',
             fontSize: '14px', outline: 'none',
+            WebkitTextFillColor: 'var(--text-primary, #f1f5f9)',
           }}
         />
         <button
