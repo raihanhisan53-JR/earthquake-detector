@@ -15,3 +15,4 @@ npm warn Unknown global config "python". This will stop working in the next majo
 
 ○ Compiling /api/earthquakes ...
  POST /api/earthquakes 201 in 16.5s (next.js: 12.5s, application-code: 3.9s)
+[?25h

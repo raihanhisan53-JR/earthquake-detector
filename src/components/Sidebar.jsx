@@ -1,5 +1,5 @@
 "use client"
-import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, Wind, X, Globe, Video, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, Wind, X, Globe, Video, Bot } from 'lucide-react';
 
 export default function Sidebar({
   connected,
@@ -21,6 +21,7 @@ export default function Sidebar({
     { id: 'udara', icon: <Wind size={18} />, label: 'Kualitas Udara' },
     { id: 'esp32', icon: <Cpu size={18} />, label: 'ESP32 Sensor' },
     { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat Kejadian' },
+    { id: 'aria', icon: <Bot size={18} />, label: 'ARIA AI', badge: 'NEW' },
   ];
 
   const getNavClass = (id) => `nav-item ${activeTab === id ? 'active' : ''}`;
@@ -61,7 +62,17 @@ export default function Sidebar({
               title={collapsed ? item.label : undefined}
             >
               {item.icon}
-              <span className="nav-item__label">{item.label}</span>
+              <span className="nav-item__label">
+                {item.label}
+                {item.badge && (
+                  <span style={{
+                    marginLeft: '6px', fontSize: '9px', fontWeight: '700',
+                    background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                    color: '#fff', padding: '1px 5px', borderRadius: '4px',
+                    letterSpacing: '0.5px',
+                  }}>{item.badge}</span>
+                )}
+              </span>
             </a>
           ))}
         </nav>

@@ -31,12 +31,18 @@ export function useBMKG() {
         const magnitude = parseFloat(newGempa.Magnitude)
         const feltQuake = (newGempa.Potensi ?? '').toLowerCase().includes('dirasakan')
         const level = magnitude >= 5.0 || feltQuake ? 'BAHAYA' : magnitude >= 3.0 ? 'WASPADA' : 'AMAN'
+        // externalId stabil: tanggal+jam+magnitude dari BMKG
+        const externalId = `bmkg-${newGempa.Tanggal}-${newGempa.Jam}-M${newGempa.Magnitude}`.replace(/\s+/g, '_')
         await fetch('/api/earthquakes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            magnitude, location: newGempa.Wilayah?.replace(/^pusat gempa berada /i, '') || 'Unknown',
-            source: 'BMKG', level, detail: `${newGempa.Kedalaman} - ${newGempa.Potensi}`,
+            magnitude,
+            location: newGempa.Wilayah?.replace(/^pusat gempa berada /i, '') || 'Unknown',
+            source: 'BMKG',
+            level,
+            detail: `${newGempa.Kedalaman} - ${newGempa.Potensi}`,
+            externalId,
           }),
         })
       } catch { /* silent fail */ }

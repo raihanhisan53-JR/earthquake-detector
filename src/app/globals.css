@@ -2198,15 +2198,7 @@ select option {
   border-color: var(--accent);
 }
 
-.quake-row {
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-}
-
-.quake-row:hover {
-  background-color: var(--bg-hover);
-  transform: translateX(4px);
-}
+/* duplicate quake-row removed */
 
 .map-secondary-actions {
   display: flex;
@@ -2230,17 +2222,20 @@ select option {
 .map-layout-grid {
   display: grid;
   grid-template-columns: 1fr 340px;
-  min-height: 500px;
+  height: 600px;
+  max-height: calc(100vh - 120px);
 }
 
 .map-layout-grid.full-view {
-  min-height: 600px;
+  height: calc(100vh - 80px);
+  max-height: none;
 }
 
 .indonesia-map-wrapper {
   position: relative;
-  min-height: 400px;
+  height: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .indonesia-map {
@@ -2522,17 +2517,21 @@ select option {
 .quake-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: var(--radius-sm);
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background: var(--bg-card);
-  transition: all 0.15s;
-  cursor: default;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .quake-row:hover {
   background: var(--bg-hover);
+  transform: translateX(4px);
+  border-color: var(--border-color-hover);
 }
 
 .quake-row--dimmed {
@@ -2540,15 +2539,18 @@ select option {
 }
 
 .quake-row--danger {
-  border-left: 3px solid var(--danger);
+  box-shadow: inset 4px 0 0 var(--danger);
+  border-left-color: transparent;
 }
 
 .quake-row--warning {
-  border-left: 3px solid var(--warning);
+  box-shadow: inset 4px 0 0 var(--warning);
+  border-left-color: transparent;
 }
 
 .quake-row--safe {
-  border-left: 3px solid var(--safe);
+  box-shadow: inset 4px 0 0 var(--safe);
+  border-left-color: transparent;
 }
 
 .quake-row-mag {
