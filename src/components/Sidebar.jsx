@@ -1,5 +1,5 @@
 "use client"
-import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, Wind, X, Globe, Video, Bot } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Video, Bot } from 'lucide-react';
 
 export default function Sidebar({
   connected,
@@ -18,7 +18,6 @@ export default function Sidebar({
     { id: 'livecctv', icon: <Video size={18} />, label: 'Pantau Live' },
     { id: 'edukasi', icon: <Play size={18} />, label: 'Edukasi Bencana' },
     { id: 'cuaca', icon: <CloudSun size={18} />, label: 'Cuaca & Iklim' },
-    { id: 'udara', icon: <Wind size={18} />, label: 'Kualitas Udara' },
     { id: 'esp32', icon: <Cpu size={18} />, label: 'ESP32 Sensor' },
     { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat Kejadian' },
     { id: 'aria', icon: <Bot size={18} />, label: 'ARIA AI', badge: 'NEW' },

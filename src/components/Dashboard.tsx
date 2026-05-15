@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Wind, Cpu, History, Video, Bot } from 'lucide-react'
+import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
@@ -182,7 +182,6 @@ export default function Dashboard({ user }: DashboardProps) {
     { id: 'livecctv', icon: <Video size={18} />,     label: 'Pantau Live',    desc: 'Pemantauan real-time' },
     { id: 'edukasi',  icon: <Play size={18} />,      label: 'Edukasi',        desc: 'Video & materi gempa' },
     { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca & Iklim',  desc: 'Visualisasi cuaca BMKG' },
-    { id: 'udara',    icon: <Wind size={18} />,      label: 'Kualitas Udara', desc: 'Monitoring AQI' },
     { id: 'esp32',    icon: <Cpu size={18} />,       label: 'ESP32 Sensor',   desc: 'Kontrol sensor lokal' },
     { id: 'riwayat',  icon: <History size={18} />,   label: 'Riwayat',        desc: 'Log insiden gempa' },
     { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',        desc: 'Asisten gempa cerdas' },
@@ -210,8 +209,6 @@ export default function Dashboard({ user }: DashboardProps) {
         )
       case 'cuaca':
         return <div className="tab-content"><VisualisasiCard /><WeatherCard /></div>
-      case 'udara':
-        return <div className="tab-content"><WeatherCard /></div>
       case 'esp32':
         return (
           <div className="tab-content">
@@ -222,7 +219,12 @@ export default function Dashboard({ user }: DashboardProps) {
         return <div className="tab-content"><EventLogCard /></div>
       case 'aria':
         return (
-          <div className="tab-content" style={{ height: 'calc(100vh - 140px)' }}>
+          <div style={{ 
+            height: 'calc(100vh - 72px)', 
+            padding: '0',
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
             <AriaChat
               latestEarthquake={null}
               esp32Connected={esp32.connected}
@@ -284,7 +286,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const tabLabelMap: Record<string, string> = {
     overview: 'Ringkasan', gempa: 'Gempa Bumi Terkini', peta: 'Peta Gempa Indonesia',
     analitik: 'Analitik & Tren', livecctv: 'Pantau Live', edukasi: 'Edukasi',
-    cuaca: 'Cuaca & Iklim', udara: 'Kualitas Udara', esp32: 'ESP32 Sensor',
+    cuaca: 'Cuaca & Iklim', esp32: 'ESP32 Sensor',
     riwayat: 'Riwayat Kejadian', aria: 'ARIA — AI Asisten Gempa',
   }
 
