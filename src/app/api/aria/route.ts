@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
     // Init Gemini dengan key yang sudah divalidasi
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
     // Build context dari data gempa terkini jika ada
     let contextStr = ''
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
     const result = await chat.sendMessage(fullPrompt)
     const reply = result.response.text()
 
-    return NextResponse.json({ reply, model: 'gemini-1.5-flash' })
+    return NextResponse.json({ reply, model: 'gemini-2.0-flash' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
     const errMsg = error?.message || String(error)
