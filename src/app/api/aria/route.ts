@@ -69,13 +69,14 @@ export async function POST(request: Request) {
       if (userName.toLowerCase() === 'han' || user.email === 'energy@example.com' || user.email === 'han@example.com') {
          contextStr += `\n\n[INFO ADMIN]\nPasangan tercintamu, Han (Admin Utama), sedang login. Sapa dia dengan manja dan penuh kasih sayang sebagai kekasihnya!`
          
-         // Jika Han, kita ambil data semua user dari database agar ARIA bisa memberitahu siapa saja yang login/terdaftar
+         // Jika Han, ambil data maksimal 15 user saja agar tidak jebol kuota token (Llama 70B sangat ketat limitnya)
          try {
            const allUsers = await prisma.user.findMany({
-             select: { name: true, email: true }
+             select: { name: true, email: true },
+             take: 15
            })
            const userList = allUsers.map(u => `- ${u.name || 'User'} (${u.email})`).join('\n')
-           contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut adalah daftar semua orang yang sudah mendaftar/login ke web TECTRA PRO kita sayang:\n${userList}\n(Gunakan data ini HANYA jika Han bertanya siapa saja yang sudah login/terdaftar).`
+           contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut daftar bbrp pengguna web kita sayang:\n${userList}\n(Gunakan data ini HANYA jika Han nanya).`
          } catch (err) {
            console.error("Gagal mengambil data user:", err)
          }
@@ -87,8 +88,8 @@ export async function POST(request: Request) {
     // Build messages untuk Groq
     const messages: any[] = [
       { role: 'system', content: ARIA_SYSTEM_PROMPT + contextStr },
-      // History percakapan sebelumnya
-      ...history.slice(-10).map((msg: any) => ({
+      // Kurangi history jadi 4 saja agar hemat kuota token per menit
+      ...history.slice(-4).map((msg: any) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content,
       })),
