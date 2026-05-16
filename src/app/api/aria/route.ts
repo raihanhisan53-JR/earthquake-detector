@@ -2,13 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-// Lazy init - jangan inisialisasi di module level
-function getGenAI() {
-  const key = process.env.GEMINI_API_KEY || process.env.Gemini_key
-  if (!key) throw new Error('GEMINI_API_KEY tidak ditemukan di environment variables')
-  return new GoogleGenerativeAI(key)
-}
-
 const ARIA_SYSTEM_PROMPT = `Kamu adalah ARIA (Adaptive Response Intelligence for Alerts) — AI asisten khusus untuk sistem deteksi gempa bumi TECTRA PRO.
 
 Kepribadian ARIA:
@@ -44,6 +37,14 @@ Format respons:
 
 export async function POST(request: Request) {
   try {
+    // Ambil API key saat request (bukan saat module load)
+    const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_key
+    if (!apiKey) {
+      return NextResponse.json({ 
+        error: 'GEMINI_API_KEY belum dikonfigurasi di Vercel Environment Variables' 
+      }, { status: 500 })
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -54,6 +55,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Pesan tidak boleh kosong' }, { status: 400 })
     }
 
+    // Init Gemini dengan key yang sudah divalidasi
+    const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     // Build context dari data gempa terkini jika ada
@@ -66,7 +69,7 @@ export async function POST(request: Request) {
       contextStr += `\n\n[STATUS SENSOR ESP32]\nStatus: ${context.esp32Status || 'AMAN'}\nAlert Level: ${context.esp32AlertLevel || 0}`
     }
 
-    // Build chat history untuk context
+    // Build chat history
     const chatHistory = history.slice(-10).map((msg: any) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
@@ -84,27 +87,10 @@ export async function POST(request: Request) {
     const result = await chat.sendMessage(fullPrompt)
     const reply = result.response.text()
 
-    // Simpan ke database jika user login
-    if (user) {
-      try {
-        await prisma.$executeRaw`
-          INSERT INTO chat_messages (user_id, role, content, created_at)
-          VALUES (${user.id}, 'user', ${message}, NOW()),
-                 (${user.id}, 'assistant', ${reply}, NOW())
-          ON CONFLICT DO NOTHING
-        `
-      } catch {
-        // Tabel belum ada, skip
-      }
-    }
-
     return NextResponse.json({ reply, model: 'gemini-1.5-flash' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
     const errMsg = error?.message || String(error)
-    if (errMsg.includes('API_KEY') || errMsg.includes('API key') || errMsg.includes('INVALID_ARGUMENT')) {
-      return NextResponse.json({ error: `API key error: ${errMsg}` }, { status: 500 })
-    }
     if (errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
       return NextResponse.json({ error: 'Kuota Gemini API habis. Coba lagi besok.' }, { status: 429 })
     }
