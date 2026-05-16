@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import { History, Search, Trash2, XCircle, Cloud, FileJson, FileSpreadsheet, Activity } from 'lucide-react'
+import { History, Search, Trash2, XCircle, Cloud, FileJson, FileSpreadsheet, FileText, Activity } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface EarthquakeEvent {
@@ -96,6 +96,44 @@ export default function EventLogCard() {
     URL.revokeObjectURL(url)
   }
 
+  const exportPDF = () => {
+    if (!filteredEvents.length) return
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+    const rows = filteredEvents.map(e => `
+      <tr>
+        <td>${e.timestamp}</td>
+        <td style="color:${e.level==='BAHAYA'?'#ef4444':e.level==='WASPADA'?'#f59e0b':'#3b82f6'};font-weight:700">${e.level||'BARU'}</td>
+        <td style="font-weight:700">M ${e.magnitude}</td>
+        <td>${e.location||'-'}</td>
+        <td>${e.source||'-'}</td>
+      </tr>
+    `).join('')
+    printWindow.document.write(`
+      <!DOCTYPE html><html><head>
+      <meta charset="UTF-8"><title>Laporan Gempa TECTRA PRO</title>
+      <style>
+        body{font-family:Arial,sans-serif;padding:24px;color:#111}
+        h1{color:#1e40af;font-size:20px;margin-bottom:4px}
+        p{color:#555;font-size:13px;margin-bottom:16px}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th{background:#1e40af;color:#fff;padding:8px 12px;text-align:left}
+        td{padding:7px 12px;border-bottom:1px solid #e2e8f0}
+        tr:nth-child(even) td{background:#f8fafc}
+        .footer{margin-top:24px;font-size:11px;color:#888;text-align:center}
+      </style></head><body>
+      <h1>📊 Laporan Riwayat Gempa — TECTRA PRO</h1>
+      <p>Dicetak: ${new Date().toLocaleString('id-ID')} · Total: ${filteredEvents.length} kejadian</p>
+      <table><thead><tr><th>Waktu</th><th>Level</th><th>Magnitude</th><th>Lokasi</th><th>Sumber</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+      <div class="footer">© ${new Date().getFullYear()} TECTRA PRO · Raihan Hisan — Data BMKG & USGS</div>
+      </body></html>
+    `)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => { printWindow.print(); printWindow.close() }, 400)
+  }
+
   return (
     <div className="card event-log-card">
       <div className="card-header">
@@ -106,6 +144,7 @@ export default function EventLogCard() {
         </h2>
         <div className="header-actions">
           <button className="btn-icon" onClick={exportCSV} title="Export CSV" disabled={!filteredEvents.length}><FileSpreadsheet size={16} /></button>
+          <button className="btn-icon" onClick={exportPDF} title="Export PDF" disabled={!filteredEvents.length}><FileText size={16} /></button>
           <button className="btn-icon" onClick={() => { const b = new Blob([JSON.stringify(filteredEvents, null, 2)], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = 'gempa.json'; a.click() }} title="Export JSON" disabled={!filteredEvents.length}><FileJson size={16} /></button>
           <button className="btn-icon btn-danger" onClick={handleClear} title="Hapus Semua" disabled={!events.length}><Trash2 size={16} /></button>
         </div>

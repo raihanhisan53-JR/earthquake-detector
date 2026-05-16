@@ -4,12 +4,14 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot } from 'lucide-react'
+import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2, UserCircle2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { useESP32 } from '@/hooks/useESP32'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const EarthquakeGlobe3D = dynamic<any>(() => import('./EarthquakeGlobe3D'), { ssr: false })
 
 // Dynamic imports — semua komponen di-load client-side saja
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +38,8 @@ const Topbar          = dynamic<any>(() => import('./Topbar.jsx'), { ssr: false 
 const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const AriaChat        = dynamic<any>(() => import('./AriaChat'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const NotificationPanel = dynamic<any>(() => import('./NotificationPanel'), { ssr: false })
 
 interface DashboardProps { user: User }
 
@@ -59,6 +63,8 @@ export default function Dashboard({ user }: DashboardProps) {
   // Ini yang sebelumnya TIDAK disambungkan!
   // ══════════════════════════════════════════
   const esp32 = useESP32()
+  const { gempa } = useBMKG()
+  const bmkgMap   = useBMKGMap()
 
   // Hydration fix: baca localStorage setelah mount
   useEffect(() => {
@@ -101,9 +107,7 @@ export default function Dashboard({ user }: DashboardProps) {
     return id
   }, [dismissNotice])
 
-  // ── Auto-fetch BMKG & USGS untuk Supabase ──
-  useBMKG()
-  useBMKGMap()
+  // ── Auto-fetch BMKG & USGS untuk Supabase (data juga dipakai di Globe & ARIA) ──
 
   // ── Notifications — sekarang pakai data REAL dari esp32 ──
   const {
@@ -179,13 +183,28 @@ export default function Dashboard({ user }: DashboardProps) {
 
   const quickAccessItems = [
     { id: 'peta',     icon: <MapPinned size={18} />, label: 'Peta Gempa',     desc: 'Peta command center' },
+    { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Globe 3D',       desc: 'Visualisasi bola dunia' },
     { id: 'livecctv', icon: <Video size={18} />,     label: 'Pantau Live',    desc: 'Pemantauan real-time' },
     { id: 'edukasi',  icon: <Play size={18} />,      label: 'Edukasi',        desc: 'Video & materi gempa' },
     { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca & Iklim',  desc: 'Visualisasi cuaca BMKG' },
     { id: 'esp32',    icon: <Cpu size={18} />,       label: 'ESP32 Sensor',   desc: 'Kontrol sensor lokal' },
     { id: 'riwayat',  icon: <History size={18} />,   label: 'Riwayat',        desc: 'Log insiden gempa' },
     { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',        desc: 'Asisten gempa cerdas' },
+    { id: 'profil',   icon: <UserCircle2 size={18} />, label: 'Profil',       desc: 'Akun & pengaturan' },
   ]
+
+  // Build globe points from BMKG map data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const globePoints = (bmkgMap as any)?.points ?? []
+
+  // Build latestEarthquake object for ARIA from real BMKG data
+  const latestEarthquakeForAria = gempa ? {
+    magnitude: parseFloat(gempa.Magnitude),
+    location: gempa.Wilayah?.replace(/^pusat gempa berada /i, '') || '-',
+    time: `${gempa.Tanggal} ${gempa.Jam}`,
+    depth: gempa.Kedalaman,
+    potensi: gempa.Potensi,
+  } : null
 
   const renderContent = () => {
     switch (activeTab) {
@@ -195,6 +214,37 @@ export default function Dashboard({ user }: DashboardProps) {
         return (
           <div className="tab-content">
             <EarthquakeMapCard notificationsEnabled={notificationsEnabled} notifyUser={notifyUser} />
+          </div>
+        )
+      case 'globe':
+        return (
+          <div className="tab-content">
+            <div style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border-color)',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              height: '70vh',
+              minHeight: '480px',
+              position: 'relative',
+            }}>
+              <div style={{
+                position: 'absolute', top: '16px', left: '20px', zIndex: 10,
+                background: 'rgba(10,15,29,0.85)', backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(59,130,246,0.3)', borderRadius: '10px',
+                padding: '10px 16px',
+              }}>
+                <div style={{ color: '#60a5fa', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>🌍 Globe Seismik 3D</div>
+                <div style={{ color: '#64748b', fontSize: '12px' }}>{globePoints.length} titik gempa BMKG</div>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '11px' }}>
+                  <span style={{ color: '#ef4444' }}>● M6+ Major</span>
+                  <span style={{ color: '#f97316' }}>● M5 Moderate</span>
+                  <span style={{ color: '#3b82f6' }}>● M4 Light</span>
+                  <span style={{ color: '#22c55e' }}>● &lt;M4 Minor</span>
+                </div>
+              </div>
+              <EarthquakeGlobe3D points={globePoints} markerColorMode="magnitude" />
+            </div>
           </div>
         )
       case 'analitik':
@@ -217,6 +267,60 @@ export default function Dashboard({ user }: DashboardProps) {
         )
       case 'riwayat':
         return <div className="tab-content"><EventLogCard /></div>
+      case 'profil':
+        return (
+          <div className="tab-content">
+            <div className="profile-card">
+              <div className="profile-avatar-wrap">
+                <div className="profile-avatar">
+                  {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
+                </div>
+                <div className="profile-online-dot" />
+              </div>
+              <h2 className="profile-name">{user.user_metadata?.full_name || 'User'}</h2>
+              <p className="profile-email">{user.email}</p>
+              <div className="profile-badges">
+                <span className="profile-badge badge-admin">👑 Admin</span>
+                <span className="profile-badge badge-pro">⚡ TECTRA PRO</span>
+              </div>
+              <div className="profile-stats-grid">
+                <div className="profile-stat">
+                  <span className="profile-stat-val">{esp32.connected ? 'Online' : 'Offline'}</span>
+                  <span className="profile-stat-label">ESP32 Status</span>
+                </div>
+                <div className="profile-stat">
+                  <span className="profile-stat-val">{latestEarthquakeForAria?.magnitude ?? '-'}</span>
+                  <span className="profile-stat-label">M Gempa Terkini</span>
+                </div>
+                <div className="profile-stat">
+                  <span className="profile-stat-val">{globePoints.length}</span>
+                  <span className="profile-stat-label">Total Titik Gempa</span>
+                </div>
+              </div>
+              <div className="profile-info-list">
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Email</span>
+                  <span className="profile-info-val">{user.email}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">User ID</span>
+                  <span className="profile-info-val" style={{ fontSize: '11px', opacity: 0.6 }}>{user.id?.slice(0, 16)}...</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Provider</span>
+                  <span className="profile-info-val">{user.app_metadata?.provider || 'email'}</span>
+                </div>
+                <div className="profile-info-item">
+                  <span className="profile-info-label">Last Sign In</span>
+                  <span className="profile-info-val">{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('id-ID') : '-'}</span>
+                </div>
+              </div>
+              <button className="btn-logout-profile" onClick={handleLogout}>
+                🚪 Logout dari TECTRA PRO
+              </button>
+            </div>
+          </div>
+        )
       case 'aria':
         return (
           <div style={{ 
@@ -226,7 +330,7 @@ export default function Dashboard({ user }: DashboardProps) {
             flexDirection: 'column',
           }}>
             <AriaChat
-              latestEarthquake={null}
+              latestEarthquake={latestEarthquakeForAria}
               esp32Connected={esp32.connected}
               esp32Status={esp32.status}
               esp32AlertLevel={esp32.alertLevel}
@@ -285,9 +389,9 @@ export default function Dashboard({ user }: DashboardProps) {
 
   const tabLabelMap: Record<string, string> = {
     overview: 'Ringkasan', gempa: 'Gempa Bumi Terkini', peta: 'Peta Gempa Indonesia',
-    analitik: 'Analitik & Tren', livecctv: 'Pantau Live', edukasi: 'Edukasi',
-    cuaca: 'Cuaca & Iklim', esp32: 'ESP32 Sensor',
-    riwayat: 'Riwayat Kejadian', aria: 'ARIA — AI Asisten Gempa',
+    globe: 'Globe Seismik 3D', analitik: 'Analitik & Tren', livecctv: 'Pantau Live',
+    edukasi: 'Edukasi', cuaca: 'Cuaca & Iklim', esp32: 'ESP32 Sensor',
+    riwayat: 'Riwayat Kejadian', aria: 'ARIA — AI Asisten Gempa', profil: 'Profil Pengguna',
   }
 
   const isCompact = activeTab !== 'overview'
