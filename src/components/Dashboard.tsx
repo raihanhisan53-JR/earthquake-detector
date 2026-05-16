@@ -190,7 +190,6 @@ export default function Dashboard({ user }: DashboardProps) {
     { id: 'esp32',    icon: <Cpu size={18} />,       label: 'ESP32 Sensor',   desc: 'Kontrol sensor lokal' },
     { id: 'riwayat',  icon: <History size={18} />,   label: 'Riwayat',        desc: 'Log insiden gempa' },
     { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',        desc: 'Asisten gempa cerdas' },
-    { id: 'profil',   icon: <UserCircle2 size={18} />, label: 'Profil',       desc: 'Akun & pengaturan' },
   ]
 
   // Build globe points from BMKG map data
@@ -509,6 +508,7 @@ export default function Dashboard({ user }: DashboardProps) {
           setMobileOpen={setSidebarOpen}
           collapsed={sidebarCollapsed}
           toggleCollapsed={() => setSidebarCollapsed(v => !v)}
+          user={user}
         />
 
         {/* Main Content */}

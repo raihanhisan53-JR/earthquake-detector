@@ -1,5 +1,5 @@
 "use client"
-import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot, UserCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot } from 'lucide-react';
 
 export default function Sidebar({
   connected,
@@ -9,6 +9,7 @@ export default function Sidebar({
   setMobileOpen,
   collapsed = false,
   toggleCollapsed = () => { },
+  user = null,
 }) {
   const navItems = [
     { id: 'overview', icon: <LayoutGrid size={18} />, label: 'Ringkasan' },
@@ -22,7 +23,6 @@ export default function Sidebar({
     { id: 'esp32', icon: <Cpu size={18} />, label: 'ESP32 Sensor' },
     { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat Kejadian' },
     { id: 'aria', icon: <Bot size={18} />, label: 'ARIA AI' },
-    { id: 'profil', icon: <UserCircle2 size={18} />, label: 'Profil' },
   ];
 
   const getNavClass = (id) => `nav-item ${activeTab === id ? 'active' : ''}`;
@@ -79,10 +79,37 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar-footer">
-          <div className="esp-status" title={connected ? 'ESP32 Online' : 'ESP32 Offline'}>
-            <div className={`status-dot ${connected ? 'online' : 'offline'}`}></div>
-            <span>{connected ? 'ESP32 Online' : 'ESP32 Offline'}</span>
-          </div>
+          {/* Profile card — klik untuk buka tab profil */}
+          <button
+            type="button"
+            className={`sidebar-profile-btn ${activeTab === 'profil' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('profil'); setMobileOpen?.(false); }}
+            title="Profil & Pengaturan"
+          >
+            {/* Avatar */}
+            {user?.user_metadata?.avatar_url || user?.user_metadata?.picture ? (
+              <img
+                src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                alt="avatar"
+                className="sidebar-profile-avatar sidebar-profile-avatar--img"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <div className="sidebar-profile-avatar sidebar-profile-avatar--init">
+                {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
+              </div>
+            )}
+            {/* Info — hidden when collapsed */}
+            <div className="sidebar-profile-info">
+              <span className="sidebar-profile-name">
+                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
+              </span>
+              <span className="sidebar-profile-sub">
+                <span className={`sidebar-esp-dot ${connected ? 'online' : 'offline'}`} />
+                {connected ? 'ESP32 Online' : 'ESP32 Offline'}
+              </span>
+            </div>
+          </button>
         </div>
       </aside>
     </>
