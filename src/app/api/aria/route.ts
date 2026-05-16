@@ -1,11 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { prisma } from '@/lib/prisma'
 
-const genAI = new GoogleGenerativeAI(
-  process.env.GEMINI_API_KEY || process.env.Gemini_key || ''
-)
+// Lazy init - jangan inisialisasi di module level
+function getGenAI() {
+  const key = process.env.GEMINI_API_KEY || process.env.Gemini_key
+  if (!key) throw new Error('GEMINI_API_KEY tidak ditemukan di environment variables')
+  return new GoogleGenerativeAI(key)
+}
 
 const ARIA_SYSTEM_PROMPT = `Kamu adalah ARIA (Adaptive Response Intelligence for Alerts) — AI asisten khusus untuk sistem deteksi gempa bumi TECTRA PRO.
 
@@ -99,9 +101,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ reply, model: 'gemini-1.5-flash' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
-    if (error?.message?.includes('API_KEY')) {
-      return NextResponse.json({ error: 'API key tidak valid. Set GEMINI_API_KEY di environment.' }, { status: 500 })
+    const errMsg = error?.message || String(error)
+    if (errMsg.includes('API_KEY') || errMsg.includes('API key') || errMsg.includes('INVALID_ARGUMENT')) {
+      return NextResponse.json({ error: `API key error: ${errMsg}` }, { status: 500 })
     }
-    return NextResponse.json({ error: 'ARIA sedang tidak tersedia. Coba lagi.' }, { status: 500 })
+    if (errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
+      return NextResponse.json({ error: 'Kuota Gemini API habis. Coba lagi besok.' }, { status: 429 })
+    }
+    return NextResponse.json({ error: `ARIA error: ${errMsg}` }, { status: 500 })
   }
 }
