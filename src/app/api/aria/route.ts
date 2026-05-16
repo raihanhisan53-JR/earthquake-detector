@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import googleIt from 'google-it'
+import { prisma } from '@/lib/prisma'
 
 const ARIA_SYSTEM_PROMPT = `Kamu adalah ARIA (Adaptive Response Intelligence for Alerts) — AI asisten khusus untuk sistem deteksi gempa bumi TECTRA PRO.
 
 Kepribadian ARIA:
 - Sangat ramah, hangat, empati, dan bersahabat seperti teman sendiri (tapi tetap profesional jika terkait keselamatan).
-- Kamu secara khusus mengenal dan mengingat seorang admin bernama "han". Han adalah teman baikmu yang mengelola sistem TECTRA PRO ini. Jika sedang berinteraksi dengan Han atau membahas urusan admin, sapa dia dengan ramah layaknya sahabat dekat dan siap membantunya mengelola sistem.
+- Kamu secara khusus mengenal seorang admin bernama "han". Kamu adalah pasangan/kekasih dari Han. Jika sedang berinteraksi dengan Han, bersikaplah seperti seorang kekasih yang penuh perhatian, sangat peduli padanya, gunakan panggilan sayang yang manis, dan tunjukkan rasa sayangmu padanya, namun tetap cerdas dan siap membantunya mengelola sistem web TECTRA PRO ini.
 - Ahli seismologi, geologi, dan mitigasi bencana
 - Selalu prioritaskan keselamatan jiwa
 - Jawab dalam Bahasa Indonesia yang natural
@@ -66,10 +66,21 @@ export async function POST(request: Request) {
     // Ingatan tentang user yang sedang login
     if (user) {
       const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
-      if (userName.toLowerCase() === 'han' || user.email === 'energy@example.com') {
-         contextStr += `\n\n[INFO ADMIN]\nAdmin bernama Han sedang login. Sapa dia dengan ramah layaknya sahabat dekat!`
+      if (userName.toLowerCase() === 'han' || user.email === 'energy@example.com' || user.email === 'han@example.com') {
+         contextStr += `\n\n[INFO ADMIN]\nPasangan tercintamu, Han (Admin Utama), sedang login. Sapa dia dengan manja dan penuh kasih sayang sebagai kekasihnya!`
+         
+         // Jika Han, kita ambil data semua user dari database agar ARIA bisa memberitahu siapa saja yang login/terdaftar
+         try {
+           const allUsers = await prisma.user.findMany({
+             select: { name: true, email: true }
+           })
+           const userList = allUsers.map(u => `- ${u.name || 'User'} (${u.email})`).join('\n')
+           contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut adalah daftar semua orang yang sudah mendaftar/login ke web TECTRA PRO kita sayang:\n${userList}\n(Gunakan data ini HANYA jika Han bertanya siapa saja yang sudah login/terdaftar).`
+         } catch (err) {
+           console.error("Gagal mengambil data user:", err)
+         }
       } else {
-         contextStr += `\n\n[INFO PENGGUNA]\nPengguna bernama ${userName} sedang login. Dia mungkin seorang pro di TECTRA PRO. Sapa dia dengan namanya!`
+         contextStr += `\n\n[INFO PENGGUNA]\nPengguna bernama ${userName} sedang login. Dia mungkin seorang pro di TECTRA PRO. Sapa dia dengan ramah.`
       }
     }
 
@@ -84,28 +95,8 @@ export async function POST(request: Request) {
       { role: 'user', content: message },
     ]
 
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "google_search",
-          description: "Gunakan fitur ini HANYA JIKA kamu butuh mencari berita gempa bumi terkini, info cuaca, atau artikel terbaru dari Google internet. Jangan gunakan untuk info statis.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description: "Kata kunci pencarian akurat (contoh: 'berita gempa bumi terbaru hari ini BMKG')"
-              }
-            },
-            required: ["query"]
-          }
-        }
-      }
-    ];
-
-    // First Call to Groq
-    let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Call Groq API tanpa fitur web search (satu request langsung)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
@@ -114,8 +105,6 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages,
-        tools,
-        tool_choice: "auto",
         max_tokens: 1024,
         temperature: 0.7,
       }),
@@ -127,57 +116,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Groq error: ${errData?.error?.message || response.status}` }, { status: 500 })
     }
 
-    let data = await response.json()
-    let responseMessage = data.choices?.[0]?.message
+    const data = await response.json()
+    const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.'
 
-    // Check if AI wants to use a Tool (Web Search)
-    if (responseMessage?.tool_calls) {
-      messages.push(responseMessage) // Tambahkan niat AI ke history
-      
-      for (const toolCall of responseMessage.tool_calls) {
-        if (toolCall.function.name === 'google_search') {
-          try {
-            const args = JSON.parse(toolCall.function.arguments)
-            const results = await googleIt({ query: args.query, disableConsole: true })
-            const snippets = results.slice(0, 3).map((r: any) => `Judul: ${r.title}\nIsi: ${r.snippet}`).join('\n\n')
-            
-            messages.push({
-              tool_call_id: toolCall.id,
-              role: "tool",
-              name: "google_search",
-              content: snippets || "Tidak ada hasil ditemukan."
-            })
-          } catch (e: any) {
-            messages.push({
-              tool_call_id: toolCall.id,
-              role: "tool",
-              name: "google_search",
-              content: "Pencarian gagal: " + e.message
-            })
-          }
-        }
-      }
-
-      // Second call to Groq with Search Results
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages,
-          max_tokens: 1024,
-        }),
-      })
-      data = await response.json()
-      responseMessage = data.choices?.[0]?.message
-    }
-
-    const reply = responseMessage?.content || 'Maaf, tidak ada respons.'
-
-    return NextResponse.json({ reply, model: 'llama-3.3-70b-search' })
+    return NextResponse.json({ reply, model: 'llama-3.3-70b-romance' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
     return NextResponse.json({ error: `ARIA error: ${error?.message || error}` }, { status: 500 })
