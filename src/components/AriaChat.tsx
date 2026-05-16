@@ -358,7 +358,7 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
         fontSize: '10px', color: '#334155', textAlign: 'center',
       }}>
         <Info size={10} style={{ display: 'inline', marginRight: '4px' }} />
-        Powered by Gemini AI · ARIA dapat membuat kesalahan, selalu verifikasi dengan BMKG resmi
+        Powered by Groq · ARIA dapat membuat kesalahan, selalu verifikasi dengan BMKG resmi
       </div>
     </div>
   )
