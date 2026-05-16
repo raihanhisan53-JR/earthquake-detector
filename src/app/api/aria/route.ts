@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}))
       if (response.status === 429) return NextResponse.json({ error: 'Terlalu banyak request. Tunggu sebentar.' }, { status: 429 })
-      return NextResponse.json({ error: \`Groq error: \${errData?.error?.message || response.status}\` }, { status: 500 })
+      return NextResponse.json({ error: `Groq error: ${errData?.error?.message || response.status}` }, { status: 500 })
     }
 
     let data = await response.json()
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
           try {
             const args = JSON.parse(toolCall.function.arguments)
             const results = await googleIt({ query: args.query, disableConsole: true })
-            const snippets = results.slice(0, 3).map((r: any) => \`Judul: \${r.title}\\nIsi: \${r.snippet}\`).join('\\n\\n')
+            const snippets = results.slice(0, 3).map((r: any) => `Judul: ${r.title}\nIsi: ${r.snippet}`).join('\n\n')
             
             messages.push({
               tool_call_id: toolCall.id,
@@ -180,6 +180,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ reply, model: 'llama-3.3-70b-search' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
-    return NextResponse.json({ error: \`ARIA error: \${error?.message || error}\` }, { status: 500 })
+    return NextResponse.json({ error: `ARIA error: ${error?.message || error}` }, { status: 500 })
   }
 }
