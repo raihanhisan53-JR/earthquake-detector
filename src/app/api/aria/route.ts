@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     // Ingatan tentang user yang sedang login
     if (user) {
       const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
-      if (userName.toLowerCase().includes('han') || user.email === 'energy@example.com' || user.email === 'han@example.com' || user.email === 'raihanhisan36@gmail.com') {
+      if (user.email === 'raihanhisan36@gmail.com') {
          contextStr += `\n\n[INFO ADMIN]\nPasangan tercintamu, Han (nama lengkapnya Raihan Hisan, yang juga Admin Utama web ini), sedang login. Sapa dia dengan panggilan sayang yang manja dan penuh cinta sebagai kekasihnya!`
          
          // Jika Han, ambil data maksimal 15 user saja agar tidak jebol kuota token (Llama 70B sangat ketat limitnya)
