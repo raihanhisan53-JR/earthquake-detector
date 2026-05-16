@@ -115,18 +115,38 @@ function MessageBubble({ msg }: { msg: Message }) {
 }
 
 export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel }: AriaChatProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n• ⚡ Interpretasi data sensor ESP32\n\nAda yang ingin kamu tanyakan?`,
-      timestamp: new Date(),
-    }
-  ])
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // Load history from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('aria_chat_history')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })))
+      } catch (e) {}
+    } else {
+      setMessages([{
+        id: 'welcome',
+        role: 'assistant',
+        content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n• ⚡ Interpretasi data sensor ESP32\n\nAda yang ingin kamu tanyakan?`,
+        timestamp: new Date(),
+      }])
+    }
+    setIsInitialized(true)
+  }, [])
+
+  // Save history to localStorage
+  useEffect(() => {
+    if (isInitialized && messages.length > 0) {
+      localStorage.setItem('aria_chat_history', JSON.stringify(messages))
+    }
+  }, [messages, isInitialized])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -212,10 +232,11 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
   }
 
   const clearChat = () => {
+    localStorage.removeItem('aria_chat_history')
     setMessages([{
       id: 'welcome-new',
       role: 'assistant',
-      content: 'Chat dibersihkan. Ada yang ingin kamu tanyakan? 😊',
+      content: 'Ingatan chat telah dihapus! Ada yang ingin kamu tanyakan lagi? 😊',
       timestamp: new Date(),
     }])
   }
