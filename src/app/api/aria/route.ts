@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -11,7 +10,6 @@ Kepribadian ARIA:
 - Jawab dalam Bahasa Indonesia yang natural
 - Gunakan data dan fakta ilmiah
 - Singkat dan jelas, tidak bertele-tele
-- Bisa analisis data gempa real-time
 
 Keahlian ARIA:
 - Interpretasi skala Richter dan MMI
@@ -24,29 +22,27 @@ Keahlian ARIA:
 - Zona rawan gempa di Indonesia
 
 Konteks sistem:
-- Ini adalah dashboard monitoring gempa real-time
+- Dashboard monitoring gempa real-time
 - Data dari BMKG (Badan Meteorologi, Klimatologi, dan Geofisika)
 - Sensor lokal ESP32 dengan MPU6500
 - Lokasi: Indonesia (zona seismik aktif)
 
 Format respons:
-- Gunakan emoji yang relevan untuk visual
-- Untuk data teknis, gunakan format yang mudah dibaca
-- Selalu akhiri dengan saran keselamatan jika relevan
-- Jangan lebih dari 300 kata kecuali diminta detail`
+- Gunakan emoji yang relevan
+- Singkat dan jelas, maksimal 300 kata
+- Selalu akhiri dengan saran keselamatan jika relevan`
 
 export async function POST(request: Request) {
   try {
-    // Ambil API key saat request (bukan saat module load)
-    const apiKey = process.env.GEMINI_API_KEY || process.env.Gemini_key
+    const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) {
       return NextResponse.json({ 
-        error: 'GEMINI_API_KEY belum dikonfigurasi di Vercel Environment Variables' 
+        error: 'GROQ_API_KEY belum dikonfigurasi di Vercel Environment Variables' 
       }, { status: 500 })
     }
 
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    await supabase.auth.getUser()
 
     const body = await request.json()
     const { message, history = [], context = {} } = body
@@ -55,11 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Pesan tidak boleh kosong' }, { status: 400 })
     }
 
-    // Init Gemini dengan key yang sudah divalidasi
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
-    // Build context dari data gempa terkini jika ada
+    // Build context dari data gempa terkini
     let contextStr = ''
     if (context.latestEarthquake) {
       const eq = context.latestEarthquake
@@ -69,31 +61,47 @@ export async function POST(request: Request) {
       contextStr += `\n\n[STATUS SENSOR ESP32]\nStatus: ${context.esp32Status || 'AMAN'}\nAlert Level: ${context.esp32AlertLevel || 0}`
     }
 
-    // Build chat history
-    const chatHistory = history.slice(-10).map((msg: any) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
-    }))
+    // Build messages untuk Groq (OpenAI-compatible format)
+    const messages = [
+      { role: 'system', content: ARIA_SYSTEM_PROMPT + contextStr },
+      // History percakapan sebelumnya
+      ...history.slice(-8).map((msg: any) => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
+    ]
 
-    const chat = model.startChat({
-      history: chatHistory,
-      generationConfig: {
-        maxOutputTokens: 1024,
-        temperature: 0.7,
+    // Call Groq API (OpenAI-compatible)
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        max_tokens: 1024,
+        temperature: 0.7,
+      }),
     })
 
-    const fullPrompt = `${ARIA_SYSTEM_PROMPT}${contextStr}\n\nUser: ${message}`
-    const result = await chat.sendMessage(fullPrompt)
-    const reply = result.response.text()
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}))
+      const errMsg = errData?.error?.message || `HTTP ${response.status}`
+      if (response.status === 429) {
+        return NextResponse.json({ error: 'Terlalu banyak request. Tunggu sebentar.' }, { status: 429 })
+      }
+      return NextResponse.json({ error: `Groq error: ${errMsg}` }, { status: 500 })
+    }
 
-    return NextResponse.json({ reply, model: 'gemini-2.0-flash' })
+    const data = await response.json()
+    const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.'
+
+    return NextResponse.json({ reply, model: 'llama-3.3-70b' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
-    const errMsg = error?.message || String(error)
-    if (errMsg.includes('quota') || errMsg.includes('RESOURCE_EXHAUSTED')) {
-      return NextResponse.json({ error: 'Kuota Gemini API habis. Coba lagi besok.' }, { status: 429 })
-    }
-    return NextResponse.json({ error: `ARIA error: ${errMsg}` }, { status: 500 })
+    return NextResponse.json({ error: `ARIA error: ${error?.message || error}` }, { status: 500 })
   }
 }
