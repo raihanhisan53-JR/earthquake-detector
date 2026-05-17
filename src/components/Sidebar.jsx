@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot } from 'lucide-react';
 
 export default function Sidebar({
@@ -24,6 +25,25 @@ export default function Sidebar({
     { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat Kejadian' },
     { id: 'aria', icon: <Bot size={18} />, label: 'ARIA AI' },
   ];
+
+  // Load saved avatar + display name from localStorage (set by ProfilePage)
+  const [savedAvatar, setSavedAvatar] = useState(null);
+  const [savedName, setSavedName] = useState(null);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      const raw = localStorage.getItem(`tectra_profile_${user.id}`);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.avatarDataUrl) setSavedAvatar(p.avatarDataUrl);
+        if (p.displayName) setSavedName(p.displayName);
+      }
+    } catch { /* ignore */ }
+  }, [user?.id, activeTab]);
+
+  const avatarSrc = savedAvatar || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  const displayName = savedName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
 
   const getNavClass = (id) => `nav-item ${activeTab === id ? 'active' : ''}`;
 
@@ -86,24 +106,22 @@ export default function Sidebar({
             onClick={() => { setActiveTab('profil'); setMobileOpen?.(false); }}
             title="Profil & Pengaturan"
           >
-            {/* Avatar */}
-            {user?.user_metadata?.avatar_url || user?.user_metadata?.picture ? (
+            {/* Avatar: prioritas savedAvatar (dari localStorage), lalu Google avatar, lalu inisial */}
+            {avatarSrc ? (
               <img
-                src={user.user_metadata.avatar_url || user.user_metadata.picture}
+                src={avatarSrc}
                 alt="avatar"
                 className="sidebar-profile-avatar sidebar-profile-avatar--img"
                 referrerPolicy="no-referrer"
               />
             ) : (
               <div className="sidebar-profile-avatar sidebar-profile-avatar--init">
-                {(user?.user_metadata?.full_name || user?.email || 'U')[0].toUpperCase()}
+                {(displayName || 'U')[0].toUpperCase()}
               </div>
             )}
             {/* Info — hidden when collapsed */}
             <div className="sidebar-profile-info">
-              <span className="sidebar-profile-name">
-                {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'}
-              </span>
+              <span className="sidebar-profile-name">{displayName}</span>
               <span className="sidebar-profile-sub">
                 <span className={`sidebar-esp-dot ${connected ? 'online' : 'offline'}`} />
                 {connected ? 'ESP32 Online' : 'ESP32 Offline'}

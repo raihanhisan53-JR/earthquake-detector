@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2, UserCircle2 } from 'lucide-react'
+import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
@@ -40,6 +40,8 @@ const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false
 const AriaChat        = dynamic<any>(() => import('./AriaChat'), { ssr: false })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const NotificationPanel = dynamic<any>(() => import('./NotificationPanel'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ProfilePage = dynamic<any>(() => import('./ProfilePage'), { ssr: false })
 
 interface DashboardProps { user: User }
 
@@ -268,114 +270,12 @@ export default function Dashboard({ user }: DashboardProps) {
         return <div className="tab-content"><EventLogCard /></div>
       case 'profil':
         return (
-          <div className="profile-page">
-            {/* LEFT PANEL */}
-            <div className="profile-left">
-              <div className="profile-identity">
-                <div className="profile-avatar-wrap">
-                  <div className="profile-avatar">
-                    {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
-                  </div>
-                  <div className="profile-online-dot" />
-                </div>
-                <div className="profile-identity-text">
-                  <h2 className="profile-name">{user.user_metadata?.full_name || 'User'}</h2>
-                  <p className="profile-email">{user.email}</p>
-                  <div className="profile-badges">
-                    <span className="profile-badge badge-admin">👑 Admin Utama</span>
-                    <span className="profile-badge badge-pro">⚡ TECTRA PRO</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* LIVE STATS */}
-              <div className="profile-stats-row">
-                <div className="profile-stat-box">
-                  <div className={`profile-stat-indicator ${esp32.connected ? 'online' : 'offline'}`} />
-                  <div>
-                    <div className="profile-stat-val">{esp32.connected ? 'Online' : 'Offline'}</div>
-                    <div className="profile-stat-label">ESP32 Sensor</div>
-                  </div>
-                </div>
-                <div className="profile-stat-box">
-                  <div className="profile-stat-icon mag">🌋</div>
-                  <div>
-                    <div className="profile-stat-val">M {latestEarthquakeForAria?.magnitude ?? '–'}</div>
-                    <div className="profile-stat-label">Gempa Terkini</div>
-                  </div>
-                </div>
-                <div className="profile-stat-box">
-                  <div className="profile-stat-icon globe">🌍</div>
-                  <div>
-                    <div className="profile-stat-val">{globePoints.length}</div>
-                    <div className="profile-stat-label">Titik Gempa</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* LOGOUT */}
-              <button className="btn-logout-profile" onClick={handleLogout}>
-                🚪 Keluar dari Akun
-              </button>
-            </div>
-
-            {/* RIGHT PANEL */}
-            <div className="profile-right">
-              <div className="profile-section-title">Informasi Akun</div>
-              <div className="profile-info-list">
-                {[
-                  { label: 'Nama Lengkap', val: user.user_metadata?.full_name || '-' },
-                  { label: 'Email', val: user.email || '-' },
-                  { label: 'User ID', val: user.id?.slice(0, 20) + '...', mono: true },
-                  { label: 'Provider Login', val: (user.app_metadata?.provider || 'email').toUpperCase() },
-                  { label: 'Login Terakhir', val: user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('id-ID') : '-' },
-                  { label: 'Email Verified', val: user.email_confirmed_at ? '✅ Terverifikasi' : '⚠️ Belum' },
-                ].map(row => (
-                  <div key={row.label} className="profile-info-item">
-                    <span className="profile-info-label">{row.label}</span>
-                    <span className="profile-info-val" style={row.mono ? { fontFamily: 'monospace', fontSize: '12px', opacity: 0.7 } : {}}>
-                      {row.val}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="profile-section-title" style={{ marginTop: '20px' }}>Status Sistem</div>
-              <div className="profile-system-grid">
-                {[
-                  {
-                    label: 'ESP32 Sensor',
-                    value: esp32.connected ? '🟢 Online' : '🔴 Offline',
-                    sub: esp32.connected ? `IP: ${esp32.esp32Ip || '-'}` : 'Tidak terhubung',
-                    ok: esp32.connected,
-                  },
-                  {
-                    label: 'Data BMKG',
-                    value: '🟢 Aktif',
-                    sub: latestEarthquakeForAria ? `M${latestEarthquakeForAria.magnitude} — ${latestEarthquakeForAria.location?.slice(0,30)}` : 'Memuat...',
-                    ok: true,
-                  },
-                  {
-                    label: 'Globe 3D',
-                    value: globePoints.length > 0 ? '🟢 Aktif' : '🟡 Memuat',
-                    sub: `${globePoints.length} titik dari BMKG+USGS`,
-                    ok: globePoints.length > 0,
-                  },
-                  {
-                    label: 'ARIA AI',
-                    value: '🟢 Online',
-                    sub: 'Groq · Llama 3.3-70B',
-                    ok: true,
-                  },
-                ].map(item => (
-                  <div key={item.label} className={`profile-sys-card ${item.ok ? 'ok' : 'warn'}`}>
-                    <div className="profile-sys-label">{item.label}</div>
-                    <div className="profile-sys-value">{item.value}</div>
-                    <div className="profile-sys-sub">{item.sub}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="tab-content">
+            <ProfilePage
+              user={user}
+              onBack={() => setActiveTab('overview')}
+              onLogout={handleLogout}
+            />
           </div>
         )
       case 'aria':
