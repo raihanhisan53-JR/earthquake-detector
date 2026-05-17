@@ -144,11 +144,20 @@ export function useBMKGMap() {
   const loggedIdsRef  = useRef(new Set());
   const refreshSeqRef = useRef(0);
 
-  const publishIncidents = useCallback((pts) => {
-    pts.slice(0, 20).forEach((point) => {
+  const publishIncidents = useCallback(async (pts) => {
+    // Filter hanya yang belum pernah dikirim di sesi ini
+    const newPts = pts.filter((point) => {
       const incidentId = `${point.source}-${point.id}`;
-      if (loggedIdsRef.current.has(incidentId)) return;
+      if (loggedIdsRef.current.has(incidentId)) return false;
       loggedIdsRef.current.add(incidentId);
+      return true;
+    });
+
+    if (newPts.length === 0) return;
+
+    // Simpan ke localStorage via appendIncident (untuk offline support)
+    newPts.forEach((point) => {
+      const incidentId = `${point.source}-${point.id}`;
       appendIncident({
         id: incidentId,
         timestamp: point.waktu,
@@ -160,6 +169,29 @@ export function useBMKGMap() {
         detail: `Kedalaman ${point.kedalaman} | Potensi: ${point.potensi}`,
       });
     });
+
+    // Bulk import ke Supabase via API (lebih efisien dari satu per satu)
+    try {
+      const earthquakes = newPts.map((point) => ({
+        externalId: `${point.source}-${point.id}`,
+        magnitude: point.magnitude,
+        location: point.wilayah,
+        source: point.source,
+        level: point.magnitude >= 5 ? 'BAHAYA' : point.magnitude >= 3 ? 'WASPADA' : 'AMAN',
+        detail: `Kedalaman ${point.kedalaman} | Potensi: ${point.potensi}`,
+        latitude: point.lat,
+        longitude: point.lon,
+        depth: point.depthKm,
+        timestamp: point.epochMs ? new Date(point.epochMs).toISOString() : undefined,
+      }));
+      await fetch('/api/earthquakes/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ earthquakes }),
+      });
+    } catch {
+      // silent fail — data aman di localStorage
+    }
   }, []);
 
   const refresh = useCallback(async ({ cacheBust = false } = {}) => {

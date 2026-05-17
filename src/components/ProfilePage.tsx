@@ -180,7 +180,15 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
           <div className="pp-identity-badges">
             {isAdmin && <span className="pp-badge pp-badge--admin">👑 Admin Utama</span>}
             <span className="pp-badge pp-badge--pro">⚡ TECTRA PRO</span>
-            {profile.relationship && <span className="pp-badge pp-badge--rel">❤️ {profile.relationship}</span>}
+            {profile.relationship && (
+              <span className="pp-badge pp-badge--rel">
+                {profile.relationship === 'Single' ? '🙋' :
+                 profile.relationship === 'Pacaran' ? '💑' :
+                 profile.relationship === 'Menikah' ? '💍' :
+                 profile.relationship === 'Rahasia' ? '🤫' : '❤️'}{' '}
+                {profile.relationship}
+              </span>
+            )}
           </div>
         </div>
       </div>

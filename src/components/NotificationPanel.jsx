@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Bell, BellOff, ExternalLink, Trash2, X } from 'lucide-react';
 
 function timeAgo(ts) {
@@ -9,6 +9,26 @@ function timeAgo(ts) {
   if (diff < 86400) return `${Math.floor(diff / 3600)}j lalu`;
   return `${Math.floor(diff / 86400)}h lalu`;
 }
+
+// ── Desktop Notification helper ──────────────────────────────────────────────
+async function requestDesktopPermission() {
+  if (typeof window === 'undefined' || !('Notification' in window)) return 'unsupported';
+  if (Notification.permission === 'granted') return 'granted';
+  if (Notification.permission === 'denied') return 'denied';
+  const result = await Notification.requestPermission();
+  return result;
+}
+
+function sendDesktopNotification(title, body, icon = '/logo.png') {
+  if (typeof window === 'undefined' || !('Notification' in window)) return;
+  if (Notification.permission !== 'granted') return;
+  try {
+    new Notification(title, { body, icon, badge: '/logo.png', tag: 'earthquake-alert' });
+  } catch (e) {
+    console.warn('[Desktop Notif]', e);
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function NotificationPanel({
   notifications = [],
@@ -21,6 +41,30 @@ export default function NotificationPanel({
   toggleNotifications,
 }) {
   const panelRef = useRef(null);
+  const [desktopPermission, setDesktopPermission] = useState('default');
+  const prevNotifCountRef = useRef(0);
+
+  // Init: cek permission saat mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setDesktopPermission(Notification.permission);
+    }
+  }, []);
+
+  // Kirim desktop notification setiap ada notifikasi baru
+  useEffect(() => {
+    if (!notificationsEnabled) return;
+    if (notifications.length > prevNotifCountRef.current) {
+      const newest = notifications[0];
+      if (newest && Notification.permission === 'granted') {
+        sendDesktopNotification(
+          newest.title || 'Gempa Terdeteksi',
+          newest.message || newest.body || '',
+        );
+      }
+    }
+    prevNotifCountRef.current = notifications.length;
+  }, [notifications, notificationsEnabled]);
 
   // Close on outside click
   useEffect(() => {
@@ -42,15 +86,24 @@ export default function NotificationPanel({
     return () => document.removeEventListener('keydown', handler);
   }, [panelOpen, closePanel]);
 
+  const handleRequestPermission = async () => {
+    const result = await requestDesktopPermission();
+    setDesktopPermission(result);
+  };
+
   return (
-    <div className="notif-wrap" ref={panelRef}>
+    <div className="notif-wrap" ref={panelRef} style={{ position: 'relative', zIndex: 1000 }}>
       {/* Bell button */}
       <button
         type="button"
         className="notif-bell-btn"
-        onClick={panelOpen ? closePanel : openPanel}
+        onClick={(e) => {
+          e.stopPropagation();
+          panelOpen ? closePanel?.() : openPanel?.();
+        }}
         title="Notifikasi gempa real-time"
         aria-label={`Notifikasi${unreadCount > 0 ? ` (${unreadCount} baru)` : ''}`}
+        style={{ position: 'relative', zIndex: 1001, cursor: 'pointer' }}
       >
         <Bell size={18} />
         {unreadCount > 0 && (
@@ -60,7 +113,7 @@ export default function NotificationPanel({
 
       {/* Dropdown panel */}
       {panelOpen && (
-        <div className="notif-panel">
+        <div className="notif-panel" style={{ zIndex: 1002 }}>
           {/* Header */}
           <div className="notif-panel__header">
             <div className="notif-panel__title">
@@ -98,6 +151,68 @@ export default function NotificationPanel({
             <span className="notif-panel__live-dot">● Live</span>
           </div>
 
+          {/* Desktop notification permission banner */}
+          {desktopPermission !== 'granted' && desktopPermission !== 'denied' && (
+            <div style={{
+              margin: '8px 12px',
+              padding: '8px 12px',
+              background: 'rgba(59,130,246,0.1)',
+              border: '1px solid rgba(59,130,246,0.3)',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '12px',
+            }}>
+              <Bell size={13} style={{ flexShrink: 0, color: '#3b82f6' }} />
+              <span style={{ flex: 1, color: 'var(--text-secondary, #94a3b8)' }}>
+                Aktifkan notifikasi ke laptop/PC
+              </span>
+              <button
+                type="button"
+                onClick={handleRequestPermission}
+                style={{
+                  background: '#3b82f6',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Izinkan
+              </button>
+            </div>
+          )}
+          {desktopPermission === 'denied' && (
+            <div style={{
+              margin: '8px 12px',
+              padding: '8px 12px',
+              background: 'rgba(239,68,68,0.1)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              borderRadius: '8px',
+              fontSize: '11px',
+              color: '#ef4444',
+            }}>
+              ⚠️ Notifikasi diblokir browser. Buka pengaturan situs untuk mengizinkan.
+            </div>
+          )}
+          {desktopPermission === 'granted' && (
+            <div style={{
+              margin: '8px 12px',
+              padding: '6px 12px',
+              background: 'rgba(16,185,129,0.1)',
+              border: '1px solid rgba(16,185,129,0.3)',
+              borderRadius: '8px',
+              fontSize: '11px',
+              color: '#10b981',
+            }}>
+              ✓ Notifikasi desktop aktif
+            </div>
+          )}
+
           {/* List */}
           <div className="notif-panel__list">
             {notifications.length === 0 ? (
@@ -119,7 +234,7 @@ export default function NotificationPanel({
                     {!n.read && <span className="notif-item__dot" style={{ background: n.level?.color }} />}
                   </div>
                   <div className="notif-item__title">{n.title}</div>
-                  <div className="notif-item__body">{n.body}</div>
+                  <div className="notif-item__body">{n.message || n.body}</div>
                   {n.potensi && (
                     <div className="notif-item__potensi" style={{ color: n.level?.color }}>
                       {n.potensi}
@@ -137,7 +252,7 @@ export default function NotificationPanel({
 
           {/* Footer */}
           <div className="notif-panel__footer">
-            BMKG tiap 30d · USGS tiap 60d · Push notif ke laptop aktif
+            BMKG tiap 5m · USGS tiap 5m · {desktopPermission === 'granted' ? '🔔 Push notif aktif' : 'Push notif belum aktif'}
           </div>
         </div>
       )}

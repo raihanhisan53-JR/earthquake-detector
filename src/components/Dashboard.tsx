@@ -120,6 +120,7 @@ export default function Dashboard({ user }: DashboardProps) {
     openPanel: openNotifPanel,
     closePanel: closeNotifPanel,
     clearAll: clearNotifications,
+    addNotification,
   } = useNotifications({
     esp32AlertLevel: esp32.alertLevel,   // ← data real
     esp32Connected:  esp32.connected,    // ← data real
@@ -141,6 +142,29 @@ export default function Dashboard({ user }: DashboardProps) {
 
   // ── Alarm banner global saat ESP32 deteksi gempa ──
   const isEsp32Alert = esp32.connected && esp32.alertLevel > 0
+
+  // ── Notifikasi otomatis saat ada gempa baru dari BMKG/USGS ──
+  const prevBmkgPointsRef = useRef<string>('')
+  useEffect(() => {
+    if (!notificationsEnabled) return
+    const pts = bmkgMap.points
+    if (!pts || pts.length === 0) return
+    // Ambil ID poin terbaru sebagai fingerprint
+    const topId = pts[0]?.id ?? ''
+    if (topId && topId !== prevBmkgPointsRef.current) {
+      prevBmkgPointsRef.current = topId
+      const p = pts[0]
+      if (p && p.magnitude >= 4.0) {
+        addNotification({
+          type: p.magnitude >= 5 ? 'error' : 'warning',
+          title: `${p.source} M${p.magnitude.toFixed(1)} — ${p.wilayah}`,
+          message: `Kedalaman ${p.kedalaman} · ${p.potensi}`,
+          timestamp: p.epochMs ?? Date.now(),
+          source: p.source,
+        })
+      }
+    }
+  }, [bmkgMap.points, notificationsEnabled, addNotification])
 
   // ── Auto-save ESP32 alert ke database ──
   const prevEsp32AlertRef = useRef(0)
@@ -245,7 +269,7 @@ export default function Dashboard({ user }: DashboardProps) {
           <div className="tab-content">
             <ProfilePage
               user={user}
-              onBack={() => setActiveTab('overview')}
+              onBack={() => handleSetActiveTab('overview')}
               onLogout={handleLogout}
             />
           </div>
