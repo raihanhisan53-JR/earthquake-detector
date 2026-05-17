@@ -11,7 +11,8 @@ import { useBMKG } from '@/hooks/useBMKG'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { useESP32 } from '@/hooks/useESP32'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const EarthquakeGlobe3D = dynamic<any>(() => import('./EarthquakeGlobe3D'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const BMKGGoogleMap = dynamic<any>(() => import('./BMKGGoogleMap'), { ssr: false })
 
 // Dynamic imports — semua komponen di-load client-side saja
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -185,7 +186,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
   const quickAccessItems = [
     { id: 'peta',     icon: <MapPinned size={18} />, label: 'Peta Gempa',     desc: 'Peta command center' },
-    { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Globe 3D',       desc: 'Visualisasi bola dunia' },
+    { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Google Maps',    desc: 'Lokasi gempa BMKG real' },
     { id: 'livecctv', icon: <Video size={18} />,     label: 'Pantau Live',    desc: 'Pemantauan real-time' },
     { id: 'edukasi',  icon: <Play size={18} />,      label: 'Edukasi',        desc: 'Video & materi gempa' },
     { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca & Iklim',  desc: 'Visualisasi cuaca BMKG' },
@@ -193,10 +194,6 @@ export default function Dashboard({ user }: DashboardProps) {
     { id: 'riwayat',  icon: <History size={18} />,   label: 'Riwayat',        desc: 'Log insiden gempa' },
     { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',        desc: 'Asisten gempa cerdas' },
   ]
-
-  // Build globe points from BMKG map data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const globePoints = (bmkgMap as any)?.points ?? []
 
   // Build latestEarthquake object for ARIA from real BMKG data
   const latestEarthquakeForAria = gempa ? {
@@ -219,33 +216,8 @@ export default function Dashboard({ user }: DashboardProps) {
         )
       case 'globe':
         return (
-          <div className="tab-content">
-            <div style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              height: '70vh',
-              minHeight: '480px',
-              position: 'relative',
-            }}>
-              <div style={{
-                position: 'absolute', top: '16px', left: '20px', zIndex: 10,
-                background: 'rgba(10,15,29,0.85)', backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(59,130,246,0.3)', borderRadius: '10px',
-                padding: '10px 16px',
-              }}>
-                <div style={{ color: '#60a5fa', fontWeight: 700, fontSize: '14px', marginBottom: '4px' }}>🌍 Globe Seismik 3D</div>
-                <div style={{ color: '#64748b', fontSize: '12px' }}>{globePoints.length} titik gempa BMKG</div>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', fontSize: '11px' }}>
-                  <span style={{ color: '#ef4444' }}>● M6+ Major</span>
-                  <span style={{ color: '#f97316' }}>● M5 Moderate</span>
-                  <span style={{ color: '#3b82f6' }}>● M4 Light</span>
-                  <span style={{ color: '#22c55e' }}>● &lt;M4 Minor</span>
-                </div>
-              </div>
-              <EarthquakeGlobe3D points={globePoints} markerColorMode="magnitude" />
-            </div>
+          <div className="tab-content" style={{ padding: 0 }}>
+            <BMKGGoogleMap />
           </div>
         )
       case 'analitik':
@@ -346,7 +318,7 @@ export default function Dashboard({ user }: DashboardProps) {
 
   const tabLabelMap: Record<string, string> = {
     overview: 'Ringkasan', gempa: 'Gempa Bumi Terkini', peta: 'Peta Gempa Indonesia',
-    globe: 'Globe Seismik 3D', analitik: 'Analitik & Tren', livecctv: 'Pantau Live',
+    globe: 'Google Maps — Lokasi Gempa BMKG', analitik: 'Analitik & Tren', livecctv: 'Pantau Live',
     edukasi: 'Edukasi', cuaca: 'Cuaca & Iklim', esp32: 'ESP32 Sensor',
     riwayat: 'Riwayat Kejadian', aria: 'ARIA — AI Asisten Gempa', profil: 'Profil Pengguna',
   }

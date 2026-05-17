@@ -20,6 +20,7 @@ interface ProfileData {
   bio: string
   phone: string
   address: string
+  contactEmail: string
   birthdate: string
   relationship: string
   avatarDataUrl: string
@@ -31,6 +32,7 @@ const defaultProfile = (user: User): ProfileData => ({
   bio: user.user_metadata?.bio || '',
   phone: user.user_metadata?.phone || '',
   address: user.user_metadata?.address || '',
+  contactEmail: user.user_metadata?.contact_email || '',
   birthdate: user.user_metadata?.birthdate || '',
   relationship: user.user_metadata?.relationship || '',
   avatarDataUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
@@ -101,6 +103,7 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
           bio: draft.bio,
           phone: draft.phone,
           address: draft.address,
+          contact_email: draft.contactEmail,
           birthdate: draft.birthdate,
           relationship: draft.relationship,
           // avatar via localStorage only (Supabase metadata has size limits)
@@ -234,6 +237,16 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
             )}
           </div>
           <div className="pp-field">
+            <label>Email Kontak</label>
+            {mode === 'edit' ? (
+              <input className="pp-input" value={draft.contactEmail} type="email"
+                onChange={e => setDraft(d => ({ ...d, contactEmail: e.target.value }))}
+                placeholder="email@kontak.com" />
+            ) : (
+              <div className="pp-value">{profile.contactEmail || '—'}</div>
+            )}
+          </div>
+          <div className="pp-field">
             <label>Alamat</label>
             {mode === 'edit' ? (
               <input className="pp-input" value={draft.address}
@@ -244,7 +257,7 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
             )}
           </div>
           <div className="pp-field pp-field--locked">
-            <label><Lock size={11} /> Email (Terkunci)</label>
+            <label><Lock size={11} /> Email Akun (Terkunci - dari login)</label>
             <div className="pp-value pp-value--locked">{user.email}</div>
           </div>
         </div>
