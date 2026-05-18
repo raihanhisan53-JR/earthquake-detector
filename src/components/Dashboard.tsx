@@ -152,16 +152,25 @@ function DashboardInner({ user }: DashboardProps) {
   const isEsp32Alert = esp32.connected && esp32.alertLevel > 0
 
   // ── Notifikasi otomatis saat ada gempa baru dari BMKG/USGS ──
-  const prevBmkgPointsRef = useRef<string>('')
+  // Pakai Set untuk track ID yang sudah dinotifikasi (session ini)
+  const notifiedIdsRef = useRef<Set<string>>(new Set())
+  const initialLoadDoneRef = useRef(false)
+
   useEffect(() => {
     if (!notificationsEnabled) return
     const pts = bmkgMap.points
     if (!pts || pts.length === 0) return
-    const topId = pts[0]?.id ?? ''
-    if (topId && topId !== prevBmkgPointsRef.current) {
-      prevBmkgPointsRef.current = topId
-      const p = pts[0]
-      if (p && p.magnitude >= 4.0) {
+
+    // Saat pertama kali data masuk: load semua gempa yang ada (max 5 terbaru)
+    // agar panel tidak kosong saat app baru dibuka
+    if (!initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true
+      const recent = pts
+        .filter(p => p.magnitude >= 4.0)
+        .slice(0, 5) // ambil 5 terbaru
+      recent.forEach(p => {
+        if (notifiedIdsRef.current.has(p.id)) return
+        notifiedIdsRef.current.add(p.id)
         addNotification({
           type: p.magnitude >= 5 ? 'error' : 'warning',
           title: `${p.source} M${p.magnitude.toFixed(1)} — ${p.wilayah}`,
@@ -170,8 +179,24 @@ function DashboardInner({ user }: DashboardProps) {
           source: p.source,
           magnitude: p.magnitude,
         })
-      }
+      })
+      return
     }
+
+    // Setelah initial load: hanya push gempa yang belum pernah dinotifikasi
+    pts.forEach(p => {
+      if (!p || p.magnitude < 4.0) return
+      if (notifiedIdsRef.current.has(p.id)) return
+      notifiedIdsRef.current.add(p.id)
+      addNotification({
+        type: p.magnitude >= 5 ? 'error' : 'warning',
+        title: `${p.source} M${p.magnitude.toFixed(1)} — ${p.wilayah}`,
+        message: `Kedalaman ${p.kedalaman} · ${p.potensi}`,
+        timestamp: p.epochMs ?? Date.now(),
+        source: p.source,
+        magnitude: p.magnitude,
+      })
+    })
   }, [bmkgMap.points, notificationsEnabled, addNotification])
 
   // ── Auto-save ESP32 alert ke database ──

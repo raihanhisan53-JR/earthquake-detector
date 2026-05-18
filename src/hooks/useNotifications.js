@@ -116,12 +116,15 @@ export function useNotifications({
   }, []);
 
   // ── Public addNotification: respects magnitude threshold ──────
+  // Pakai ref untuk threshold agar tidak stale di closure
+  const notifThresholdRef = useRef(notifThreshold);
+  useEffect(() => { notifThresholdRef.current = notifThreshold; }, [notifThreshold]);
+
   const addNotification = useCallback((n) => {
-    // Kalau ada magnitude di notifikasi, cek threshold
     const mag = n.magnitude ?? n.mag ?? null;
-    if (mag !== null && Number.isFinite(mag) && mag < notifThreshold) return;
+    if (mag !== null && Number.isFinite(mag) && mag < notifThresholdRef.current) return;
     addNotificationInternal(n);
-  }, [notifThreshold, addNotificationInternal]);
+  }, [addNotificationInternal]);
 
   // ── Notifikasi ESP32 ────────────────────────────────
   useEffect(() => {
