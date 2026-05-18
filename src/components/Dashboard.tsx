@@ -10,7 +10,10 @@ import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { useESP32 } from '@/hooks/useESP32'
+import { usePWA } from '@/hooks/usePWA'
+import { I18nProvider, useI18n } from '@/hooks/useI18n'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+const LanguageToggle  = dynamic<any>(() => import('./LanguageToggle'), { ssr: false })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const BMKGGoogleMap = dynamic<any>(() => import('./BMKGGoogleMap'), { ssr: false })
 
@@ -46,7 +49,9 @@ const ProfilePage = dynamic<any>(() => import('./ProfilePage'), { ssr: false })
 
 interface DashboardProps { user: User }
 
-export default function Dashboard({ user }: DashboardProps) {
+// Inner component — needs I18nProvider wrapper
+function DashboardInner({ user }: DashboardProps) {
+  const { t } = useI18n()
   const router  = useRouter()
   const supabase = createClient()
 
@@ -68,6 +73,7 @@ export default function Dashboard({ user }: DashboardProps) {
   const esp32 = useESP32()
   const { gempa } = useBMKG()
   const bmkgMap   = useBMKGMap()
+  const { installPrompt, isInstalled, installApp } = usePWA()
 
   // Hydration fix: baca localStorage setelah mount
   useEffect(() => {
@@ -121,9 +127,11 @@ export default function Dashboard({ user }: DashboardProps) {
     closePanel: closeNotifPanel,
     clearAll: clearNotifications,
     addNotification,
+    notifThreshold,
+    setNotifThreshold,
   } = useNotifications({
-    esp32AlertLevel: esp32.alertLevel,   // ← data real
-    esp32Connected:  esp32.connected,    // ← data real
+    esp32AlertLevel: esp32.alertLevel,
+    esp32Connected:  esp32.connected,
     notificationsEnabled,
   })
 
@@ -149,7 +157,6 @@ export default function Dashboard({ user }: DashboardProps) {
     if (!notificationsEnabled) return
     const pts = bmkgMap.points
     if (!pts || pts.length === 0) return
-    // Ambil ID poin terbaru sebagai fingerprint
     const topId = pts[0]?.id ?? ''
     if (topId && topId !== prevBmkgPointsRef.current) {
       prevBmkgPointsRef.current = topId
@@ -161,6 +168,7 @@ export default function Dashboard({ user }: DashboardProps) {
           message: `Kedalaman ${p.kedalaman} · ${p.potensi}`,
           timestamp: p.epochMs ?? Date.now(),
           source: p.source,
+          magnitude: p.magnitude,
         })
       }
     }
@@ -371,9 +379,9 @@ export default function Dashboard({ user }: DashboardProps) {
       {/* Topbar — sekarang semua prop ESP32 terhubung */}
       <Topbar
         theme={theme}
-        toggleTheme={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+        toggleTheme={() => setTheme((th: string) => th === 'dark' ? 'light' : 'dark')}
         notificationsEnabled={notificationsEnabled}
-        toggleNotifications={() => setNotificationsEnabled(v => !v)}
+        toggleNotifications={() => setNotificationsEnabled((v: boolean) => !v)}
         connected={esp32.connected}
         compact={isCompact}
         pageLabel={tabLabelMap[activeTab] || ''}
@@ -384,7 +392,7 @@ export default function Dashboard({ user }: DashboardProps) {
         onDisconnect={esp32.disconnectESP32}
         onMenuClick={() => setSidebarOpen(true)}
         sidebarCollapsed={sidebarCollapsed}
-        toggleSidebar={() => setSidebarCollapsed(v => !v)}
+        toggleSidebar={() => setSidebarCollapsed((v: boolean) => !v)}
         notifyUser={notifyUser}
         notifications={notifications}
         unreadCount={unreadCount}
@@ -392,6 +400,11 @@ export default function Dashboard({ user }: DashboardProps) {
         openNotifPanel={openNotifPanel}
         closeNotifPanel={closeNotifPanel}
         clearNotifications={clearNotifications}
+        notifThreshold={notifThreshold}
+        setNotifThreshold={setNotifThreshold}
+        installPrompt={installPrompt}
+        isInstalled={isInstalled}
+        installApp={installApp}
       />
 
       <div className="dashboard-body">
@@ -416,5 +429,13 @@ export default function Dashboard({ user }: DashboardProps) {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function Dashboard({ user }: DashboardProps) {
+  return (
+    <I18nProvider>
+      <DashboardInner user={user} />
+    </I18nProvider>
   )
 }

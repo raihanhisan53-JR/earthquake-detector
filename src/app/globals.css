@@ -10068,3 +10068,346 @@ body:has(.alarm-banner) .dashboard-layout {
   font-weight: 600;
   white-space: nowrap;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   LANGUAGE TOGGLE
+   ═══════════════════════════════════════════════════════════ */
+
+.lang-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  min-height: 30px;
+}
+
+.lang-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NOTIFICATION THRESHOLD SLIDER
+   ═══════════════════════════════════════════════════════════ */
+
+.notif-threshold {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(109, 40, 217, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notif-threshold__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.notif-threshold__value {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.notif-threshold__slider {
+  width: 100%;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) calc(var(--val, 57%) ),
+    var(--border-color) calc(var(--val, 57%)),
+    var(--border-color) 100%
+  );
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+
+.notif-threshold__slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-main);
+  box-shadow: 0 2px 6px rgba(109, 40, 217, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.notif-threshold__slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.notif-threshold__slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-main);
+  cursor: pointer;
+}
+
+.notif-threshold__ticks {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.notif-threshold__tick {
+  padding: 2px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.notif-threshold__tick:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.notif-threshold__tick.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.notif-threshold__hint {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Active state for threshold toggle button */
+.notif-ctrl-btn--active {
+  background: rgba(109, 40, 217, 0.15);
+  color: var(--accent);
+  border-color: rgba(109, 40, 217, 0.3);
+}
+
+/* Notification permission banners — refactored */
+.notif-perm-banner {
+  margin: 8px 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.notif-perm-banner--info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: var(--text-secondary, #94a3b8);
+}
+
+.notif-perm-banner--error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  font-size: 11px;
+}
+
+.notif-perm-banner--success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  font-size: 11px;
+}
+
+.notif-perm-btn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.notif-perm-btn:hover { background: #2563eb; }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE FIX — quake list tidak terpotong, bisa scroll penuh
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Quake list: hapus max-height fixed, biarkan konten mengalir */
+  .quake-list {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  /* Quake row: pastikan tidak terpotong di kanan */
+  .quake-row {
+    overflow: visible;
+    min-width: 0;
+  }
+
+  /* Quake row title: bisa wrap di mobile */
+  .quake-row-title {
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  /* Quake row meta: wrap ke baris baru kalau sempit */
+  .quake-row-meta {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Quake row dist: tidak push ke kanan di mobile */
+  .quake-row-dist {
+    margin-left: 0;
+  }
+
+  /* Map layout: stack vertikal di mobile */
+  .map-layout-grid {
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
+
+  /* Map wrapper: tinggi lebih kecil di mobile */
+  .indonesia-map-wrapper {
+    height: 320px !important;
+    min-height: 280px !important;
+  }
+
+  /* Side panel: full width di mobile */
+  .quake-side-panel {
+    width: 100% !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    border-left: none !important;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* Map controls: 1 kolom di mobile */
+  .map-control-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  /* Map secondary actions: wrap */
+  .map-secondary-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Map secondary actions time-lapse: full width */
+  .map-secondary-actions > div[style*='margin-left: auto'] {
+    margin-left: 0 !important;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Radius panel options: wrap */
+  .radius-panel__options {
+    flex-wrap: wrap;
+  }
+
+  /* Language toggle: compact di mobile */
+  .lang-btn span:not(:first-child) {
+    display: none;
+  }
+
+  /* Topbar actions: scroll horizontal kalau overflow */
+  .topbar-actions {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+  .topbar-actions::-webkit-scrollbar { display: none; }
+
+  /* Notif panel: full width di mobile */
+  .notif-panel {
+    width: calc(100vw - 16px) !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PWA INSTALL BANNER (bottom of page, mobile only)
+   ═══════════════════════════════════════════════════════════ */
+
+.pwa-install-hint {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pwa-install-hint {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(109,40,217,0.12), rgba(59,130,246,0.08));
+    border-top: 1px solid rgba(109,40,217,0.2);
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  .pwa-install-hint strong {
+    color: var(--text-primary);
+  }
+
+  .pwa-install-hint__btn {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}

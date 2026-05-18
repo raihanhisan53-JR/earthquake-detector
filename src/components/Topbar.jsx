@@ -17,6 +17,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
+import LanguageToggle from './LanguageToggle';
 
 const getProfileName = (user) => {
   // Supabase: user_metadata.full_name atau email
@@ -121,6 +122,11 @@ export default function Topbar({
   openNotifPanel,
   closeNotifPanel,
   clearNotifications,
+  notifThreshold = 4,
+  setNotifThreshold,
+  installPrompt = false,
+  isInstalled = false,
+  installApp,
 }) {
   const [time, setTime] = useState('');
   const [ipInput, setIpInput] = useState(esp32Ip);
@@ -291,7 +297,25 @@ export default function Topbar({
             panelOpen={notifPanelOpen} openPanel={openNotifPanel}
             closePanel={closeNotifPanel} clearAll={clearNotifications}
             notificationsEnabled={notificationsEnabled} toggleNotifications={toggleNotifications}
+            notifThreshold={notifThreshold} setNotifThreshold={setNotifThreshold}
           />
+
+          {/* PWA Install button — hanya muncul kalau ada prompt dan belum installed */}
+          {installPrompt && !isInstalled && (
+            <button
+              type="button"
+              className="action-btn"
+              onClick={installApp}
+              title="Install app ke perangkat"
+              style={{ gap: '6px' }}
+            >
+              <span style={{ fontSize: '16px' }}>⬇</span>
+              <span className="hide-mobile">Install</span>
+            </button>
+          )}
+
+          {/* Language toggle */}
+          <LanguageToggle />
 
           {/* Uji Alarm button */}
           <button type="button"

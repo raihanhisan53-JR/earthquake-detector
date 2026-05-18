@@ -1,10 +1,17 @@
 "use client"
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, BellOff, ExternalLink, Trash2, X } from 'lucide-react';
+import { Bell, BellOff, ExternalLink, SlidersHorizontal, Trash2, X } from 'lucide-react';
+import { useI18n } from '@/hooks/useI18n';
 
-function timeAgo(ts) {
+function timeAgo(ts, lang = 'id') {
   const diff = Math.floor((Date.now() - ts) / 1000);
+  if (lang === 'en') {
+    if (diff < 60) return `${diff}s ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
   if (diff < 60) return `${diff}d lalu`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m lalu`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}j lalu`;
@@ -31,6 +38,8 @@ function sendDesktopNotification(title, body, icon = '/logo.png') {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+const THRESHOLD_STEPS = [0, 2, 3, 4, 5, 6, 7];
+
 export default function NotificationPanel({
   notifications = [],
   unreadCount = 0,
@@ -40,11 +49,15 @@ export default function NotificationPanel({
   clearAll,
   notificationsEnabled,
   toggleNotifications,
+  notifThreshold = 4,
+  setNotifThreshold,
 }) {
+  const { t, lang } = useI18n();
   const bellRef  = useRef(null);
   const panelRef = useRef(null);
   const [desktopPermission, setDesktopPermission] = useState('default');
   const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
+  const [showThreshold, setShowThreshold] = useState(false);
   const prevNotifCountRef = useRef(0);
 
   // Hitung posisi panel berdasarkan posisi bell button (fixed positioning)
@@ -52,7 +65,6 @@ export default function NotificationPanel({
     if (!bellRef.current) return;
     const rect = bellRef.current.getBoundingClientRect();
     const panelWidth = window.innerWidth <= 480 ? window.innerWidth - 24 : 360;
-    // Pastikan panel tidak keluar dari sisi kiri layar
     const rightFromEdge = window.innerWidth - rect.right;
     const clampedRight = Math.max(8, Math.min(rightFromEdge, window.innerWidth - panelWidth - 8));
     setPanelPos({
@@ -137,22 +149,31 @@ export default function NotificationPanel({
           <div className="notif-panel__header">
             <div className="notif-panel__title">
               <Bell size={15} />
-              <span>Notifikasi Gempa</span>
+              <span>{t('notifications')}</span>
               {unreadCount > 0 && (
                 <span className="notif-panel__badge">{unreadCount}</span>
               )}
             </div>
             <div className="notif-panel__controls">
+              {/* Threshold toggle */}
+              <button
+                type="button"
+                className={`notif-ctrl-btn ${showThreshold ? 'notif-ctrl-btn--active' : ''}`}
+                onClick={() => setShowThreshold(v => !v)}
+                title={t('minMagnitude')}
+              >
+                <SlidersHorizontal size={14} />
+              </button>
               <button
                 type="button"
                 className="notif-ctrl-btn"
                 onClick={toggleNotifications}
-                title={notificationsEnabled ? 'Matikan notifikasi' : 'Aktifkan notifikasi'}
+                title={notificationsEnabled ? t('disableNotif') : t('enableNotif')}
               >
                 {notificationsEnabled ? <Bell size={14} /> : <BellOff size={14} />}
               </button>
               {notifications.length > 0 && (
-                <button type="button" className="notif-ctrl-btn" onClick={clearAll} title="Hapus semua">
+                <button type="button" className="notif-ctrl-btn" onClick={clearAll} title={t('clearAll')}>
                   <Trash2 size={14} />
                 </button>
               )}
@@ -161,6 +182,40 @@ export default function NotificationPanel({
               </button>
             </div>
           </div>
+
+          {/* Magnitude threshold slider */}
+          {showThreshold && (
+            <div className="notif-threshold">
+              <div className="notif-threshold__label">
+                <SlidersHorizontal size={12} />
+                <span>{t('minMagnitude')}</span>
+                <strong className="notif-threshold__value">M {notifThreshold.toFixed(1)}</strong>
+              </div>
+              <input
+                type="range"
+                className="notif-threshold__slider"
+                min={0}
+                max={7}
+                step={0.5}
+                value={notifThreshold}
+                onChange={(e) => setNotifThreshold?.(parseFloat(e.target.value))}
+                aria-label={t('minMagnitude')}
+              />
+              <div className="notif-threshold__ticks">
+                {THRESHOLD_STEPS.map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className={`notif-threshold__tick ${notifThreshold === v ? 'active' : ''}`}
+                    onClick={() => setNotifThreshold?.(v)}
+                  >
+                    {v === 0 ? t('all') : `M${v}`}
+                  </button>
+                ))}
+              </div>
+              <p className="notif-threshold__hint">{t('minMagnitudeHint')}</p>
+            </div>
+          )}
 
           {/* Source tags */}
           <div className="notif-panel__sources">
@@ -172,63 +227,22 @@ export default function NotificationPanel({
 
           {/* Desktop notification permission banner */}
           {desktopPermission !== 'granted' && desktopPermission !== 'denied' && (
-            <div style={{
-              margin: '8px 12px',
-              padding: '8px 12px',
-              background: 'rgba(59,130,246,0.1)',
-              border: '1px solid rgba(59,130,246,0.3)',
-              borderRadius: '8px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              fontSize: '12px',
-            }}>
+            <div className="notif-perm-banner notif-perm-banner--info">
               <Bell size={13} style={{ flexShrink: 0, color: '#3b82f6' }} />
-              <span style={{ flex: 1, color: 'var(--text-secondary, #94a3b8)' }}>
-                Aktifkan notifikasi ke laptop/PC
-              </span>
-              <button
-                type="button"
-                onClick={handleRequestPermission}
-                style={{
-                  background: '#3b82f6',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Izinkan
+              <span>{t('desktopNotifAllow')}</span>
+              <button type="button" className="notif-perm-btn" onClick={handleRequestPermission}>
+                {t('desktopNotifAllow2')}
               </button>
             </div>
           )}
           {desktopPermission === 'denied' && (
-            <div style={{
-              margin: '8px 12px',
-              padding: '8px 12px',
-              background: 'rgba(239,68,68,0.1)',
-              border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: '8px',
-              fontSize: '11px',
-              color: '#ef4444',
-            }}>
-              ⚠️ Notifikasi diblokir browser. Buka pengaturan situs untuk mengizinkan.
+            <div className="notif-perm-banner notif-perm-banner--error">
+              {t('desktopNotifBlocked')}
             </div>
           )}
           {desktopPermission === 'granted' && (
-            <div style={{
-              margin: '8px 12px',
-              padding: '6px 12px',
-              background: 'rgba(16,185,129,0.1)',
-              border: '1px solid rgba(16,185,129,0.3)',
-              borderRadius: '8px',
-              fontSize: '11px',
-              color: '#10b981',
-            }}>
-              ✓ Notifikasi desktop aktif
+            <div className="notif-perm-banner notif-perm-banner--success">
+              {t('desktopNotifActive')}
             </div>
           )}
 
@@ -237,8 +251,8 @@ export default function NotificationPanel({
             {notifications.length === 0 ? (
               <div className="notif-empty">
                 <Bell size={28} />
-                <p>Belum ada notifikasi</p>
-                <small>Gempa M≥4.0 akan muncul otomatis</small>
+                <p>{t('noNotifications')}</p>
+                <small>{t('noNotificationsHint')}</small>
               </div>
             ) : (
               notifications.map((n) => (
@@ -249,7 +263,7 @@ export default function NotificationPanel({
                 >
                   <div className="notif-item__row">
                     <span className="notif-item__src" style={{ color: n.sourceColor }}>{n.source}</span>
-                    <span className="notif-item__time">{timeAgo(n.timestamp)}</span>
+                    <span className="notif-item__time">{timeAgo(n.timestamp, lang)}</span>
                     {!n.read && <span className="notif-item__dot" style={{ background: n.level?.color }} />}
                   </div>
                   <div className="notif-item__title">{n.title}</div>
@@ -261,7 +275,7 @@ export default function NotificationPanel({
                   )}
                   {n.url && (
                     <a href={n.url} target="_blank" rel="noreferrer" className="notif-item__link">
-                      <ExternalLink size={10} /> Lihat detail
+                      <ExternalLink size={10} /> {lang === 'en' ? 'View detail' : 'Lihat detail'}
                     </a>
                   )}
                 </div>
@@ -271,7 +285,7 @@ export default function NotificationPanel({
 
           {/* Footer */}
           <div className="notif-panel__footer">
-            BMKG tiap 5m · USGS tiap 5m · {desktopPermission === 'granted' ? '🔔 Push notif aktif' : 'Push notif belum aktif'}
+            {t('notifFooter')} · {desktopPermission === 'granted' ? t('pushActive') : t('pushInactive')}
           </div>
         </div>,
         document.body
@@ -286,8 +300,8 @@ export default function NotificationPanel({
         type="button"
         className="notif-bell-btn"
         onClick={() => { panelOpen ? closePanel?.() : openPanel?.(); }}
-        title="Notifikasi gempa real-time"
-        aria-label={`Notifikasi${unreadCount > 0 ? ` (${unreadCount} baru)` : ''}`}
+        title={t('notifications')}
+        aria-label={`${t('notifications')}${unreadCount > 0 ? ` (${unreadCount})` : ''}`}
         aria-expanded={panelOpen}
         aria-haspopup="true"
       >
