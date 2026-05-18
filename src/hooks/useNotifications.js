@@ -126,6 +126,8 @@ export function useNotifications({
     unreadCount,
     panelOpen,
     setPanelOpen,
+    openPanel: () => setPanelOpen(true),
+    closePanel: () => setPanelOpen(false),
     addNotification,
     dismissNotification,
     markAllRead,

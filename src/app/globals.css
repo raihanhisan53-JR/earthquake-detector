@@ -2600,6 +2600,14 @@ select option {
   white-space: nowrap;
 }
 
+.quake-row-dist {
+  font-size: 10px;
+  color: #10b981;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-left: auto;
+}
+
 .map-warning {
   padding: 10px 20px;
   font-size: 12px;
@@ -5488,10 +5496,8 @@ img {
 }
 
 /* Panel dropdown */
+/* Panel dropdown — position:fixed diset via inline style dari komponen (portal) */
 .notif-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
   width: 360px;
   max-height: 520px;
   background: var(--bg-card);
@@ -5501,7 +5507,6 @@ img {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 9999;
   animation: notifSlideIn 0.15s ease;
 }
 
@@ -5513,7 +5518,6 @@ img {
 @media (max-width: 480px) {
   .notif-panel {
     width: calc(100vw - 24px);
-    right: -60px;
   }
 }
 
@@ -9828,23 +9832,16 @@ body:has(.alarm-banner) .dashboard-layout {
 .eq-footer-link--maps { color: #22c55e; border-color: rgba(34,197,94,0.3); }
 .eq-footer-link--maps:hover { background: rgba(34,197,94,0.08); color: #22c55e; }
 
-/* ── Fix Notification Bell z-index / pointer-events ── */
-.notif-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  z-index: 1000;
-}
-
+/* ── Notification Bell — panel via portal (position:fixed) ── */
 .notif-bell-btn {
   position: relative;
-  z-index: 1001;
-  pointer-events: all !important;
-  cursor: pointer !important;
+  cursor: pointer;
 }
 
 .notif-panel {
-  z-index: 9999 !important;
+  /* position:fixed dan koordinat diset via inline style dari komponen */
+  width: 360px;
+  max-height: 520px;
 }
 
 .topbar-actions {
@@ -9852,3 +9849,222 @@ body:has(.alarm-banner) .dashboard-layout {
   z-index: 100;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   RADIUS ALERT PANEL
+   ═══════════════════════════════════════════════════════════ */
+
+.radius-panel {
+  background: var(--bg-card-alt);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+
+.radius-panel--active {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+/* Header */
+.radius-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.radius-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.radius-panel__badge {
+  background: #10b981;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 99px;
+  line-height: 1.6;
+}
+
+.radius-panel__toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.radius-panel__toggle:hover { background: var(--bg-hover); }
+
+/* Location status row */
+.radius-panel__location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.radius-panel__loc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.radius-panel__loc-text {
+  font-weight: 500;
+}
+
+.radius-panel__loc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.radius-panel__loc-btn:hover { background: rgba(59, 130, 246, 0.22); }
+.radius-panel__loc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.radius-panel__coords {
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: auto;
+}
+
+/* Radius option buttons */
+.radius-panel__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.radius-opt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.radius-opt-btn:hover:not(:disabled) {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+.radius-opt-btn.active {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  font-weight: 600;
+}
+.radius-opt-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Info / warning banners */
+.radius-panel__info {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  line-height: 1.5;
+}
+
+.radius-panel__warn {
+  font-size: 11px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.07);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  line-height: 1.5;
+}
+
+/* ── Compact variant (topbar / sidebar) ── */
+.radius-compact {
+  position: relative;
+  display: inline-flex;
+}
+
+.radius-compact__btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card-alt);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.radius-compact__btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.radius-compact__btn.active {
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.radius-compact__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 3px;
+  background: #10b981;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 99px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-main);
+}
+
+/* ── Radius circle overlay on map ── */
+.radius-circle-label {
+  background: rgba(16, 185, 129, 0.85);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}

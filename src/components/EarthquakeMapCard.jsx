@@ -1,8 +1,10 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Bell, Crosshair, GitBranch, List, MapPin, RefreshCcw, Globe, Play, Pause, FastForward, Search } from 'lucide-react';
-import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
+import { CircleMarker, Circle, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useBMKGMap } from '@/hooks/useBMKGMap';
+import { useRadiusAlert } from '@/hooks/useRadiusAlert';
+import RadiusAlertPanel from './RadiusAlertPanel';
 import EarthquakeGlobe3D from './EarthquakeGlobe3D';
 
 const getMagnitudeMarkerColor = (magnitude) => {
@@ -146,7 +148,7 @@ const BASE_LAYER_ORDER = ['street', 'dark', 'terrain', 'satellite'];
 const PLATE_BOUNDARIES_GEOJSON =
   'https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json';
 
-function QuakeMarkerWithRings({ point, dimmed, isLatest, displayColor }) {
+function QuakeMarkerWithRings({ point, dimmed, isLatest, displayColor, distanceKm }) {
   const r = getMarkerRadius(point.magnitude);
   const c = displayColor;
   const ringOffsets = point.magnitude >= 5 ? [28, 17, 9] : point.magnitude >= 4 ? [16, 8] : [];
@@ -196,6 +198,9 @@ function QuakeMarkerWithRings({ point, dimmed, isLatest, displayColor }) {
           Potensi: {point.potensi ?? '-'}
           <br />
           Koordinat: {point.lat.toFixed(3)}, {point.lon.toFixed(3)}
+          {distanceKm != null && (
+            <><br />Jarak dari Anda: <strong>{distanceKm < 1 ? '< 1' : Math.round(distanceKm)} km</strong></>
+          )}
         </Popup>
       </CircleMarker>
     </>
@@ -348,6 +353,18 @@ export default function EarthquakeMapCard({
   notifyUser = () => {},
 }) {
   const { points, bmkgPoints, usgsPoints, loading, error, refresh, health } = useBMKGMap();
+  const {
+    userLocation,
+    locationStatus,
+    radiusKm,
+    radiusEnabled,
+    requestLocation,
+    setRadiusKm,
+    toggleRadius,
+    isWithinRadius,
+    distanceTo,
+    filterByRadius,
+  } = useRadiusAlert();
   const storedPrefs = useMemo(() => getStoredMapPreferences(), []);
   const [minMagnitude, setMinMagnitude] = useState(3);
   const [region, setRegion] = useState('Semua');
@@ -409,7 +426,8 @@ export default function EarthquakeMapCard({
       const byRegion = region === 'Semua' || point.region === region;
       const byTime = passesTimeWindow(point, windowMs, t);
       const bySource = dataSourceFilter === 'Semua' || point.source === dataSourceFilter;
-      return byMagnitude && byRegion && byTime && bySource;
+      const byRadius = isWithinRadius(point.lat, point.lon);
+      return byMagnitude && byRegion && byTime && bySource && byRadius;
     });
 
     // Sort by oldest first if time lapse is running
@@ -419,7 +437,7 @@ export default function EarthquakeMapCard({
     }
     
     return pts;
-  }, [sourcePoints, minMagnitude, region, windowMs, clockTick, isTimeLapse, timeLapseIndex]);
+  }, [sourcePoints, minMagnitude, region, windowMs, clockTick, isTimeLapse, timeLapseIndex, isWithinRadius]);
 
   useEffect(() => {
     if (!isTimeLapse) return;
@@ -697,8 +715,13 @@ export default function EarthquakeMapCard({
     });
   }, [latestAlertPoint, loading, mode, notificationsEnabled, notifyUser, shouldRaiseAlert]);
 
-  const triggerSimulation = () => {
-    const mockMagnitude = Number((4.5 + Math.random() * 1.8).toFixed(1));
+  // Hitung jumlah gempa dalam radius (dari semua points, bukan hanya filtered)
+  const nearbyCount = useMemo(() => {
+    if (!radiusEnabled || radiusKm === 0 || !userLocation) return 0;
+    return sourcePoints.filter((p) => isWithinRadius(p.lat, p.lon)).length;
+  }, [radiusEnabled, radiusKm, userLocation, sourcePoints, isWithinRadius]);
+
+  const triggerSimulation = () => {    const mockMagnitude = Number((4.5 + Math.random() * 1.8).toFixed(1));
     const depthKm = Math.round(10 + Math.random() * 120);
     const mockPoint = {
       id: `simulation-${Date.now()}`,
@@ -970,6 +993,29 @@ export default function EarthquakeMapCard({
             <MapInteractionController />
             <MapAutoFocus point={mapFollowTarget} enabled={followLatest && mode !== 'simulation'} />
 
+            {/* Radius circle overlay */}
+            {radiusEnabled && radiusKm > 0 && userLocation && (
+              <Circle
+                center={[userLocation.lat, userLocation.lon]}
+                radius={radiusKm * 1000}
+                pathOptions={{
+                  color: '#10b981',
+                  fillColor: '#10b981',
+                  fillOpacity: 0.06,
+                  weight: 2,
+                  dashArray: '6 4',
+                  opacity: 0.7,
+                }}
+              >
+                <Popup>
+                  <strong>Radius Alert Aktif</strong><br />
+                  Radius: {radiusKm} km<br />
+                  Lokasi Anda: {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}<br />
+                  Gempa dalam radius: {nearbyCount}
+                </Popup>
+              </Circle>
+            )}
+
             {mapMarkers.map(({ point, dimmed }, index) => (
               <QuakeMarkerWithRings
                 key={point.id}
@@ -977,6 +1023,7 @@ export default function EarthquakeMapCard({
                 dimmed={dimmed}
                 isLatest={index === 0}
                 displayColor={getDisplayMarkerColor(point, markerColorMode)}
+                distanceKm={distanceTo(point.lat, point.lon)}
               />
             ))}
           </MapContainer>
@@ -1001,9 +1048,22 @@ export default function EarthquakeMapCard({
         </div>
 
         <aside className="quake-side-panel">
+          {/* ── Radius Alert Panel ── */}
           <div className="quake-side-section">
-          <div className="panel-title"><Bell size={16} /> Status &amp; kesehatan</div>
-          <div className="panel-stat-grid">
+            <RadiusAlertPanel
+              userLocation={userLocation}
+              locationStatus={locationStatus}
+              radiusKm={radiusKm}
+              radiusEnabled={radiusEnabled}
+              requestLocation={requestLocation}
+              setRadiusKm={setRadiusKm}
+              toggleRadius={toggleRadius}
+              nearbyCount={nearbyCount}
+            />
+          </div>
+
+          <div className="quake-side-section">
+          <div className="panel-title"><Bell size={16} /> Status &amp; kesehatan</div>          <div className="panel-stat-grid">
             <div className="panel-stat">
               <span>Mode</span>
               <strong>{mode === 'live' ? 'LIVE' : 'SIMULASI'}</strong>
@@ -1118,6 +1178,14 @@ export default function EarthquakeMapCard({
                           <span className="quake-row-region">{point.region}</span>
                         )}
                         <span className="quake-row-time">{point.waktu}</span>
+                        {(() => {
+                          const d = distanceTo(point.lat, point.lon);
+                          return d != null ? (
+                            <span className="quake-row-dist" title="Jarak dari lokasi Anda">
+                              📍 {d < 1 ? '< 1' : Math.round(d)} km
+                            </span>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
                   </div>

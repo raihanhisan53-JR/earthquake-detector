@@ -1,5 +1,6 @@
 "use client"
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, BellOff, ExternalLink, Trash2, X } from 'lucide-react';
 
 function timeAgo(ts) {
@@ -40,9 +41,25 @@ export default function NotificationPanel({
   notificationsEnabled,
   toggleNotifications,
 }) {
+  const bellRef  = useRef(null);
   const panelRef = useRef(null);
   const [desktopPermission, setDesktopPermission] = useState('default');
+  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
   const prevNotifCountRef = useRef(0);
+
+  // Hitung posisi panel berdasarkan posisi bell button (fixed positioning)
+  const updatePanelPos = useCallback(() => {
+    if (!bellRef.current) return;
+    const rect = bellRef.current.getBoundingClientRect();
+    const panelWidth = window.innerWidth <= 480 ? window.innerWidth - 24 : 360;
+    // Pastikan panel tidak keluar dari sisi kiri layar
+    const rightFromEdge = window.innerWidth - rect.right;
+    const clampedRight = Math.max(8, Math.min(rightFromEdge, window.innerWidth - panelWidth - 8));
+    setPanelPos({
+      top: rect.bottom + 10,
+      right: clampedRight,
+    });
+  }, []);
 
   // Init: cek permission saat mount
   useEffect(() => {
@@ -66,13 +83,25 @@ export default function NotificationPanel({
     prevNotifCountRef.current = notifications.length;
   }, [notifications, notificationsEnabled]);
 
-  // Close on outside click
+  // Hitung posisi saat panel dibuka & saat window di-resize/scroll
+  useEffect(() => {
+    if (!panelOpen) return;
+    updatePanelPos();
+    window.addEventListener('resize', updatePanelPos);
+    window.addEventListener('scroll', updatePanelPos, true);
+    return () => {
+      window.removeEventListener('resize', updatePanelPos);
+      window.removeEventListener('scroll', updatePanelPos, true);
+    };
+  }, [panelOpen, updatePanelPos]);
+
+  // Close on outside click — cek bell + panel
   useEffect(() => {
     if (!panelOpen) return;
     const handler = (e) => {
-      if (panelRef.current && !panelRef.current.contains(e.target)) {
-        closePanel?.();
-      }
+      const clickedBell  = bellRef.current?.contains(e.target);
+      const clickedPanel = panelRef.current?.contains(e.target);
+      if (!clickedBell && !clickedPanel) closePanel?.();
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -91,29 +120,19 @@ export default function NotificationPanel({
     setDesktopPermission(result);
   };
 
-  return (
-    <div className="notif-wrap" ref={panelRef} style={{ position: 'relative', zIndex: 1000 }}>
-      {/* Bell button */}
-      <button
-        type="button"
-        className="notif-bell-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          panelOpen ? closePanel?.() : openPanel?.();
-        }}
-        title="Notifikasi gempa real-time"
-        aria-label={`Notifikasi${unreadCount > 0 ? ` (${unreadCount} baru)` : ''}`}
-        style={{ position: 'relative', zIndex: 1001, cursor: 'pointer' }}
-      >
-        <Bell size={18} />
-        {unreadCount > 0 && (
-          <span className="notif-bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
-        )}
-      </button>
-
-      {/* Dropdown panel */}
-      {panelOpen && (
-        <div className="notif-panel" style={{ zIndex: 1002 }}>
+  // Panel dropdown — di-render via portal ke document.body agar tidak terpotong overflow:hidden
+  const panelContent = panelOpen && typeof document !== 'undefined'
+    ? createPortal(
+        <div
+          ref={panelRef}
+          className="notif-panel"
+          style={{
+            position: 'fixed',
+            top: panelPos.top,
+            right: panelPos.right,
+            zIndex: 99999,
+          }}
+        >
           {/* Header */}
           <div className="notif-panel__header">
             <div className="notif-panel__title">
@@ -254,8 +273,32 @@ export default function NotificationPanel({
           <div className="notif-panel__footer">
             BMKG tiap 5m · USGS tiap 5m · {desktopPermission === 'granted' ? '🔔 Push notif aktif' : 'Push notif belum aktif'}
           </div>
-        </div>
-      )}
-    </div>
+        </div>,
+        document.body
+      )
+    : null;
+
+  return (
+    <>
+      {/* Bell button */}
+      <button
+        ref={bellRef}
+        type="button"
+        className="notif-bell-btn"
+        onClick={() => { panelOpen ? closePanel?.() : openPanel?.(); }}
+        title="Notifikasi gempa real-time"
+        aria-label={`Notifikasi${unreadCount > 0 ? ` (${unreadCount} baru)` : ''}`}
+        aria-expanded={panelOpen}
+        aria-haspopup="true"
+      >
+        <Bell size={18} />
+        {unreadCount > 0 && (
+          <span className="notif-bell-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+        )}
+      </button>
+
+      {/* Panel dropdown via portal — tidak terpotong overflow:hidden */}
+      {panelContent}
+    </>
   );
 }
