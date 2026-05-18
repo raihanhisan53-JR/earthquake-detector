@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import NotificationPanel from './NotificationPanel';
 import LanguageToggle from './LanguageToggle';
+import { useI18n } from '@/hooks/useI18n';
 
 const getProfileName = (user) => {
   // Supabase: user_metadata.full_name atau email
@@ -135,6 +136,7 @@ export default function Topbar({
   const [accountOpen, setAccountOpen] = useState(false);
   const ipPanelWrapperRef = useRef(null);
   const accountMenuRef = useRef(null);
+  const { t, lang } = useI18n();
 
   const profileName = user ? getProfileName(user) : '';
   const profileEmail = user?.email || '';
@@ -145,21 +147,28 @@ export default function Topbar({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setIpInput(esp32Ip); }, [esp32Ip]);
 
-  // Clock
+  // Clock — format sesuai bahasa
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setTime(
-        now.toLocaleTimeString('id-ID', {
+      if (lang === 'en') {
+        setTime(now.toLocaleTimeString('en-US', {
           hour: '2-digit', minute: '2-digit', second: '2-digit',
-          timeZone: 'Asia/Jakarta',
-        }).replace(/:/g, '.') + ' WIB'
-      );
+          timeZone: 'Asia/Jakarta', hour12: false,
+        }) + ' WIB');
+      } else {
+        setTime(
+          now.toLocaleTimeString('id-ID', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit',
+            timeZone: 'Asia/Jakarta',
+          }).replace(/:/g, '.') + ' WIB'
+        );
+      }
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, []);
+  }, [lang]);
 
   // Close account panel on outside click / Escape
   useEffect(() => {
@@ -194,28 +203,25 @@ export default function Topbar({
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleConnect(); };
 
   const handleAlarm = () => {
-    // ── STOP ──
     if (alarmActive) {
       stopSiren();
       setAlarmActive(false);
-      notifyUser({ type: 'info', title: 'Sirine dihentikan', message: 'Uji alarm web sudah berhenti.' });
+      notifyUser({ type: 'info', title: lang === 'en' ? 'Siren stopped' : 'Sirine dihentikan', message: lang === 'en' ? 'Test alarm stopped.' : 'Uji alarm web sudah berhenti.' });
       return;
     }
-
-    // ── START ──
     playSiren(
       () => {
-        // Berhasil
         setAlarmActive(true);
-        notifyUser({ type: 'warning', title: '🚨 Uji alarm aktif', message: 'Klik tombol lagi untuk menghentikan sirine.' });
+        notifyUser({ type: 'warning', title: `🚨 ${lang === 'en' ? 'Test alarm active' : 'Uji alarm aktif'}`, message: lang === 'en' ? 'Click the button again to stop the siren.' : 'Klik tombol lagi untuk menghentikan sirine.' });
       },
       (err) => {
-        // Gagal
         console.error('[Alarm] play failed:', err);
         notifyUser({
           type: 'error',
-          title: 'Sirine tidak bisa diputar',
-          message: 'Buka chrome://settings/content/sound → tambahkan earthquake-detector.web.app → Allow. Lalu refresh halaman.',
+          title: lang === 'en' ? 'Siren cannot play' : 'Sirine tidak bisa diputar',
+          message: lang === 'en'
+            ? 'Open chrome://settings/content/sound → add this site → Allow. Then refresh.'
+            : 'Buka chrome://settings/content/sound → tambahkan earthquake-detector.web.app → Allow. Lalu refresh halaman.',
           duration: 12000,
         });
       }
@@ -233,7 +239,7 @@ export default function Topbar({
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button type="button" className="desktop-menu-btn hide-mobile" onClick={toggleSidebar}
-          title={sidebarCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}>
+          title={sidebarCollapsed ? (lang === 'en' ? 'Open sidebar' : 'Buka sidebar') : (lang === 'en' ? 'Close sidebar' : 'Tutup sidebar')}>
           <Menu size={20} />
         </button>
         {compact ? (
@@ -241,8 +247,8 @@ export default function Topbar({
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
             <div className="topbar-left">
-              <h1>Earthquake Detector</h1>
-              <p>Data BMKG &amp; Sensor ESP32 Lokal</p>
+              <h1>{t('appName')}</h1>
+              <p>{t('appSubtitle')}</p>
             </div>
             <div className="clock" style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--text-primary)' }}>{time}</div>
           </div>
@@ -256,12 +262,12 @@ export default function Topbar({
           <div ref={ipPanelWrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
             <div
               className={`action-btn status-pill ${connected ? 'active' : ''}`}
-              title={connected ? `ESP32 terhubung (${esp32Ip})` : 'Klik untuk hubungkan ESP32'}
+              title={connected ? `ESP32 ${t('online')} (${esp32Ip})` : `ESP32 ${t('offline')}`}
               onClick={() => { setAccountOpen(false); setShowIpPanel((v) => !v); }}
               style={{ cursor: 'pointer' }}
             >
               {connected ? <Wifi size={18} /> : <WifiOff size={18} />}
-              <span>{connected ? 'Online' : 'Offline'}</span>
+              <span>{connected ? t('online') : t('offline')}</span>
             </div>
             {showIpPanel && (
               <div className="ip-panel">
@@ -286,9 +292,9 @@ export default function Topbar({
           {/* Alert toggle */}
           <button type="button" className={`action-btn ${notificationsEnabled ? 'active' : ''}`}
             onClick={toggleNotifications}
-            title={notificationsEnabled ? 'Alert otomatis aktif' : 'Alert otomatis dimatikan'}>
+            title={notificationsEnabled ? t('disableNotif') : t('enableNotif')}>
             <BellOff size={18} />
-            <span>{notificationsEnabled ? 'Alert On' : 'Alert Off'}</span>
+            <span>{notificationsEnabled ? t('alertOn') : t('alertOff')}</span>
           </button>
 
           {/* Notification panel */}
@@ -300,17 +306,13 @@ export default function Topbar({
             notifThreshold={notifThreshold} setNotifThreshold={setNotifThreshold}
           />
 
-          {/* PWA Install button — hanya muncul kalau ada prompt dan belum installed */}
+          {/* PWA Install button */}
           {installPrompt && !isInstalled && (
-            <button
-              type="button"
-              className="action-btn"
-              onClick={installApp}
-              title="Install app ke perangkat"
-              style={{ gap: '6px' }}
-            >
+            <button type="button" className="action-btn" onClick={installApp}
+              title={lang === 'en' ? 'Install app to device' : 'Install app ke perangkat'}
+              style={{ gap: '6px' }}>
               <span style={{ fontSize: '16px' }}>⬇</span>
-              <span className="hide-mobile">Install</span>
+              <span className="hide-mobile">{lang === 'en' ? 'Install' : 'Install'}</span>
             </button>
           )}
 
@@ -321,9 +323,9 @@ export default function Topbar({
           <button type="button"
             className={`action-btn simulate-btn ${alarmActive ? 'alarm-active' : ''}`}
             onClick={handleAlarm}
-            title={alarmActive ? 'Hentikan sirine' : 'Uji sirine alarm'}>
+            title={alarmActive ? t('stopAlarm') : t('testAlarm')}>
             {alarmActive ? <AlertTriangle size={18} /> : <FlaskConical size={18} />}
-            <span>{alarmActive ? 'Stop Alarm' : 'Uji Alarm'}</span>
+            <span>{alarmActive ? t('stopAlarm') : t('testAlarm')}</span>
           </button>
 
           {/* Theme toggle */}
@@ -367,18 +369,18 @@ export default function Topbar({
                       <Camera size={14} />
                     </button>
                   </div>
-                  <div className="greeting" style={{ fontSize: '20px', fontWeight: '400', color: 'var(--text-primary)', marginBottom: '24px' }}>Hi, {profileName}!</div>
+                  <div className="greeting" style={{ fontSize: '20px', fontWeight: '400', color: 'var(--text-primary)', marginBottom: '24px' }}>{t('hi')}, {profileName}!</div>
                   
                   <button type="button" className="manage-btn" onClick={() => window.open('https://myaccount.google.com/', '_blank', 'noopener,noreferrer')}>
-                    Manage your Account
+                    {t('manageAccount')}
                   </button>
                   <div className="account-panel__divider" style={{ width: '100%', marginBottom: '16px', backgroundColor: '#5f6368' }} />
                   <div className="actions-container">
                     <button type="button" className="action-btn-half" onClick={() => window.open('https://accounts.google.com/AddSession', '_blank', 'noopener,noreferrer')}>
-                      <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span> Add account
+                      <span style={{ fontSize: '18px', fontWeight: '300' }}>+</span> {lang === 'en' ? 'Add account' : 'Tambah akun'}
                     </button>
                     <button type="button" className="action-btn-half" onClick={handleLogout}>
-                      <LogOut size={16} /> Sign out
+                      <LogOut size={16} /> {t('signOut')}
                     </button>
                   </div>
                   <div className="footer">

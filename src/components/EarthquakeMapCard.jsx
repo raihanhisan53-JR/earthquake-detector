@@ -4,6 +4,7 @@ import { AlertTriangle, Bell, Crosshair, GitBranch, List, MapPin, RefreshCcw, Gl
 import { CircleMarker, Circle, GeoJSON, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet';
 import { useBMKGMap } from '@/hooks/useBMKGMap';
 import { useRadiusAlert } from '@/hooks/useRadiusAlert';
+import { useI18n } from '@/hooks/useI18n';
 import RadiusAlertPanel from './RadiusAlertPanel';
 import EarthquakeGlobe3D from './EarthquakeGlobe3D';
 
@@ -352,6 +353,7 @@ export default function EarthquakeMapCard({
   notificationsEnabled = true,
   notifyUser = () => {},
 }) {
+  const { t } = useI18n();
   const { points, bmkgPoints, usgsPoints, loading, error, refresh, health } = useBMKGMap();
   const {
     userLocation,
@@ -741,216 +743,154 @@ export default function EarthquakeMapCard({
     setSimulatedPoint(mockPoint);
     notifyUser({
       type: 'info',
-      title: 'Simulasi peta aktif',
-      message: 'Gempa simulasi sudah dimunculkan di peta command center.',
+      title: t('simulation'),
+      message: t('live'),
     });
   };
+
 
   return (
     <section className={`card earthquake-map-card ${fullView ? 'full-view map-expanded' : 'map-compact'}`}>
       <div className="card-header">
         <h2>
           <MapPin size={18} />
-          Peta Gempa Command Center
+          {t('mapTitle')}
         </h2>
         <div className="map-header-actions">
           <button type="button" className={`btn btn-outline ${viewMode === '2d' ? 'active' : ''}`} onClick={() => setViewMode('2d')}>
-            Map 2D
+            {t('map2d')}
           </button>
           <button type="button" className={`btn btn-outline ${viewMode === '3d' ? 'active' : ''}`} style={viewMode==='3d' ? {borderColor:'#ef4444', color:'#ef4444'} : {}} onClick={() => setViewMode('3d')}>
-            <Globe size={14} /> Globe 3D
+            <Globe size={14} /> {t('globe3d')}
           </button>
           <div style={{ width: '1px', background: 'var(--border-color)', margin: '0 8px' }}></div>
           <button type="button" className={`btn btn-outline ${mode === 'live' ? 'active' : ''}`} onClick={() => setMode('live')}>
-            LIVE
+            {t('live')}
           </button>
           <button type="button" className={`btn btn-outline ${mode === 'simulation' ? 'active' : ''}`} onClick={triggerSimulation}>
-            SIMULASI
+            {t('simulation')}
           </button>
-          <button
-            type="button"
-            className="btn btn-outline"
-            disabled={loading}
-            title="Ambil ulang data BMKG (melewati cache)"
-            onClick={() => void refresh({ cacheBust: true })}
-          >
+          <button type="button" className="btn btn-outline" disabled={loading} title={t('refresh')} onClick={() => void refresh({ cacheBust: true })}>
             <RefreshCcw size={14} className={loading ? 'refresh-spin' : ''} />
-            {loading ? 'Memuat…' : 'Refresh'}
+            {loading ? t('loading') : t('refresh')}
           </button>
         </div>
       </div>
 
       <div className="map-meta">
         <span>
-          {loading
-            ? 'Memuat titik gempa...'
-            : `${filteredPoints.length} sesuai filter waktu · ${mapMarkers.length} titik di peta`}
-          {windowMs ? (
-            <>
-              <br />
-              <span className="map-note">
-                Rentang waktu memakai stempel waktu kejadian (BMKG/USGS). Daftar dan filter diperbarui otomatis ~30 detik.
-              </span>
-            </>
-          ) : null}
-          {lacksEventTime ? (
-            <>
-              <br />
-              <span className="map-note map-note--warn">
-                Sumber data tanpa stempel waktu: pilih rentang Semua data atau tunggu data BMKG/USGS.
-              </span>
-            </>
-          ) : null}
-          {relaxedFollowActive ? (
-            <>
-              <br />
-              <span className="map-note">Titik redup = di luar rentang waktu; peta memusat gempa terbaru.</span>
-            </>
-          ) : null}
+          {loading ? t('loading') : `${filteredPoints.length} · ${mapMarkers.length}`}
+          {windowMs && !lacksEventTime ? (<><br /><span className="map-note">BMKG/USGS ~30s</span></>) : null}
+          {lacksEventTime ? (<><br /><span className="map-note map-note--warn">{t('allData')}</span></>) : null}
+          {relaxedFollowActive ? (<><br /><span className="map-note">↑ {t('followEarthquake')}</span></>) : null}
         </span>
-        <span className="map-note">Sumber aktif: {health.source === 'BMKG' ? 'BMKG / USGS' : health.source}</span>
+        <span className="map-note">{health.source === 'BMKG' ? 'BMKG / USGS' : health.source}</span>
       </div>
 
       {alertItem ? (
         <div className={`quake-alert ${alertItem.level}`}>
           <div className="alert-title">
             <AlertTriangle size={16} />
-            Alert Gempa {alertItem.level === 'danger' ? 'Merah' : 'Kuning'}
+            {alertItem.level === 'danger' ? '🔴' : '🟡'} M{alertItem.magnitude.toFixed(1)}
           </div>
           <p>{alertItem.wilayah} | M{alertItem.magnitude.toFixed(1)} | {alertItem.waktu}</p>
-          <button type="button" className="btn btn-outline" onClick={() => setDismissedAlertId(alertItem.id)}>
-            Tutup Alert
-          </button>
+          <button type="button" className="btn btn-outline" onClick={() => setDismissedAlertId(alertItem.id)}>✕</button>
         </div>
       ) : null}
 
       <div className="map-control-grid">
         <div className="map-control-item">
-          <label htmlFor="minMagnitude">Filter Magnitudo</label>
-          <select id="minMagnitude" value={minMagnitude} onChange={(event) => setMinMagnitude(Number(event.target.value))}>
-            <option value={0}>Semua</option>
+          <label htmlFor="minMagnitude">{t('filterMagnitude')}</label>
+          <select id="minMagnitude" value={minMagnitude} onChange={(e) => setMinMagnitude(Number(e.target.value))}>
+            <option value={0}>{t('all')}</option>
             <option value={3}>M ≥ 3.0</option>
             <option value={4}>M ≥ 4.0</option>
             <option value={5}>M ≥ 5.0</option>
           </select>
         </div>
         <div className="map-control-item">
-          <label htmlFor="regionFilter">Filter Wilayah</label>
-          <select id="regionFilter" value={region} onChange={(event) => setRegion(event.target.value)}>
-            {regions.map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
+          <label htmlFor="regionFilter">{t('filterRegion')}</label>
+          <select id="regionFilter" value={region} onChange={(e) => setRegion(e.target.value)}>
+            {regions.map((item) => (<option key={item} value={item}>{item}</option>))}
           </select>
         </div>
         <div className="map-control-item map-source-toggle-item">
-          <label>Sumber Data</label>
+          <label>{t('all')}</label>
           <div className="map-source-toggle">
             {[
-              { key: 'Semua', label: 'Semua',    color: '#6d28d9' },
+              { key: 'Semua', label: t('all'),    color: '#6d28d9' },
               { key: 'BMKG',  label: '🇮🇩 BMKG', color: '#059669', onClick: () => { setFollowLatest(false); setSearchTarget({ lat: -2.5, lon: 118, zoom: 5 }); } },
               { key: 'USGS',  label: '🌐 USGS',  color: '#0891b2', onClick: () => { setFollowLatest(false); setSearchTarget({ lat: 20, lon: 0, zoom: 2 }); } },
             ].map(({ key, label, color, onClick }) => (
-              <button
-                key={key}
-                type="button"
+              <button key={key} type="button"
                 className={`map-source-btn ${dataSourceFilter === key ? 'active' : ''}`}
-                style={dataSourceFilter === key ? { borderColor: color, color: color, background: `${color}18` } : {}}
+                style={dataSourceFilter === key ? { borderColor: color, color, background: `${color}18` } : {}}
                 onClick={() => { setDataSourceFilter(key); if (onClick) onClick(); }}
-              >
-                {label}
-              </button>
+              >{label}</button>
             ))}
           </div>
         </div>
         <div className="map-control-item">
-          <label htmlFor="timeRange">Rentang Waktu</label>
-          <select id="timeRange" value={timeRange} onChange={(event) => setTimeRange(event.target.value)}>
-            <option value="1h">1 jam terakhir</option>
-            <option value="6h">6 jam terakhir</option>
-            <option value="24h">24 jam terakhir</option>
-            <option value="7d">7 hari terakhir</option>
-            <option value="all">Semua data</option>
+          <label htmlFor="timeRange">{t('timeRange')}</label>
+          <select id="timeRange" value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+            <option value="1h">{t('last1h')}</option>
+            <option value="6h">{t('last6h')}</option>
+            <option value="24h">{t('last24h')}</option>
+            <option value="7d">{t('last7d')}</option>
+            <option value="all">{t('allData')}</option>
           </select>
         </div>
         <div className="map-control-item">
-          <label htmlFor="baseLayer">Layer Peta</label>
-          <select id="baseLayer" value={baseLayer} onChange={(event) => setBaseLayer(event.target.value)}>
-            {BASE_LAYER_ORDER.map((key) => (
-              <option key={key} value={key}>{baseLayers[key].label}</option>
-            ))}
+          <label htmlFor="baseLayer">{t('mapLayer')}</label>
+          <select id="baseLayer" value={baseLayer} onChange={(e) => setBaseLayer(e.target.value)}>
+            {BASE_LAYER_ORDER.map((key) => (<option key={key} value={key}>{baseLayers[key].label}</option>))}
           </select>
         </div>
         <div className="map-control-item">
-          <label htmlFor="notifyThreshold">Notifikasi Magnitudo</label>
-          <select id="notifyThreshold" value={notifyThreshold} onChange={(event) => setNotifyThreshold(Number(event.target.value))}>
+          <label htmlFor="notifyThreshold">{t('notifMagnitude')}</label>
+          <select id="notifyThreshold" value={notifyThreshold} onChange={(e) => setNotifyThreshold(Number(e.target.value))}>
             <option value={3}>M ≥ 3.0</option>
             <option value={4}>M ≥ 4.0</option>
             <option value={5}>M ≥ 5.0</option>
           </select>
         </div>
         <div className="map-control-item">
-          <label htmlFor="notifyRegion">Region Notifikasi</label>
-          <select id="notifyRegion" value={notifyRegion} onChange={(event) => setNotifyRegion(event.target.value)}>
-            <option value="Semua">Semua</option>
-            {regions.filter((item) => item !== 'Semua').map((item) => (
-              <option key={item} value={item}>{item}</option>
-            ))}
+          <label htmlFor="notifyRegion">{t('notifRegion')}</label>
+          <select id="notifyRegion" value={notifyRegion} onChange={(e) => setNotifyRegion(e.target.value)}>
+            <option value="Semua">{t('all')}</option>
+            {regions.filter((item) => item !== 'Semua').map((item) => (<option key={item} value={item}>{item}</option>))}
           </select>
         </div>
         <div className="map-control-item map-control-item--span">
-          <label htmlFor="markerColorMode">Warna titik peta</label>
-          <select
-            id="markerColorMode"
-            value={markerColorMode}
-            onChange={(event) => setMarkerColorMode(event.target.value === 'depth' ? 'depth' : 'magnitude')}
-          >
-            <option value="magnitude">Magnitudo (hijau / oranye / merah)</option>
-            <option value="depth">Kedalaman (dangkal / menengah / dalam)</option>
+          <label htmlFor="markerColorMode">{t('markerColor')}</label>
+          <select id="markerColorMode" value={markerColorMode} onChange={(e) => setMarkerColorMode(e.target.value === 'depth' ? 'depth' : 'magnitude')}>
+            <option value="magnitude">{t('magnitude')}</option>
+            <option value="depth">{t('depth')}</option>
           </select>
         </div>
       </div>
 
       <div className="map-secondary-actions">
         <button type="button" className={`btn btn-outline ${followLatest ? 'active' : ''}`} onClick={() => setFollowLatest((prev) => !prev)}>
-          <Crosshair size={14} />
-          {followLatest ? 'Ikuti Gempa: ON' : 'Ikuti Gempa: OFF'}
+          <Crosshair size={14} /> {t('followEarthquake')}: {followLatest ? 'ON' : 'OFF'}
         </button>
-        <button
-          type="button"
-          className={`btn btn-outline ${showPlateBoundaries ? 'active' : ''}`}
-          title="Batas tektonik global (ringan, untuk konteks)"
-          onClick={() => setShowPlateBoundaries((prev) => !prev)}
-        >
-          <GitBranch size={14} />
-          {showPlateBoundaries ? 'Batas lempeng: ON' : 'Batas lempeng: OFF'}
+        <button type="button" className={`btn btn-outline ${showPlateBoundaries ? 'active' : ''}`} onClick={() => setShowPlateBoundaries((prev) => !prev)}>
+          <GitBranch size={14} /> {t('plateBoundaries')}: {showPlateBoundaries ? 'ON' : 'OFF'}
         </button>
         {typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'granted' ? (
           <button type="button" className="btn btn-outline" onClick={() => void Notification.requestPermission()}>
-            <Bell size={14} />
-            Aktifkan Notifikasi Browser
+            <Bell size={14} /> {t('enableBrowserNotif')}
           </button>
         ) : null}
-        
-        {/* Time-Lapse Controls */}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Time-Lapse:</span>
-          <button 
-            type="button" 
-            className={`btn btn-outline ${isTimeLapse ? 'active' : ''}`}
-            onClick={() => {
-              if (!isTimeLapse && timeLapseIndex === sourcePoints.length - 1) setTimeLapseIndex(0);
-              setIsTimeLapse(!isTimeLapse);
-            }}
-          >
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('timeLapse')}:</span>
+          <button type="button" className={`btn btn-outline ${isTimeLapse ? 'active' : ''}`}
+            onClick={() => { if (!isTimeLapse && timeLapseIndex === sourcePoints.length - 1) setTimeLapseIndex(0); setIsTimeLapse(!isTimeLapse); }}>
             {isTimeLapse ? <Pause size={14} /> : <Play size={14} />}
-            {isTimeLapse ? 'Pause' : 'Play'}
+            {isTimeLapse ? t('pause') : t('play')}
           </button>
-          <button 
-            type="button" 
-            className="btn btn-outline"
-            onClick={() => { setIsTimeLapse(false); setTimeLapseIndex(0); }}
-          >
-            <RefreshCcw size={14} /> Ulang
+          <button type="button" className="btn btn-outline" onClick={() => { setIsTimeLapse(false); setTimeLapseIndex(0); }}>
+            <RefreshCcw size={14} /> {t('reset')}
           </button>
         </div>
       </div>
@@ -960,82 +900,43 @@ export default function EarthquakeMapCard({
           {viewMode === '3d' ? (
             <EarthquakeGlobe3D points={mapMarkers.map(m => m.point)} markerColorMode={markerColorMode} />
           ) : (
-            <MapContainer
-              center={[-2.5, 118]}
-            zoom={4}
-            minZoom={3}
-            maxZoom={14}
-            scrollWheelZoom
-            dragging
-            touchZoom
-            doubleClickZoom
-            boxZoom
-            keyboard
-            className="indonesia-map"
-          >
-            <TileLayer
-              attribution={baseLayers[baseLayer]?.attribution || baseLayers.dark.attribution}
-              url={baseLayers[baseLayer]?.url || baseLayers.dark.url}
-            />
-            {showPlateBoundaries && plateGeoJson ? (
-              <GeoJSON
-                data={plateGeoJson}
-                style={() => ({
-                  color: 'rgba(56, 189, 248, 0.7)',
-                  weight: 2,
-                  opacity: 0.9,
-                  dashArray: '5, 5'
-                })}
+            <MapContainer center={[-2.5, 118]} zoom={4} minZoom={3} maxZoom={14}
+              scrollWheelZoom dragging touchZoom doubleClickZoom boxZoom keyboard className="indonesia-map">
+              <TileLayer
+                attribution={baseLayers[baseLayer]?.attribution || baseLayers.dark.attribution}
+                url={baseLayers[baseLayer]?.url || baseLayers.dark.url}
               />
-            ) : null}
-            <MapSearchBox onSelectLocation={(loc) => { setSearchTarget(loc); setFollowLatest(false); }} />
-            <MapSearchController target={searchTarget} />
-            <MapInteractionController />
-            <MapAutoFocus point={mapFollowTarget} enabled={followLatest && mode !== 'simulation'} />
-
-            {/* Radius circle overlay */}
-            {radiusEnabled && radiusKm > 0 && userLocation && (
-              <Circle
-                center={[userLocation.lat, userLocation.lon]}
-                radius={radiusKm * 1000}
-                pathOptions={{
-                  color: '#10b981',
-                  fillColor: '#10b981',
-                  fillOpacity: 0.06,
-                  weight: 2,
-                  dashArray: '6 4',
-                  opacity: 0.7,
-                }}
-              >
-                <Popup>
-                  <strong>Radius Alert Aktif</strong><br />
-                  Radius: {radiusKm} km<br />
-                  Lokasi Anda: {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}<br />
-                  Gempa dalam radius: {nearbyCount}
-                </Popup>
-              </Circle>
-            )}
-
-            {mapMarkers.map(({ point, dimmed }, index) => (
-              <QuakeMarkerWithRings
-                key={point.id}
-                point={point}
-                dimmed={dimmed}
-                isLatest={index === 0}
-                displayColor={getDisplayMarkerColor(point, markerColorMode)}
-                distanceKm={distanceTo(point.lat, point.lon)}
-              />
-            ))}
-          </MapContainer>
+              {showPlateBoundaries && plateGeoJson ? (
+                <GeoJSON data={plateGeoJson} style={() => ({ color: 'rgba(56,189,248,0.7)', weight: 2, opacity: 0.9, dashArray: '5,5' })} />
+              ) : null}
+              <MapSearchBox onSelectLocation={(loc) => { setSearchTarget(loc); setFollowLatest(false); }} />
+              <MapSearchController target={searchTarget} />
+              <MapInteractionController />
+              <MapAutoFocus point={mapFollowTarget} enabled={followLatest && mode !== 'simulation'} />
+              {radiusEnabled && radiusKm > 0 && userLocation && (
+                <Circle center={[userLocation.lat, userLocation.lon]} radius={radiusKm * 1000}
+                  pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.06, weight: 2, dashArray: '6 4', opacity: 0.7 }}>
+                  <Popup>
+                    <strong>{t('radiusAlert')}</strong><br />
+                    {radiusKm} km · {nearbyCount}<br />
+                    {userLocation.lat.toFixed(4)}, {userLocation.lon.toFixed(4)}
+                  </Popup>
+                </Circle>
+              )}
+              {mapMarkers.map(({ point, dimmed }, index) => (
+                <QuakeMarkerWithRings key={point.id} point={point} dimmed={dimmed} isLatest={index === 0}
+                  displayColor={getDisplayMarkerColor(point, markerColorMode)} distanceKm={distanceTo(point.lat, point.lon)} />
+              ))}
+            </MapContainer>
           )}
           <div className="quake-map-legend" role="note">
-            <div className="quake-map-legend__title">{markerColorMode === 'depth' ? 'Kedalaman' : 'Magnitudo'}</div>
+            <div className="quake-map-legend__title">{markerColorMode === 'depth' ? t('depth') : t('magnitude')}</div>
             {markerColorMode === 'depth' ? (
               <ul className="quake-map-legend__list">
-                <li><span className="quake-map-legend__swatch" style={{ background: '#ef4444' }} /> Dangkal &lt; 70 km</li>
+                <li><span className="quake-map-legend__swatch" style={{ background: '#ef4444' }} /> {t('shallow')} &lt; 70 km</li>
                 <li><span className="quake-map-legend__swatch" style={{ background: '#f59e0b' }} /> 70–300 km</li>
-                <li><span className="quake-map-legend__swatch" style={{ background: '#3b82f6' }} /> Dalam &gt; 300 km</li>
-                <li><span className="quake-map-legend__swatch" style={{ background: '#94a3b8' }} /> Tanpa data</li>
+                <li><span className="quake-map-legend__swatch" style={{ background: '#3b82f6' }} /> {t('deep')} &gt; 300 km</li>
+                <li><span className="quake-map-legend__swatch" style={{ background: '#94a3b8' }} /> {t('noData')}</li>
               </ul>
             ) : (
               <ul className="quake-map-legend__list">
@@ -1048,165 +949,98 @@ export default function EarthquakeMapCard({
         </div>
 
         <aside className="quake-side-panel">
-          {/* ── Radius Alert Panel ── */}
           <div className="quake-side-section">
             <RadiusAlertPanel
-              userLocation={userLocation}
-              locationStatus={locationStatus}
-              radiusKm={radiusKm}
-              radiusEnabled={radiusEnabled}
-              requestLocation={requestLocation}
-              setRadiusKm={setRadiusKm}
-              toggleRadius={toggleRadius}
-              nearbyCount={nearbyCount}
+              userLocation={userLocation} locationStatus={locationStatus}
+              radiusKm={radiusKm} radiusEnabled={radiusEnabled}
+              requestLocation={requestLocation} setRadiusKm={setRadiusKm}
+              toggleRadius={toggleRadius} nearbyCount={nearbyCount}
             />
           </div>
 
           <div className="quake-side-section">
-          <div className="panel-title"><Bell size={16} /> Status &amp; kesehatan</div>          <div className="panel-stat-grid">
-            <div className="panel-stat">
-              <span>Mode</span>
-              <strong>{mode === 'live' ? 'LIVE' : 'SIMULASI'}</strong>
+            <div className="panel-title"><Bell size={16} /> {t('statusHealth')}</div>
+            <div className="panel-stat-grid">
+              <div className="panel-stat"><span>{t('mode')}</span><strong>{mode === 'live' ? t('live') : t('simulation')}</strong></div>
+              <div className="panel-stat"><span>{t('withinTimeRange')}</span><strong>{filteredPoints.length}</strong></div>
+              <div className="panel-stat"><span>{t('pointsOnMap')}</span><strong>{mapMarkers.length}</strong></div>
+              <div className="panel-stat"><span>{t('maxMagnitude')}</span><strong>{activityMaxMag > 0 ? activityMaxMag.toFixed(1) : '—'}</strong></div>
+              <div className="panel-stat"><span>{t('followEarthquake')}</span><strong>{followLatest ? t('followActive') : t('followInactive')}</strong></div>
+              <div className="panel-stat"><span>{t('alertProfile')}</span><strong>M≥{notifyThreshold} | {notifyRegion}</strong></div>
+              <div className="panel-stat"><span>{t('dataRange')}</span><strong>{timeRange.toUpperCase()}</strong></div>
+              <div className="panel-stat"><span>{t('apiLatency')}</span><strong>{health.latencyMs ? `${health.latencyMs} ms` : '-'}</strong></div>
+              <div className="panel-stat"><span>{t('lastUpdate')}</span><strong>{health.lastSuccessAt || health.lastUpdatedAt || '-'}</strong></div>
             </div>
-            <div className="panel-stat">
-              <span>Dalam rentang waktu</span>
-              <strong>{filteredPoints.length}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Titik di peta</span>
-              <strong>{mapMarkers.length}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>M magnitudo maks</span>
-              <strong>{activityMaxMag > 0 ? activityMaxMag.toFixed(1) : '—'}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Follow Gempa</span>
-              <strong>{followLatest ? 'Aktif' : 'Nonaktif'}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Profil Alert</span>
-              <strong>M≥{notifyThreshold} | {notifyRegion}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Rentang Data</span>
-              <strong>{timeRange.toUpperCase()}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Latency API</span>
-              <strong>{health.latencyMs ? `${health.latencyMs} ms` : '-'}</strong>
-            </div>
-            <div className="panel-stat">
-              <span>Update Terakhir</span>
-              <strong>{health.lastSuccessAt || health.lastUpdatedAt || '-'}</strong>
-            </div>
-          </div>
           </div>
 
           <div className="quake-side-section">
-          <div className="panel-title panel-title--row">
-            <span><List size={16} /> Gempa terbaru</span>
-            <span className="panel-title-meta">{sidebarRows.length} kejadian ditampilkan</span>
-          </div>
-          <div className="quake-list-toolbar">
-            <div className="quake-list-toolbar__group">
-              <span className="quake-list-toolbar__label">Tampilkan</span>
-              {[10, 25, 50, 100].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`quake-pill ${listLimit === n ? 'active' : ''}`}
-                  onClick={() => setListLimit(n)}
-                >
-                  {n}
-                </button>
-              ))}
+            <div className="panel-title panel-title--row">
+              <span><List size={16} /> {t('recentEarthquakes')}</span>
+              <span className="panel-title-meta">{sidebarRows.length}</span>
             </div>
-            <div className="quake-list-toolbar__group">
-              <span className="quake-list-toolbar__label">Urutkan</span>
-              <button
-                type="button"
-                className={`quake-pill ${sortBy === 'time' ? 'active' : ''}`}
-                onClick={() => setSortBy('time')}
-              >
-                Waktu
-              </button>
-              <button
-                type="button"
-                className={`quake-pill ${sortBy === 'magnitude' ? 'active' : ''}`}
-                onClick={() => setSortBy('magnitude')}
-              >
-                Magnitudo
-              </button>
+            <div className="quake-list-toolbar">
+              <div className="quake-list-toolbar__group">
+                <span className="quake-list-toolbar__label">{t('show')}</span>
+                {[10, 25, 50, 100].map((n) => (
+                  <button key={n} type="button" className={`quake-pill ${listLimit === n ? 'active' : ''}`} onClick={() => setListLimit(n)}>{n}</button>
+                ))}
+              </div>
+              <div className="quake-list-toolbar__group">
+                <span className="quake-list-toolbar__label">{t('sortBy')}</span>
+                <button type="button" className={`quake-pill ${sortBy === 'time' ? 'active' : ''}`} onClick={() => setSortBy('time')}>{t('sortTime')}</button>
+                <button type="button" className={`quake-pill ${sortBy === 'magnitude' ? 'active' : ''}`} onClick={() => setSortBy('magnitude')}>{t('sortMagnitude')}</button>
+              </div>
             </div>
-          </div>
-          <div className="quake-activity-strip" aria-hidden="true">
-            <span className="quake-activity-strip__max">M maks <strong>{activityMaxMag > 0 ? activityMaxMag.toFixed(1) : '—'}</strong></span>
-            <span className="quake-activity-strip__sep">·</span>
-            <span>{sortBy === 'magnitude' ? 'Urut: magnitudo' : 'Urut: waktu terbaru'}</span>
-          </div>
-          <div className="quake-list quake-list--radar">
-            {sidebarRows.length === 0 ? (
-              <div className="quake-list-empty">Tidak ada data untuk filter ini.</div>
-            ) : (
-              sidebarRows.map(({ point, dimmed }) => {
-                const level = getAlertLevel(point.magnitude);
-                return (
-                  <div
-                    key={point.id}
-                    className={`quake-row quake-row--${level}${dimmed ? ' quake-row--dimmed' : ''}${selectedPointId === point.id ? ' active-row' : ''}`}
-                    onClick={() => {
-                      setSelectedPointId(point.id);
-                      setFollowLatest(false);
-                    }}
-                  >
-                    <div
-                      className="quake-row-mag"
-                      style={{ backgroundColor: getDisplayMarkerColor(point, markerColorMode) }}
-                      title={
-                        markerColorMode === 'depth'
-                          ? `Kedalaman: ${point.kedalaman ?? '—'}`
-                          : `M${point.magnitude.toFixed(1)}`
-                      }
+            <div className="quake-activity-strip" aria-hidden="true">
+              <span className="quake-activity-strip__max">{t('maxMagnitude')} <strong>{activityMaxMag > 0 ? activityMaxMag.toFixed(1) : '—'}</strong></span>
+              <span className="quake-activity-strip__sep">·</span>
+              <span>{sortBy === 'magnitude' ? t('sortMagnitude') : t('sortTime')}</span>
+            </div>
+            <div className="quake-list quake-list--radar">
+              {sidebarRows.length === 0 ? (
+                <div className="quake-list-empty">{t('noDataFilter')}</div>
+              ) : (
+                sidebarRows.map(({ point, dimmed }) => {
+                  const level = getAlertLevel(point.magnitude);
+                  return (
+                    <div key={point.id}
+                      className={`quake-row quake-row--${level}${dimmed ? ' quake-row--dimmed' : ''}${selectedPointId === point.id ? ' active-row' : ''}`}
+                      onClick={() => { setSelectedPointId(point.id); setFollowLatest(false); }}
                     >
-                      {point.magnitude.toFixed(1)}
-                    </div>
-                    <div className="quake-row-body">
-                      <div className="quake-row-title">{point.wilayah}</div>
-                      <div className="quake-row-meta">
-                        {point.region && point.region !== 'Lainnya' && (
-                          <span className="quake-row-region">{point.region}</span>
-                        )}
-                        <span className="quake-row-time">{point.waktu}</span>
-                        {(() => {
-                          const d = distanceTo(point.lat, point.lon);
-                          return d != null ? (
-                            <span className="quake-row-dist" title="Jarak dari lokasi Anda">
-                              📍 {d < 1 ? '< 1' : Math.round(d)} km
-                            </span>
-                          ) : null;
-                        })()}
+                      <div className="quake-row-mag"
+                        style={{ backgroundColor: getDisplayMarkerColor(point, markerColorMode) }}
+                        title={markerColorMode === 'depth' ? `${t('depth')}: ${point.kedalaman ?? '—'}` : `M${point.magnitude.toFixed(1)}`}
+                      >
+                        {point.magnitude.toFixed(1)}
+                      </div>
+                      <div className="quake-row-body">
+                        <div className="quake-row-title">{point.wilayah}</div>
+                        <div className="quake-row-meta">
+                          {point.region && point.region !== 'Lainnya' && (
+                            <span className="quake-row-region">{point.region}</span>
+                          )}
+                          <span className="quake-row-time">{point.waktu}</span>
+                          {(() => {
+                            const d = distanceTo(point.lat, point.lon);
+                            return d != null ? (
+                              <span className="quake-row-dist" title={t('fromYourLocation')}>
+                                📍 {d < 1 ? '< 1' : Math.round(d)} km
+                              </span>
+                            ) : null;
+                          })()}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </aside>
       </div>
 
-      {error ? (
-        <p className="map-warning">
-          Koneksi BMKG sedang bermasalah, peta menampilkan data cadangan sementara.
-        </p>
-      ) : null}
-      {health.source === 'FALLBACK' ? (
-        <p className="map-warning">
-          Mode data cadangan aktif: alert otomatis dinonaktifkan sampai koneksi data utama pulih.
-        </p>
-      ) : null}
+      {error ? (<p className="map-warning">BMKG {t('offline')}</p>) : null}
+      {health.source === 'FALLBACK' ? (<p className="map-warning">FALLBACK</p>) : null}
     </section>
   );
 }

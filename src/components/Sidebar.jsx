@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot } from 'lucide-react';
+import { useI18n } from '@/hooks/useI18n';
 
 export default function Sidebar({
   connected,
@@ -12,18 +13,20 @@ export default function Sidebar({
   toggleCollapsed = () => { },
   user = null,
 }) {
+  const { t } = useI18n();
+
   const navItems = [
-    { id: 'overview', icon: <LayoutGrid size={18} />, label: 'Ringkasan' },
-    { id: 'gempa', icon: <Home size={18} />, label: 'Gempa Bumi Terkini' },
-    { id: 'peta', icon: <MapPinned size={18} />, label: 'Peta Gempa Indonesia' },
-    { id: 'globe', icon: <Globe2 size={18} />, label: 'Google Maps BMKG', badge: 'NEW' },
-    { id: 'analitik', icon: <Globe size={18} />, label: 'Analitik & Tren' },
-    { id: 'livecctv', icon: <Video size={18} />, label: 'Pantau Live' },
-    { id: 'edukasi', icon: <Play size={18} />, label: 'Edukasi Bencana' },
-    { id: 'cuaca', icon: <CloudSun size={18} />, label: 'Cuaca & Iklim' },
-    { id: 'esp32', icon: <Cpu size={18} />, label: 'ESP32 Sensor' },
-    { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat Kejadian' },
-    { id: 'aria', icon: <Bot size={18} />, label: 'ARIA AI' },
+    { id: 'overview',  icon: <LayoutGrid size={18} />, labelKey: 'overview' },
+    { id: 'gempa',     icon: <Home size={18} />,       labelKey: 'earthquake' },
+    { id: 'peta',      icon: <MapPinned size={18} />,  labelKey: 'map' },
+    { id: 'globe',     icon: <Globe2 size={18} />,     labelKey: 'googleMaps', badge: 'NEW' },
+    { id: 'analitik',  icon: <Globe size={18} />,      labelKey: 'analytics' },
+    { id: 'livecctv',  icon: <Video size={18} />,      labelKey: 'liveCctv' },
+    { id: 'edukasi',   icon: <Play size={18} />,       labelKey: 'education' },
+    { id: 'cuaca',     icon: <CloudSun size={18} />,   labelKey: 'weather' },
+    { id: 'esp32',     icon: <Cpu size={18} />,        labelKey: 'esp32' },
+    { id: 'riwayat',   icon: <History size={18} />,    labelKey: 'history' },
+    { id: 'aria',      icon: <Bot size={18} />,        labelKey: 'aria' },
   ];
 
   // Load saved avatar + display name from localStorage (set by ProfilePage)
@@ -68,7 +71,7 @@ export default function Sidebar({
             </div>
             <span className="sidebar-brand">Earthquake Detector</span>
           </div>
-          <button type="button" className="mobile-close-btn" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
+          <button type="button" className="mobile-close-btn" onClick={() => setMobileOpen(false)} aria-label={t('overview')}>
             <X size={20} />
           </button>
         </div>
@@ -80,11 +83,11 @@ export default function Sidebar({
               href="#"
               className={getNavClass(item.id)}
               onClick={(event) => handleNav(event, item.id)}
-              title={collapsed ? item.label : undefined}
+              title={collapsed ? t(item.labelKey) : undefined}
             >
               {item.icon}
               <span className="nav-item__label">
-                {item.label}
+                {t(item.labelKey)}
                 {item.badge && (
                   <span style={{
                     marginLeft: '6px', fontSize: '9px', fontWeight: '700',
@@ -104,7 +107,7 @@ export default function Sidebar({
             type="button"
             className={`sidebar-profile-btn ${activeTab === 'profil' ? 'active' : ''}`}
             onClick={() => { setActiveTab('profil'); setMobileOpen?.(false); }}
-            title="Profil & Pengaturan"
+            title={t('profile')}
           >
             {/* Avatar: prioritas savedAvatar (dari localStorage), lalu Google avatar, lalu inisial */}
             {avatarSrc ? (
@@ -124,7 +127,7 @@ export default function Sidebar({
               <span className="sidebar-profile-name">{displayName}</span>
               <span className="sidebar-profile-sub">
                 <span className={`sidebar-esp-dot ${connected ? 'online' : 'offline'}`} />
-                {connected ? 'ESP32 Online' : 'ESP32 Offline'}
+                {connected ? t('esp32Online') : t('esp32Offline')}
               </span>
             </div>
           </button>

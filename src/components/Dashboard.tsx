@@ -242,14 +242,14 @@ function DashboardInner({ user }: DashboardProps) {
   }
 
   const quickAccessItems = [
-    { id: 'peta',     icon: <MapPinned size={18} />, label: 'Peta Gempa',     desc: 'Peta command center' },
-    { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Google Maps',    desc: 'Lokasi gempa BMKG real' },
-    { id: 'livecctv', icon: <Video size={18} />,     label: 'Pantau Live',    desc: 'Pemantauan real-time' },
-    { id: 'edukasi',  icon: <Play size={18} />,      label: 'Edukasi',        desc: 'Video & materi gempa' },
-    { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca & Iklim',  desc: 'Visualisasi cuaca BMKG' },
-    { id: 'esp32',    icon: <Cpu size={18} />,       label: 'ESP32 Sensor',   desc: 'Kontrol sensor lokal' },
-    { id: 'riwayat',  icon: <History size={18} />,   label: 'Riwayat',        desc: 'Log insiden gempa' },
-    { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',        desc: 'Asisten gempa cerdas' },
+    { id: 'peta',     icon: <MapPinned size={18} />, label: t('map'),        desc: t('mapTitle') },
+    { id: 'globe',    icon: <Globe2 size={18} />,    label: t('googleMaps'), desc: 'Google Maps BMKG' },
+    { id: 'livecctv', icon: <Video size={18} />,     label: t('liveCctv'),   desc: t('liveCctv') },
+    { id: 'edukasi',  icon: <Play size={18} />,      label: t('education'),  desc: t('education') },
+    { id: 'cuaca',    icon: <CloudSun size={18} />,  label: t('weather'),    desc: t('weather') },
+    { id: 'esp32',    icon: <Cpu size={18} />,       label: t('esp32'),      desc: t('esp32') },
+    { id: 'riwayat',  icon: <History size={18} />,   label: t('history'),    desc: t('history') },
+    { id: 'aria',     icon: <Bot size={18} />,       label: t('aria'),       desc: t('aria') },
   ]
 
   // Build latestEarthquake object for ARIA from real BMKG data
@@ -328,11 +328,11 @@ function DashboardInner({ user }: DashboardProps) {
         return (
           <div className="tab-content">
             <div className="overview-header">
-              <h2 className="overview-title">Ringkasan</h2>
-              <p className="overview-desc">Gempa terbaru dan status sensor lokal.</p>
+              <h2 className="overview-title">{t('summary')}</h2>
+              <p className="overview-desc">{t('summaryDesc')}</p>
               <div className="esp-status-badge">
                 <div className={`status-dot ${esp32.connected ? 'online' : 'offline'}`} />
-                <span>{esp32.connected ? `ESP32 Online · ${esp32.esp32Ip}` : 'ESP32 Offline'}</span>
+                <span>{esp32.connected ? `${t('esp32Online')} · ${esp32.esp32Ip}` : t('esp32Offline')}</span>
               </div>
             </div>
 
@@ -340,7 +340,7 @@ function DashboardInner({ user }: DashboardProps) {
               <div className="alarm-banner" role="alert" aria-live="assertive">
                 <span className="alarm-banner__icon">🚨</span>
                 <span className="alarm-banner__text">
-                  ALARM — Getaran Level {esp32.alertLevel} · {esp32.status}
+                  ALARM — {t('esp32')} Level {esp32.alertLevel} · {esp32.status}
                 </span>
                 <button className="alarm-banner__stop" onClick={() => esp32.resetAlert()}>■ RESET</button>
               </div>
@@ -353,8 +353,8 @@ function DashboardInner({ user }: DashboardProps) {
 
             <div className="quick-access-section">
               <div className="quick-access-header">
-                <h3>Akses cepat</h3>
-                <span className="quick-access-tag">BUKA MODUL LENGKAP TANPA DUPLIKASI</span>
+                <h3>{t('quickAccess')}</h3>
+                <span className="quick-access-tag">{t('quickAccessTag')}</span>
               </div>
               <div className="quick-access-grid">
                 {quickAccessItems.map(item => (
@@ -374,10 +374,18 @@ function DashboardInner({ user }: DashboardProps) {
   }
 
   const tabLabelMap: Record<string, string> = {
-    overview: 'Ringkasan', gempa: 'Gempa Bumi Terkini', peta: 'Peta Gempa Indonesia',
-    globe: 'Google Maps — Lokasi Gempa BMKG', analitik: 'Analitik & Tren', livecctv: 'Pantau Live',
-    edukasi: 'Edukasi', cuaca: 'Cuaca & Iklim', esp32: 'ESP32 Sensor',
-    riwayat: 'Riwayat Kejadian', aria: 'ARIA — AI Asisten Gempa', profil: 'Profil Pengguna',
+    overview:  t('overview'),
+    gempa:     t('earthquake'),
+    peta:      t('map'),
+    globe:     t('googleMaps'),
+    analitik:  t('analytics'),
+    livecctv:  t('liveCctv'),
+    edukasi:   t('education'),
+    cuaca:     t('weather'),
+    esp32:     t('esp32'),
+    riwayat:   t('history'),
+    aria:      t('aria'),
+    profil:    t('profile'),
   }
 
   const isCompact = activeTab !== 'overview'
@@ -449,7 +457,7 @@ function DashboardInner({ user }: DashboardProps) {
         <main className="main-content" ref={mainContentRef}>
           {renderContent()}
           <footer className="app-footer">
-            © 2026 <strong>Raihan Hisan</strong> · TECTRA PRO Earthquake Detector
+            {t('footer')}
           </footer>
         </main>
       </div>
