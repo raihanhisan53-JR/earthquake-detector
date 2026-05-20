@@ -62,7 +62,7 @@ const getAlertLevel = (magnitude) => {
 const normalizeBaseLayerKey = (raw) => {
   if (raw === 'default') return 'street';
   if (raw === 'topo') return 'terrain';
-  if (['street', 'dark', 'terrain', 'satellite'].includes(raw)) return raw;
+  if (['street', 'dark', 'googleSat', 'googleHybrid', 'terrain', 'satellite'].includes(raw)) return raw;
   return 'dark';
 };
 
@@ -132,6 +132,16 @@ const baseLayers = {
     url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
     attribution: '&copy; OpenStreetMap &copy; CARTO',
   },
+  googleSat: {
+    label: 'Google Sat',
+    url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
+  },
+  googleHybrid: {
+    label: 'Google Hybrid',
+    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
+  },
   terrain: {
     label: 'Terrain',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
@@ -144,7 +154,7 @@ const baseLayers = {
   },
 };
 
-const BASE_LAYER_ORDER = ['street', 'dark', 'terrain', 'satellite'];
+const BASE_LAYER_ORDER = ['street', 'dark', 'googleSat', 'googleHybrid', 'terrain', 'satellite'];
 
 const PLATE_BOUNDARIES_GEOJSON =
   'https://raw.githubusercontent.com/fraxen/tectonicplates/master/GeoJSON/PB2002_boundaries.json';
@@ -184,24 +194,61 @@ function QuakeMarkerWithRings({ point, dimmed, isLatest, displayColor, distanceK
         }}
       >
         <Popup className="quake-map-popup">
-          <strong>{point.wilayah}</strong>
-          {dimmed ? (
-            <>
-              <br />
-              <em className="quake-popup-note">Di luar rentang waktu filter</em>
-            </>
-          ) : null}
-          <br />
-          M {point.magnitude.toFixed(1)} | Kedalaman {point.kedalaman ?? '-'}
-          <br />
-          {point.waktu}
-          <br />
-          Potensi: {point.potensi ?? '-'}
-          <br />
-          Koordinat: {point.lat.toFixed(3)}, {point.lon.toFixed(3)}
-          {distanceKm != null && (
-            <><br />Jarak dari Anda: <strong>{distanceKm < 1 ? '< 1' : Math.round(distanceKm)} km</strong></>
-          )}
+          <div style={{ fontFamily: 'sans-serif', minWidth: '160px' }}>
+            <strong style={{ display: 'block', marginBottom: '4px' }}>{point.wilayah}</strong>
+            {dimmed && <em className="quake-popup-note" style={{ display: 'block', fontSize: '11px', color: '#94a3b8' }}>Di luar rentang waktu filter<br /></em>}
+            <span>M {point.magnitude.toFixed(1)} | Kedalaman {point.kedalaman ?? '-'}</span><br />
+            <span>📅 {point.waktu}</span><br />
+            <span>⚠️ Potensi: {point.potensi ?? '-'}</span><br />
+            <span>📍 Koordinat: {point.lat.toFixed(3)}, {point.lon.toFixed(3)}</span>
+            {distanceKm != null && (
+              <><br /><span>📏 Jarak dari Anda: <strong>{distanceKm < 1 ? '< 1' : Math.round(distanceKm)} km</strong></span></>
+            )}
+            <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${point.lat},${point.lon}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px 8px',
+                  background: '#2563eb',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  textAlign: 'center'
+                }}
+              >
+                🗺️ Maps
+              </a>
+              <a
+                href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${point.lat},${point.lon}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  flex: 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '6px 8px',
+                  background: '#ea580c',
+                  color: '#fff',
+                  borderRadius: '4px',
+                  textDecoration: 'none',
+                  fontSize: '11px',
+                  fontWeight: '600',
+                  textAlign: 'center'
+                }}
+              >
+                🚗 Street View
+              </a>
+            </div>
+          </div>
         </Popup>
       </CircleMarker>
     </>

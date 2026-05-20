@@ -18,6 +18,18 @@ const TILE_LAYERS = {
     attribution: '&copy; OpenStreetMap',
     maxZoom: 20,
   },
+  googleSat: {
+    label: '🛰️ Google Satellite',
+    url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
+    maxZoom: 20,
+  },
+  googleHybrid: {
+    label: '🗺️ Google Hybrid',
+    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    attribution: '&copy; Google Maps',
+    maxZoom: 20,
+  },
   terrain: {
     label: '⛰️ OSM Terrain',
     url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
@@ -252,9 +264,54 @@ export default function BMKGGoogleMap() {
                         <button
                           className="bmkg-popup-zoom"
                           onClick={() => flyTo(point.lat, point.lon, 10)}
+                          style={{ marginBottom: '8px' }}
                         >
                           🔍 Zoom ke lokasi ini
                         </button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${point.lat},${point.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '6px 8px',
+                              background: '#2563eb',
+                              color: '#fff',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              textAlign: 'center'
+                            }}
+                          >
+                            🗺️ Google Maps
+                          </a>
+                          <a
+                            href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${point.lat},${point.lon}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '6px 8px',
+                              background: '#ea580c',
+                              color: '#fff',
+                              borderRadius: '4px',
+                              textDecoration: 'none',
+                              fontSize: '11px',
+                              fontWeight: '600',
+                              textAlign: 'center'
+                            }}
+                          >
+                            🚗 Street View
+                          </a>
+                        </div>
                       </div>
                     </Popup>
                   </CircleMarker>
