@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2 } from 'lucide-react'
+import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2, Activity, Clock, Radio, Database, AlertTriangle, RefreshCw } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
@@ -325,20 +325,83 @@ function DashboardInner({ user }: DashboardProps) {
         )
 
       default: // overview
+        const now = Date.now()
+        const pts = bmkgMap.points || []
+        const todayPoints = pts.filter(p => p.epochMs && (now - p.epochMs) < 86400000)
+        const maxMagToday = todayPoints.length > 0 ? Math.max(...todayPoints.map(p => p.magnitude)) : 0
+        const lastUpdate = gempa ? `${gempa.Tanggal} ${gempa.Jam}` : null
+        const loadingBMKG = bmkgMap.points === null && !bmkgMap.error
+
         return (
           <div className="tab-content">
+            {/* ── OVERVIEW HEADER ── */}
             <div className="overview-header">
-              <h2 className="overview-title">{t('summary')}</h2>
-              <p className="overview-desc">{t('summaryDesc')}</p>
+              <div className="overview-header-left">
+                <h2 className="overview-title">{t('summary')}</h2>
+                <p className="overview-desc">{t('summaryDesc')}</p>
+              </div>
               <div className="esp-status-badge">
                 <div className={`status-dot ${esp32.connected ? 'online' : 'offline'}`} />
                 <span>{esp32.connected ? `${t('esp32Online')} · ${esp32.esp32Ip}` : t('esp32Offline')}</span>
               </div>
             </div>
 
+            {/* ── KPI STAT CARDS ── */}
+            <div className="kpi-grid">
+              <div className="kpi-card">
+                <div className="kpi-icon" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6' }}>
+                  <Activity size={20} />
+                </div>
+                <div className="kpi-info">
+                  <span className="kpi-label">{t('totalEarthquakes')}</span>
+                  <span className="kpi-value">
+                    {loadingBMKG ? <span className="kpi-loading" /> : todayPoints.length}
+                  </span>
+                  <span className="kpi-sub">{t('lastDay')}</span>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-icon" style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444' }}>
+                  <Radio size={20} />
+                </div>
+                <div className="kpi-info">
+                  <span className="kpi-label">{t('maxMagnitude')}</span>
+                  <span className="kpi-value" style={{ color: maxMagToday >= 5 ? '#ef4444' : maxMagToday >= 4 ? '#f59e0b' : '#22c55e' }}>
+                    {loadingBMKG ? <span className="kpi-loading" /> : maxMagToday > 0 ? `M${maxMagToday.toFixed(1)}` : '-'}
+                  </span>
+                  <span className="kpi-sub">{t('today')}</span>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-icon" style={{ background: esp32.connected ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: esp32.connected ? '#10b981' : '#ef4444' }}>
+                  <Cpu size={20} />
+                </div>
+                <div className="kpi-info">
+                  <span className="kpi-label">{t('sensorStatus')}</span>
+                  <span className="kpi-value" style={{ color: esp32.connected ? '#10b981' : '#ef4444' }}>
+                    {esp32.connected ? t('online') : t('offline')}
+                  </span>
+                  <span className="kpi-sub">ESP32 · {esp32.connected ? esp32.esp32Ip : '-'}</span>
+                </div>
+              </div>
+              <div className="kpi-card">
+                <div className="kpi-icon" style={{ background: 'rgba(168,85,247,0.12)', color: '#a855f7' }}>
+                  <Clock size={20} />
+                </div>
+                <div className="kpi-info">
+                  <span className="kpi-label">{t('dataFreshness')}</span>
+                  <span className="kpi-value" style={{ fontSize: '15px' }}>
+                    {lastUpdate || (loadingBMKG ? <span className="kpi-loading" /> : '-')}
+                  </span>
+                  <span className="kpi-sub">BMKG</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ── ALARM BANNER ── */}
             {isEsp32Alert && (
               <div className="alarm-banner" role="alert" aria-live="assertive">
-                <span className="alarm-banner__icon">🚨</span>
+                <AlertTriangle size={22} className="alarm-banner__icon" />
                 <span className="alarm-banner__text">
                   ALARM — {t('esp32')} Level {esp32.alertLevel} · {esp32.status}
                 </span>
@@ -346,11 +409,81 @@ function DashboardInner({ user }: DashboardProps) {
               </div>
             )}
 
+            {/* ── SYSTEM HEALTH ── */}
+            <div className="health-grid">
+              <div className="health-card">
+                <Database size={14} />
+                <span className="health-label">BMKG</span>
+                <span className={`health-dot ${bmkgMap.error ? 'offline' : 'online'}`} />
+                <span className="health-status">{bmkgMap.error ? t('offline') : t('online')}</span>
+              </div>
+              <div className="health-card">
+                <Database size={14} />
+                <span className="health-label">USGS</span>
+                <span className="health-dot online" />
+                <span className="health-status">{t('online')}</span>
+              </div>
+              <div className="health-card">
+                <Database size={14} />
+                <span className="health-label">ESP32</span>
+                <span className={`health-dot ${esp32.connected ? 'online' : 'offline'}`} />
+                <span className="health-status">{esp32.connected ? t('online') : t('offline')}</span>
+              </div>
+              <div className="health-card">
+                <Database size={14} />
+                <span className="health-label">Database</span>
+                <span className="health-dot online" />
+                <span className="health-status">{t('online')}</span>
+              </div>
+            </div>
+
+            {/* ── MAIN CONTENT GRID ── */}
             <div className="overview-grid">
               <div className="grid-left"><EarthquakeCard /></div>
               <div className="grid-right"><SeismographCard {...seismographProps} /></div>
             </div>
 
+            {/* ── RECENT ACTIVITY ── */}
+            <div className="recent-activity-section">
+              <div className="recent-activity-header">
+                <h3>{t('recentActivity')}</h3>
+                <button className="btn btn-outline" style={{ padding: '6px 14px', fontSize: '12px' }} onClick={() => handleSetActiveTab('riwayat')}>
+                  {t('viewAll')}
+                </button>
+              </div>
+              {loadingBMKG ? (
+                <div className="recent-activity-loading">
+                  {[1,2,3].map(i => <div key={i} className="skeleton-row" />)}
+                </div>
+              ) : todayPoints.length > 0 ? (
+                <div className="recent-activity-list">
+                  {todayPoints.slice(0, 6).map((p, idx) => (
+                    <div key={p.id || idx} className="recent-activity-item">
+                      <div className="recent-activity-mag" style={{
+                        background: p.magnitude >= 5 ? 'rgba(239,68,68,0.15)' : p.magnitude >= 4 ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.15)',
+                        color: p.magnitude >= 5 ? '#ef4444' : p.magnitude >= 4 ? '#f59e0b' : '#22c55e',
+                      }}>
+                        M{p.magnitude.toFixed(1)}
+                      </div>
+                      <div className="recent-activity-info">
+                        <span className="recent-activity-location">{p.wilayah || p.lokasi || '-'}</span>
+                        <span className="recent-activity-time">
+                          {p.kedalaman || ''} · {p.tanggal || p.date ? `${p.tanggal || p.date}` : ''} {p.jam || p.time || ''}
+                        </span>
+                      </div>
+                      <span className="recent-activity-source">{p.source || 'BMKG'}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="recent-activity-empty">
+                  <Activity size={24} />
+                  <p>{t('recentActivityEmpty')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* ── QUICK ACCESS ── */}
             <div className="quick-access-section">
               <div className="quick-access-header">
                 <h3>{t('quickAccess')}</h3>
@@ -457,7 +590,18 @@ function DashboardInner({ user }: DashboardProps) {
         <main className="main-content" ref={mainContentRef}>
           {renderContent()}
           <footer className="app-footer">
-            {t('footer')}
+            <div className="app-footer-inner">
+              <div className="app-footer-brand">
+                <img src="/logo.png" alt="logo" className="app-footer-logo" />
+                <span>{t('footer')}</span>
+              </div>
+              <div className="app-footer-links">
+                <a href="https://www.bmkg.go.id" target="_blank" rel="noreferrer">BMKG</a>
+                <a href="https://earthquake.usgs.gov" target="_blank" rel="noreferrer">USGS</a>
+                <a href="https://github.com/raihanhisan" target="_blank" rel="noreferrer">GitHub</a>
+                <span className="app-footer-version">v2.0.0</span>
+              </div>
+            </div>
           </footer>
         </main>
       </div>

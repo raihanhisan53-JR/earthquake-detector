@@ -67,7 +67,12 @@ export const useESP32 = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
   const [isChangingMode, setIsChangingMode] = useState(false);
   const [alertLevel, setAlertLevel] = useState(0);
-  const [esp32Ip, setEsp32Ip] = useState(() => localStorage.getItem('esp32Ip') || '');
+  const [esp32Ip, setEsp32Ip] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('esp32Ip') || '';
+    }
+    return '';
+  });
   const [currentModeIndex, setCurrentModeIndex] = useState(0);
   const [connectionIssue, setConnectionIssue] = useState('');
   const [pgaCms2, setPgaCms2] = useState(0);
@@ -76,7 +81,7 @@ export const useESP32 = () => {
   const pollTimerRef = useRef(null);
   const thresholdTimerRef = useRef(null);
   const requestLockRef = useRef(false);
-  const baseUrlRef = useRef(toBaseUrl(localStorage.getItem('esp32Ip') || ''));
+  const baseUrlRef = useRef(typeof window !== 'undefined' ? toBaseUrl(localStorage.getItem('esp32Ip') || '') : '');
 
   const clearPolling = useCallback(() => {
     if (pollTimerRef.current) {
@@ -102,20 +107,20 @@ export const useESP32 = () => {
 
     // Support both ESP32_BMKG format (status) and OBSIDIAN format (status/alert)
     const rawStatus = typeof payload?.status === 'string' ? payload.status : 'AMAN';
-    // OBSIDIAN uses: AMAN, LEMAH, SEDANG, KUAT, EKSTREM → map to AMAN/WASPADA/BAHAYA
+    // Map status levels (both English and Indonesian) to WASPADA/BAHAYA/AMAN
     let mappedStatus = rawStatus;
-    if (['LEMAH'].includes(rawStatus)) mappedStatus = 'WASPADA';
-    if (['SEDANG', 'KUAT', 'EKSTREM'].includes(rawStatus)) mappedStatus = 'BAHAYA';
+    if (['LEMAH', 'RENDAH', 'WASPADA'].includes(rawStatus)) mappedStatus = 'WASPADA';
+    if (['SEDANG', 'KUAT', 'TINGGI', 'EKSTREM', 'BAHAYA'].includes(rawStatus)) mappedStatus = 'BAHAYA';
     setStatus(mappedStatus);
 
-    setThreshold(parseNumeric(payload?.threshold, 1.5));
-    // Support alertLevel from both formats
-    const lvl = parseNumeric(payload?.alertLevel ?? payload?.alert_level, 0);
-    setAlertLevel(lvl > 0 ? lvl : (payload?.alert ? 1 : 0));
+    setThreshold(parseNumeric(payload?.threshold ?? payload?.vibration_threshold, 1.5));
+    // Support alertLevel from all formats (alertLevel, alert_level, buzzer_pattern, alert, quake_active)
+    const lvl = parseNumeric(payload?.alertLevel ?? payload?.alert_level ?? payload?.buzzer_pattern, 0);
+    setAlertLevel(lvl > 0 ? lvl : (payload?.quake_active || payload?.alert ? 2 : 0));
     setCurrentModeIndex(parseNumeric(payload?.mode, 0));
     // PGA data dari firmware baru
-    setPgaCms2(parseNumeric(payload?.pga_cms2, 0));
-    setPgaPeakCms2(parseNumeric(payload?.pga_peak_cms2, 0));
+    setPgaCms2(parseNumeric(payload?.pga_cms2 ?? (payload?.vibration * 980.665), 0));
+    setPgaPeakCms2(parseNumeric(payload?.pga_peak_cms2 ?? (payload?.peak * 980.665), 0));
 
     setDataPoints((previous) => ({
       x: [...previous.x, x].slice(-MAX_POINTS),
