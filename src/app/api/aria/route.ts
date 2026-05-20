@@ -76,7 +76,7 @@ export async function POST(request: Request) {
              take: 15
            })
            const userList = allUsers.map(u => `- ${u.name || 'User'} (${u.email})`).join('\n')
-           contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut daftar bbrp pengguna web kita sayang:\n${userList}\n(Gunakan data ini HANYA jika Han nanya).`
+           contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut daftar beberapa pengguna web kita:\n${userList}\n(Gunakan data ini HANYA jika Han bertanya).`
          } catch (err) {
            console.error("Gagal mengambil data user:", err)
          }
