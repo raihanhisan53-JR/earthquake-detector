@@ -970,6 +970,69 @@ export default function EarthquakeMapCard({
                   </Popup>
                 </Circle>
               )}
+               {searchTarget && (
+                <CircleMarker
+                  center={[searchTarget.lat, searchTarget.lon]}
+                  radius={10}
+                  pathOptions={{
+                    color: '#2563eb',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.9,
+                    weight: 3,
+                  }}
+                >
+                  <Popup>
+                    <div style={{ fontFamily: 'sans-serif', minWidth: '160px' }}>
+                      <strong style={{ display: 'block', marginBottom: '4px' }}>📍 Lokasi Pencarian</strong>
+                      <span>Koordinat: {searchTarget.lat.toFixed(4)}, {searchTarget.lon.toFixed(4)}</span>
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${searchTarget.lat},${searchTarget.lon}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '6px 8px',
+                            background: '#2563eb',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            textDecoration: 'none',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            textAlign: 'center'
+                          }}
+                        >
+                          🗺️ Maps
+                        </a>
+                        <a
+                          href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${searchTarget.lat},${searchTarget.lon}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            flex: 1,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '6px 8px',
+                            background: '#ea580c',
+                            color: '#fff',
+                            borderRadius: '4px',
+                            textDecoration: 'none',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            textAlign: 'center'
+                          }}
+                        >
+                          🚗 Street View
+                        </a>
+                      </div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              )}
               {mapMarkers.map(({ point, dimmed }, index) => (
                 <QuakeMarkerWithRings key={point.id} point={point} dimmed={dimmed} isLatest={index === 0}
                   displayColor={getDisplayMarkerColor(point, markerColorMode)} distanceKm={distanceTo(point.lat, point.lon)} />
