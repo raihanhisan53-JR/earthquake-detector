@@ -6,29 +6,29 @@ import { AlertTriangle, Layers, List, MapPin, RefreshCcw, Search, X } from 'luci
 
 // ─── Tile Layers (Google Maps + fallback) ────────────────────────────────────
 const TILE_LAYERS = {
-  satellite: {
-    label: '🛰️ Google Satellite',
-    url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
-    maxZoom: 20,
-  },
-  hybrid: {
-    label: '🗺️ Google Hybrid',
-    url: 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
+  dark: {
+    label: '🌑 OSM Dark Mode',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
     maxZoom: 20,
   },
   street: {
-    label: '🏙️ Google Street',
-    url: 'https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
+    label: '🏙️ OSM Street',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap',
     maxZoom: 20,
   },
   terrain: {
-    label: '⛰️ Google Terrain',
-    url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
-    attribution: '&copy; Google Maps',
-    maxZoom: 20,
+    label: '⛰️ OSM Terrain',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap &copy; OpenTopoMap',
+    maxZoom: 17,
+  },
+  satellite: {
+    label: '🛰️ Esri Satellite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics',
+    maxZoom: 18,
   },
 }
 
@@ -54,7 +54,7 @@ const getRadius = (mag) => Math.min(22, Math.max(5, mag * 2.8))
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function BMKGGoogleMap() {
   const { points, bmkgPoints, loading, error, refresh } = useBMKGMap()
-  const [tileKey, setTileKey] = useState('hybrid')
+  const [tileKey, setTileKey] = useState('dark')
   const [minMag, setMinMag] = useState(3)
   const [source, setSource] = useState('BMKG')
   const [query, setQuery] = useState('')
@@ -104,7 +104,7 @@ export default function BMKGGoogleMap() {
       <div className="bmkg-map-header">
         <div className="bmkg-map-header-left">
           <MapPin size={18} style={{ color: '#ef4444' }} />
-          <span className="bmkg-map-title">Peta Google Maps — Lokasi Gempa BMKG</span>
+          <span className="bmkg-map-title">Peta Interaktif — Lokasi Gempa BMKG</span>
           <span className={`bmkg-map-badge ${loading ? 'loading' : ''}`}>
             {loading ? '⏳ Memuat...' : `● ${activePoints.length} titik aktif`}
           </span>
