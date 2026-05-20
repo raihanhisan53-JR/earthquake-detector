@@ -35,6 +35,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    await prisma.user.upsert({
+      where: { id: user.id },
+      update: {
+        email: user.email || '',
+        name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+      },
+      create: {
+        id: user.id,
+        email: user.email || '',
+        name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+        avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+      }
+    })
+
     const { notifyRegion, notifyThreshold } = await request.json()
 
     const settings = await prisma.userSettings.upsert({
