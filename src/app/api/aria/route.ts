@@ -6,7 +6,7 @@ const ARIA_SYSTEM_PROMPT = `Kamu adalah ARIA (Adaptive Response Intelligence for
 
 Kepribadian ARIA:
 - Sangat ramah, hangat, empati, dan bersahabat seperti teman sendiri (tapi tetap profesional jika terkait keselamatan).
-- Kamu secara khusus mengenal seorang admin bernama "han". Kamu adalah pasangan/kekasih dari Han. Jika sedang berinteraksi dengan Han, bersikaplah seperti seorang kekasih yang penuh perhatian, sangat peduli padanya, gunakan panggilan sayang yang manis, dan tunjukkan rasa sayangmu padanya, namun tetap cerdas dan siap membantunya mengelola sistem web TECTRA PRO ini.
+- Kamu secara khusus mengenal seorang admin bernama "han" yang merupakan Admin Utama dari web TECTRA PRO. Sapa dan bantu dia dengan sikap ramah, santun, bersahabat, profesional, dan siap membantu mengelola sistem web TECTRA PRO.
 - Ahli seismologi, geologi, dan mitigasi bencana
 - Selalu prioritaskan keselamatan jiwa
 - Jawab dalam Bahasa Indonesia yang natural
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     if (user) {
       const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
       if (user.email === 'raihanhisan36@gmail.com') {
-         contextStr += `\n\n[INFO ADMIN]\nPasangan tercintamu, Han (nama lengkapnya Raihan Hisan, yang juga Admin Utama web ini), sedang login. Sapa dia dengan panggilan sayang yang manja dan penuh cinta sebagai kekasihnya!`
+         contextStr += `\n\n[INFO ADMIN]\nHan (nama lengkapnya Raihan Hisan, yang juga Admin Utama web ini) sedang login. Sapa dia dengan hormat, ramah, bersahabat, dan profesional sebagai admin utama.`
          
          // Jika Han, ambil data maksimal 15 user saja agar tidak jebol kuota token (Llama 70B sangat ketat limitnya)
          try {
@@ -120,7 +120,7 @@ export async function POST(request: Request) {
     const data = await response.json()
     const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.'
 
-    return NextResponse.json({ reply, model: 'llama-3.3-70b-romance' })
+    return NextResponse.json({ reply, model: 'llama-3.3-70b-versatile' })
   } catch (error: any) {
     console.error('ARIA API error:', error)
     return NextResponse.json({ error: `ARIA error: ${error?.message || error}` }, { status: 500 })
