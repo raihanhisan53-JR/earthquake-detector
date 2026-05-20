@@ -8260,32 +8260,31 @@ body:has(.alarm-banner) .dashboard-layout {
    ════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* Izinkan scroll di HP — ini bug utama yang bikin HP tidak bisa scroll */
   html, body {
     overflow-x: hidden;
-    height: auto !important;
+    height: 100% !important;
     overscroll-behavior-y: contain;
   }
 
   .dashboard-layout {
-    height: auto !important;
-    min-height: 100dvh;
-    overflow: visible !important;
-    overflow-x: hidden;
+    height: 100dvh !important;
+    overflow: hidden !important;
     display: flex;
     flex-direction: column;
   }
 
   .dashboard-body {
-    overflow: visible !important;
+    overflow: hidden !important;
     flex: 1;
-    display: block;
+    display: flex;
+    position: relative;
   }
 
   .main-content {
-    overflow-y: visible !important;
-    height: auto !important;
+    overflow-y: auto !important;
+    height: 100% !important;
     padding-bottom: 60px;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Sidebar mobile: slide-in overlay */
@@ -9721,6 +9720,101 @@ body:has(.alarm-banner) .dashboard-layout {
   font-size: 11px;
   color: var(--text-secondary);
 }
+
+/* Floating Google Maps Style Search Box */
+.google-search-container {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 999;
+  width: 360px;
+  max-width: calc(100% - 32px);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.google-search-form {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  min-height: 48px;
+}
+
+.google-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.google-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.google-search-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.google-search-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.google-search-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 8px;
+}
+
+.google-search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border-color);
+}
+
+.google-search-result-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.15s ease;
+}
+
+.google-search-result-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.google-search-result-item svg {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 
 .bmkg-sidebar-list {
   flex: 1;

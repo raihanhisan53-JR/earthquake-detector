@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
+import { CircleMarker, MapContainer, Popup, TileLayer, ZoomControl } from 'react-leaflet'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { AlertTriangle, Layers, List, MapPin, RefreshCcw, Search, X } from 'lucide-react'
 
@@ -63,6 +63,83 @@ const getMagLabel = (mag) => {
 
 const getRadius = (mag) => Math.min(22, Math.max(5, mag * 2.8))
 
+function GoogleMapSearchBox({ onSelectLocation, onClear }) {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [searching, setSearching] = useState(false)
+
+  const handleSearch = async (e) => {
+    e.preventDefault()
+    if (!query.trim()) return
+    setSearching(true)
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`)
+      const data = await res.json()
+      setResults(data)
+    } catch (err) {
+      console.error(err)
+    }
+    setSearching(false)
+  }
+
+  const handleClear = () => {
+    setQuery('')
+    setResults([])
+    onClear()
+  }
+
+  return (
+    <div className="google-search-container">
+      <form onSubmit={handleSearch} className="google-search-form">
+        <button type="submit" className="google-search-btn" disabled={searching}>
+          <Search size={18} />
+        </button>
+        <input
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Cari kota atau daerah..."
+          className="google-search-input"
+        />
+        {query && (
+          <>
+            <button type="button" className="google-search-btn" onClick={handleClear}>
+              <X size={18} />
+            </button>
+            <div className="google-search-divider" />
+          </>
+        )}
+      </form>
+      {results.length > 0 && (
+        <ul className="google-search-results">
+          {results.map((r, i) => (
+            <li
+              key={i}
+              className="google-search-result-item"
+              onClick={() => {
+                onSelectLocation({
+                  lat: parseFloat(r.lat),
+                  lon: parseFloat(r.lon),
+                  name: r.display_name
+                })
+                setResults([])
+              }}
+            >
+              <MapPin size={16} style={{ color: '#ef4444' }} />
+              <div>
+                <strong>{r.display_name.split(',')[0]}</strong>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  {r.display_name.split(',').slice(1).join(',')}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function BMKGGoogleMap() {
   const { points, bmkgPoints, loading, error, refresh } = useBMKGMap()
@@ -72,6 +149,7 @@ export default function BMKGGoogleMap() {
   const [query, setQuery] = useState('')
   const [showList, setShowList] = useState(true)
   const [selectedId, setSelectedId] = useState(null)
+  const [searchMarker, setSearchMarker] = useState(null)
   const mapRef = useRef(null)
 
   // Filter points
@@ -208,13 +286,22 @@ export default function BMKGGoogleMap() {
       <div className="bmkg-map-body">
         {/* Map */}
         <div className="bmkg-map-canvas">
+          <GoogleMapSearchBox
+            onSelectLocation={(loc) => {
+              setSearchMarker(loc)
+              flyTo(loc.lat, loc.lon, 11)
+            }}
+            onClear={() => {
+              setSearchMarker(null)
+            }}
+          />
           {typeof window !== 'undefined' && (
             <MapContainer
               center={[-2.5, 118]}
               zoom={5}
               style={{ width: '100%', height: '100%' }}
               ref={mapRef}
-              zoomControl={true}
+              zoomControl={false}
               scrollWheelZoom={true}
             >
               <TileLayer
@@ -223,6 +310,32 @@ export default function BMKGGoogleMap() {
                 attribution={tile.attribution}
                 maxZoom={tile.maxZoom}
               />
+              <ZoomControl position="bottomright" />
+
+              {/* Search marker */}
+              {searchMarker && (
+                <CircleMarker
+                  center={[searchMarker.lat, searchMarker.lon]}
+                  radius={12}
+                  pathOptions={{
+                    color: '#fff',
+                    fillColor: '#3b82f6',
+                    fillOpacity: 0.9,
+                    weight: 3,
+                  }}
+                >
+                  <Popup>
+                    <div className="bmkg-popup-inner" style={{ minWidth: '150px' }}>
+                      <div className="bmkg-popup-loc" style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--text-primary)', marginBottom: '4px' }}>
+                        📍 {searchMarker.name.split(',')[0]}
+                      </div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: '1.4' }}>
+                        {searchMarker.name}
+                      </div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              )}
 
               {activePoints.map(point => {
                 const { fill, stroke } = getMagColor(point.magnitude)

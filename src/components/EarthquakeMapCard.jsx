@@ -321,55 +321,6 @@ function MapSearchController({ target }) {
   return null;
 }
 
-function MapSearchBox({ onSelectLocation }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    setSearching(true);
-    try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`);
-      const data = await res.json();
-      setResults(data);
-    } catch (err) {
-      console.error(err);
-    }
-    setSearching(false);
-  };
-
-  return (
-    <div className="map-search-container" style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000, background: 'var(--bg-card)', padding: '8px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', width: '280px' }}>
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
-        <input 
-          type="text" 
-          value={query} 
-          onChange={e => setQuery(e.target.value)} 
-          placeholder="Cari Kota/Daerah..." 
-          style={{ flex: 1, padding: '6px 12px', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'rgba(0,0,0,0.2)', color: 'var(--text-primary)' }}
-        />
-        <button type="submit" className="btn btn-primary" disabled={searching} style={{ padding: '6px 10px', minWidth: 'unset' }}>
-          <Search size={16} />
-        </button>
-      </form>
-      {results.length > 0 && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: '8px 0 0', maxHeight: '200px', overflowY: 'auto' }}>
-          {results.map((r, i) => (
-            <li key={i} style={{ padding: '8px', borderBottom: '1px solid var(--border-color)', cursor: 'pointer', fontSize: '0.8rem', color: 'var(--text-secondary)' }} onClick={() => {
-              onSelectLocation({ lat: parseFloat(r.lat), lon: parseFloat(r.lon) });
-              setResults([]);
-            }}>
-              {r.display_name.length > 50 ? r.display_name.substring(0, 50) + '...' : r.display_name}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 function MapInteractionController() {
   const map = useMap();
 
@@ -956,7 +907,6 @@ export default function EarthquakeMapCard({
               {showPlateBoundaries && plateGeoJson ? (
                 <GeoJSON data={plateGeoJson} style={() => ({ color: 'rgba(56,189,248,0.7)', weight: 2, opacity: 0.9, dashArray: '5,5' })} />
               ) : null}
-              <MapSearchBox onSelectLocation={(loc) => { setSearchTarget(loc); setFollowLatest(false); }} />
               <MapSearchController target={searchTarget} />
               <MapInteractionController />
               <MapAutoFocus point={mapFollowTarget} enabled={followLatest && mode !== 'simulation'} />
