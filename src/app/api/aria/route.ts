@@ -71,11 +71,11 @@ export async function POST(request: Request) {
          
          // Jika Han, ambil data maksimal 15 user saja agar tidak jebol kuota token (Llama 70B sangat ketat limitnya)
          try {
-           const allUsers = await prisma.user.findMany({
-             select: { name: true, email: true },
-             take: 15
-           })
-           const userList = allUsers.map(u => `- ${u.name || 'User'} (${u.email})`).join('\n')
+            const allUsers = await prisma.user.findMany({
+              select: { name: true, email: true },
+              take: 15
+            }) as { name: string | null; email: string }[]
+            const userList = allUsers.map(u => `- ${u.name || 'User'} (${u.email})`).join('\n')
            contextStr += `\n\n[DATA RAHASIA ADMIN]\nBerikut daftar beberapa pengguna web kita:\n${userList}\n(Gunakan data ini HANYA jika Han bertanya).`
          } catch (err) {
            console.error("Gagal mengambil data user:", err)

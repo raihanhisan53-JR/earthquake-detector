@@ -15,7 +15,7 @@ const FALLBACK_POINTS = [
 ];
 
 const BMKG_URL = '/api/bmkg-dirasakan';
-const USGS_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson';
+const USGS_URL = '/api/usgs';
 
 const buildCodetabsBmkgUrl = (cacheBust) => {
   return cacheBust ? `${BMKG_URL}?ts=${Date.now()}` : BMKG_URL;

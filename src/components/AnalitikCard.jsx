@@ -8,8 +8,8 @@ import {
   ArrowUp, ArrowDown, Minus,
 } from 'lucide-react';
 
-const BMKG_LIST   = 'https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json';
-const BMKG_LATEST = 'https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json';
+const BMKG_LIST   = '/api/bmkg-terkini';
+const BMKG_LATEST = '/api/bmkg';
 const AUTO_REFRESH_MS = 30_000;
 
 const parseF = (v, fb = 0) => { const n = parseFloat(String(v)); return isFinite(n) ? n : fb; };
@@ -190,8 +190,8 @@ export default function AnalitikCard() {
     if (isManual) setRefreshing(true);
     try {
       const [r1, r2] = await Promise.all([
-        fetch(BMKG_LIST,   { cache: 'no-store' }),
-        fetch(BMKG_LATEST, { cache: 'no-store' }),
+        fetch(BMKG_LIST),
+        fetch(BMKG_LATEST),
       ]);
       const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
       const raw = d1?.Infogempa?.gempa || [];
@@ -297,6 +297,14 @@ export default function AnalitikCard() {
             </svg>
             <span>{countdown}s</span>
           </div>
+          <button
+            type="button"
+            className="btn btn-outline"
+            style={{ padding: '4px 10px', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '6px' }}
+            onClick={() => window.print()}
+          >
+            🖨️ Cetak Laporan
+          </button>
           <button
             type="button"
             className="analitik-refresh-btn"

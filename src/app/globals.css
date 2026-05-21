@@ -10801,14 +10801,37 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   /* Topbar actions: scroll horizontal kalau overflow */
+  .topbar-right {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
   .topbar-actions {
+    display: flex;
+    align-items: center;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     gap: 6px;
     padding-bottom: 2px;
+    width: 100%;
+    justify-content: safe flex-end;
   }
   .topbar-actions::-webkit-scrollbar { display: none; }
+
+  .topbar--compact .topbar-compact-label {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+
 
   /* Notif panel: full width di mobile */
   .notif-panel {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2, Activity, Clock, Radio, Database, AlertTriangle, RefreshCw } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
@@ -58,6 +59,7 @@ function DashboardInner({ user }: DashboardProps) {
   const [activeTab, setActiveTabState] = useState('overview')
   const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mapMode, setMapMode]           = useState<'2d' | '3d'>('2d')
   const [theme, setTheme]               = useState('dark')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -199,7 +201,7 @@ function DashboardInner({ user }: DashboardProps) {
     })
   }, [bmkgMap.points, notificationsEnabled, addNotification])
 
-  // ── Auto-save ESP32 alert ke database ──
+  // ── Auto-save ESP32 alert ke database (earthquake_logs & sensor_readings) ──
   const prevEsp32AlertRef = useRef(0)
   useEffect(() => {
     if (esp32.connected && esp32.alertLevel > 0 && prevEsp32AlertRef.current === 0) {
@@ -215,9 +217,22 @@ function DashboardInner({ user }: DashboardProps) {
           detail: `Getaran lokal terdeteksi (PGA: ${esp32.pgaCms2} cm/s²)`
         })
       }).catch(console.error)
+
+      // Simpan juga ke sensor_readings
+      fetch('/api/sensors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pgaCms2: esp32.pgaCms2,
+          pgaPeak: esp32.pgaPeakCms2,
+          alertLevel: esp32.alertLevel,
+          status: esp32.status,
+          sensorIp: esp32.esp32Ip,
+        }),
+      }).catch(console.error)
     }
     prevEsp32AlertRef.current = esp32.alertLevel
-  }, [esp32.connected, esp32.alertLevel, esp32.pgaCms2])
+  }, [esp32.connected, esp32.alertLevel, esp32.pgaCms2, esp32.pgaPeakCms2, esp32.status, esp32.esp32Ip])
 
   // ── Props seismograph — satu objek dipakai di dua tempat ──
   const seismographProps = {
@@ -242,14 +257,10 @@ function DashboardInner({ user }: DashboardProps) {
   }
 
   const quickAccessItems = [
-    { id: 'peta',     icon: <MapPinned size={18} />, label: t('map'),        desc: t('mapTitle') },
-    { id: 'globe',    icon: <Globe2 size={18} />,    label: t('googleMaps'), desc: 'Google Maps BMKG' },
-    { id: 'livecctv', icon: <Video size={18} />,     label: t('liveCctv'),   desc: t('liveCctv') },
-    { id: 'edukasi',  icon: <Play size={18} />,      label: t('education'),  desc: t('education') },
-    { id: 'cuaca',    icon: <CloudSun size={18} />,  label: t('weather'),    desc: t('weather') },
+    { id: 'pemetaan', icon: <MapPinned size={18} />, label: t('map'),        desc: t('mapTitle') },
+    { id: 'livecctv', icon: <Video size={18} />,     label: t('liveCctv'),   desc: 'Pantauan CCTV' },
     { id: 'esp32',    icon: <Cpu size={18} />,       label: t('esp32'),      desc: t('esp32') },
     { id: 'riwayat',  icon: <History size={18} />,   label: t('history'),    desc: t('history') },
-    { id: 'aria',     icon: <Bot size={18} />,       label: t('aria'),       desc: t('aria') },
   ]
 
   // Build latestEarthquake object for ARIA from real BMKG data
@@ -265,16 +276,22 @@ function DashboardInner({ user }: DashboardProps) {
     switch (activeTab) {
       case 'gempa':
         return <div className="tab-content"><EarthquakeCard fullView /></div>
-      case 'peta':
+      case 'pemetaan':
         return (
-          <div className="tab-content">
-            <EarthquakeMapCard notificationsEnabled={notificationsEnabled} notifyUser={notifyUser} />
-          </div>
-        )
-      case 'globe':
-        return (
-          <div className="tab-content" style={{ padding: 0 }}>
-            <BMKGGoogleMap />
+          <div className="tab-content" style={{ padding: 0, height: 'calc(100vh - 72px)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 1000, display: 'flex', gap: 8, background: 'rgba(15,23,42,0.8)', padding: 6, borderRadius: 12, backdropFilter: 'blur(10px)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+              <button onClick={() => setMapMode('2d')} style={{ padding: '6px 12px', borderRadius: 8, background: mapMode === '2d' ? '#3b82f6' : 'transparent', color: mapMode === '2d' ? '#fff' : '#94a3b8', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }}>Map 2D</button>
+              <button onClick={() => setMapMode('3d')} style={{ padding: '6px 12px', borderRadius: 8, background: mapMode === '3d' ? '#3b82f6' : 'transparent', color: mapMode === '3d' ? '#fff' : '#94a3b8', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, transition: 'all 0.2s' }}>Globe 3D</button>
+            </div>
+            {mapMode === '2d' ? (
+              <div style={{ flex: 1, position: 'relative' }}>
+                <EarthquakeMapCard notificationsEnabled={notificationsEnabled} notifyUser={notifyUser} />
+              </div>
+            ) : (
+              <div style={{ flex: 1, position: 'relative' }}>
+                <BMKGGoogleMap />
+              </div>
+            )}
           </div>
         )
       case 'analitik':
@@ -509,8 +526,7 @@ function DashboardInner({ user }: DashboardProps) {
   const tabLabelMap: Record<string, string> = {
     overview:  t('overview'),
     gempa:     t('earthquake'),
-    peta:      t('map'),
-    globe:     t('googleMaps'),
+    pemetaan:  'Pemetaan Terpadu',
     analitik:  t('analytics'),
     livecctv:  t('liveCctv'),
     edukasi:   t('education'),
@@ -588,7 +604,9 @@ function DashboardInner({ user }: DashboardProps) {
 
         {/* Main Content */}
         <main className="main-content" ref={mainContentRef}>
-          {renderContent()}
+          <ErrorBoundary>
+            {renderContent()}
+          </ErrorBoundary>
           <footer className="app-footer">
             <div className="app-footer-inner">
               <div className="app-footer-brand">

@@ -17,7 +17,7 @@ export function useBMKG() {
     setLoading(true)
     try {
       const res = await fetch(
-        'https://api.codetabs.com/v1/proxy?quest=https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json',
+        '/api/bmkg',
         { signal: AbortSignal.timeout(7000) }
       )
       if (!res.ok) throw new Error(`HTTP ${res.status}`)

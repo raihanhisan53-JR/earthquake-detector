@@ -41,7 +41,7 @@ const defaultProfile = (user: User): ProfileData => ({
 export default function ProfilePage({ user, onBack, onLogout }: Props) {
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const isAdmin = user.email === ADMIN_EMAIL
+  const isAdmin = user.user_metadata?.role === 'admin' || user.email === ADMIN_EMAIL
 
   const [mode, setMode] = useState<'view' | 'edit'>('view')
   const [profile, setProfile] = useState<ProfileData>(() => defaultProfile(user))

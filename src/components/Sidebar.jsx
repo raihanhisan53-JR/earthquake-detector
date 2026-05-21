@@ -15,18 +15,37 @@ export default function Sidebar({
 }) {
   const { t } = useI18n();
 
-  const navItems = [
-    { id: 'overview',  icon: <LayoutGrid size={18} />, labelKey: 'overview' },
-    { id: 'gempa',     icon: <Home size={18} />,       labelKey: 'earthquake' },
-    { id: 'peta',      icon: <MapPinned size={18} />,  labelKey: 'map' },
-    { id: 'globe',     icon: <Globe2 size={18} />,     labelKey: 'googleMaps', badge: 'NEW' },
-    { id: 'analitik',  icon: <Globe size={18} />,      labelKey: 'analytics' },
-    { id: 'livecctv',  icon: <Video size={18} />,      labelKey: 'liveCctv' },
-    { id: 'edukasi',   icon: <Play size={18} />,       labelKey: 'education' },
-    { id: 'cuaca',     icon: <CloudSun size={18} />,   labelKey: 'weather' },
-    { id: 'esp32',     icon: <Cpu size={18} />,        labelKey: 'esp32' },
-    { id: 'riwayat',   icon: <History size={18} />,    labelKey: 'history' },
-    { id: 'aria',      icon: <Bot size={18} />,        labelKey: 'aria' },
+  const navSections = [
+    {
+      title: '',
+      items: [
+        { id: 'overview',  icon: <LayoutGrid size={18} />, labelKey: 'overview' },
+      ]
+    },
+    {
+      title: 'Monitoring',
+      items: [
+        { id: 'pemetaan',  icon: <MapPinned size={18} />,  labelKey: 'map' }, // Gabungan Peta & Globe
+        { id: 'livecctv',  icon: <Video size={18} />,      labelKey: 'liveCctv' },
+        { id: 'cuaca',     icon: <CloudSun size={18} />,   labelKey: 'weather' },
+      ]
+    },
+    {
+      title: 'Analisa & Data',
+      items: [
+        { id: 'gempa',     icon: <Home size={18} />,       labelKey: 'earthquake' },
+        { id: 'analitik',  icon: <Globe size={18} />,      labelKey: 'analytics' },
+        { id: 'riwayat',   icon: <History size={18} />,    labelKey: 'history' },
+      ]
+    },
+    {
+      title: 'Sistem Pro',
+      items: [
+        { id: 'esp32',     icon: <Cpu size={18} />,        labelKey: 'esp32' },
+        { id: 'edukasi',   icon: <Play size={18} />,       labelKey: 'education' },
+        { id: 'aria',      icon: <Bot size={18} />,        labelKey: 'aria' },
+      ]
+    }
   ];
 
   // Load saved avatar + display name from localStorage (set by ProfilePage)
@@ -77,27 +96,51 @@ export default function Sidebar({
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href="#"
-              className={getNavClass(item.id)}
-              onClick={(event) => handleNav(event, item.id)}
-              title={collapsed ? t(item.labelKey) : undefined}
-            >
-              {item.icon}
-              <span className="nav-item__label">
-                {t(item.labelKey)}
-                {item.badge && (
-                  <span style={{
-                    marginLeft: '6px', fontSize: '9px', fontWeight: '700',
-                    background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                    color: '#fff', padding: '1px 5px', borderRadius: '4px',
-                    letterSpacing: '0.5px',
-                  }}>{item.badge}</span>
-                )}
-              </span>
-            </a>
+          {navSections.map((section, idx) => (
+            <div key={idx} className="sidebar-nav-section" style={{ marginBottom: section.title ? '12px' : '4px' }}>
+              {section.title && !collapsed && (
+                <div className="sidebar-nav-title" style={{
+                  fontSize: '10px',
+                  fontWeight: '700',
+                  color: '#64748b',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  padding: '8px 16px',
+                  marginBottom: '4px'
+                }}>
+                  {section.title}
+                </div>
+              )}
+              {section.title && collapsed && (
+                 <div className="sidebar-nav-title-collapsed" style={{
+                    height: '1px',
+                    background: 'rgba(100,116,139,0.2)',
+                    margin: '12px 16px 8px 16px'
+                 }} />
+              )}
+              {section.items.map((item) => (
+                <a
+                  key={item.id}
+                  href="#"
+                  className={getNavClass(item.id)}
+                  onClick={(event) => handleNav(event, item.id)}
+                  title={collapsed ? t(item.labelKey) : undefined}
+                >
+                  {item.icon}
+                  <span className="nav-item__label">
+                    {t(item.labelKey)}
+                    {item.badge && (
+                      <span style={{
+                        marginLeft: '6px', fontSize: '9px', fontWeight: '700',
+                        background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+                        color: '#fff', padding: '1px 5px', borderRadius: '4px',
+                        letterSpacing: '0.5px',
+                      }}>{item.badge}</span>
+                    )}
+                  </span>
+                </a>
+              ))}
+            </div>
           ))}
         </nav>
 
