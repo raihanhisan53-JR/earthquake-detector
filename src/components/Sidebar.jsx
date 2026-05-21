@@ -66,7 +66,16 @@ export default function Sidebar({
   }, [user?.id, activeTab]);
 
   const [isHovered, setIsHovered] = useState(false);
-  const isEffectivelyCollapsed = collapsed && !isHovered;
+  const isVisuallyCollapsed = collapsed && !isHovered;
+
+  let sidebarClass = `sidebar ${mobileOpen ? 'mobile-open' : ''}`;
+  if (collapsed) {
+    if (isHovered) {
+      sidebarClass += ' sidebar--hover-expanded';
+    } else {
+      sidebarClass += ' sidebar--collapsed';
+    }
+  }
 
   const avatarSrc = savedAvatar || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
   const displayName = savedName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -83,7 +92,7 @@ export default function Sidebar({
     <>
       <div className={`mobile-overlay ${mobileOpen ? 'visible' : ''}`} onClick={() => setMobileOpen(false)}></div>
       <aside 
-        className={`sidebar ${mobileOpen ? 'mobile-open' : ''}${isEffectivelyCollapsed ? ' sidebar--collapsed' : ''}`}
+        className={sidebarClass}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -106,7 +115,7 @@ export default function Sidebar({
         <nav className="sidebar-nav">
           {navSections.map((section, idx) => (
             <div key={idx} className="sidebar-nav-section" style={{ marginBottom: section.title ? '12px' : '4px' }}>
-              {section.title && !isEffectivelyCollapsed && (
+              {section.title && !isVisuallyCollapsed && (
                 <div className="sidebar-nav-title" style={{
                   fontSize: '10px',
                   fontWeight: '700',
@@ -119,7 +128,7 @@ export default function Sidebar({
                   {section.title}
                 </div>
               )}
-              {section.title && isEffectivelyCollapsed && (
+              {section.title && isVisuallyCollapsed && (
                  <div className="sidebar-nav-title-collapsed" style={{
                     height: '1px',
                     background: 'rgba(100,116,139,0.2)',
@@ -132,7 +141,7 @@ export default function Sidebar({
                   href="#"
                   className={getNavClass(item.id)}
                   onClick={(event) => handleNav(event, item.id)}
-                  title={isEffectivelyCollapsed ? t(item.labelKey) : undefined}
+                  title={isVisuallyCollapsed ? t(item.labelKey) : undefined}
                 >
                   {item.icon}
                   <span className="nav-item__label">

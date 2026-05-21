@@ -577,6 +577,19 @@ body {
   overflow-x: hidden;
 }
 
+.sidebar--hover-expanded {
+  width: 290px;
+  min-width: 290px;
+  margin-right: -208px;
+  z-index: 105;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  transition: width 0.22s ease, min-width 0.22s ease, margin-right 0.22s ease, box-shadow 0.22s ease;
+}
+
+[data-theme="light"] .sidebar--hover-expanded {
+  box-shadow: 4px 0 24px rgba(91, 33, 182, 0.15);
+}
+
 /* Base collapsed state */
 .sidebar--collapsed .sidebar-brand,
 .sidebar--collapsed .nav-item__label,
