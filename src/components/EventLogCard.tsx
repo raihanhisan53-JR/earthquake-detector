@@ -46,7 +46,7 @@ export default function EventLogCard() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'earthquake_logs' },
         (payload) => {
           const newEvent = payload.new as EarthquakeEvent
-          setEvents(prev => [newEvent, ...prev].slice(0, 300))
+          setEvents(prev => [newEvent, ...prev].slice(0, 1000))
         }
       )
       .subscribe()

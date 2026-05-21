@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const earthquakes = await prisma.earthquakeLog.findMany({
       orderBy: { timestamp: 'desc' },
-      take: 300,
+      take: 1000,
     })
     return NextResponse.json(earthquakes)
   } catch (error) {
