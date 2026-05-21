@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot } from 'lucide-react';
+import { CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot, Map } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 
 export default function Sidebar({
@@ -25,7 +25,8 @@ export default function Sidebar({
     {
       title: 'Monitoring',
       items: [
-        { id: 'pemetaan',  icon: <MapPinned size={18} />,  labelKey: 'map' }, // Gabungan Peta & Globe
+        { id: 'peta',      icon: <MapPinned size={18} />,  labelKey: 'map' },
+        { id: 'globe',     icon: <Globe2 size={18} />,     labelKey: 'googleMaps' },
         { id: 'livecctv',  icon: <Video size={18} />,      labelKey: 'liveCctv' },
         { id: 'cuaca',     icon: <CloudSun size={18} />,   labelKey: 'weather' },
       ]
