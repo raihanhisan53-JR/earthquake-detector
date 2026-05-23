@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
+import { Activity, Mail, Lock, Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -33,7 +35,6 @@ export default function LoginPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) {
           if (error.message.includes('Email not confirmed')) {
-            // Coba resend confirmation atau langsung login ulang
             setError('Email belum dikonfirmasi. Cek inbox atau gunakan Google login.')
           } else if (error.message.includes('Invalid login credentials')) {
             setError('Email atau password salah.')
@@ -41,7 +42,6 @@ export default function LoginPage() {
             setError(error.message)
           }
         }
-        // Jika berhasil, Supabase akan update session dan page.tsx akan redirect otomatis
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password })
         if (error) {
@@ -53,12 +53,9 @@ export default function LoginPage() {
           }
           return
         }
-        // Jika email confirmation disabled, user langsung ter-login
         if (data.session) {
-          // Session sudah ada, redirect akan terjadi otomatis
           window.location.href = '/'
         } else {
-          // Email confirmation masih aktif
           setError('✅ Akun dibuat! Cek email untuk konfirmasi, atau gunakan Google login.')
           setMode('login')
         }
@@ -72,224 +69,164 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'radial-gradient(ellipse at top, #1a0533 0%, #0a0a0f 60%)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontFamily: "'Inter', -apple-system, sans-serif", padding: '16px',
-    }}>
-      {/* Background decoration */}
-      <div style={{
-        position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0,
-      }}>
-        <div style={{
-          position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
-          width: '600px', height: '600px', borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)',
-        }} />
+    <div className="min-h-screen bg-[#050505] text-slate-300 font-sans flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Effects matching Landing Page */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/20 blur-[150px]"></div>
+        <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-900/10 blur-[150px]"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '420px' }}>
-        {/* Card */}
-        <div style={{
-          background: 'rgba(13, 17, 28, 0.9)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(139,92,246,0.2)',
-          borderRadius: '20px',
-          padding: '40px 36px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)',
-        }}>
-          {/* Logo */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Logo"
-              style={{ width: '64px', height: '64px', borderRadius: '16px', marginBottom: '16px', objectFit: 'cover' }} />
-            <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#fff', margin: 0, letterSpacing: '-0.3px' }}>
-              Earthquake Detector
+      <div className="w-full max-w-[420px] relative z-10">
+        {/* Back to Home Link */}
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-white transition-colors mb-8 group">
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Kembali ke Beranda
+        </Link>
+
+        {/* Glassmorphism Card */}
+        <div className="bg-[#0A0A0A]/80 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+          {/* Subtle top border highlight */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+
+          {/* Logo & Header */}
+          <div className="text-center mb-10">
+            <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-6">
+              <Activity className="text-white" size={32} strokeWidth={2.5} />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2 tracking-tight">
+              {showEmailForm ? (mode === 'login' ? 'Selamat Datang Kembali' : 'Buat Akun Tectra') : 'Masuk ke Tectra Pro'}
             </h1>
-            <p style={{ fontSize: '13px', color: '#6b7280', margin: '6px 0 0', fontWeight: '400' }}>
-              Sistem monitoring gempa bumi real-time
+            <p className="text-sm text-slate-400">
+              {showEmailForm ? 'Masukkan kredensial Anda di bawah ini' : 'Pilih metode masuk untuk melanjutkan'}
             </p>
           </div>
 
-          {/* Error / Success */}
+          {/* Error / Success Message */}
           {error && (
-            <div style={{
-              fontSize: '13px',
-              color: error.startsWith('✅') ? '#86efac' : '#fca5a5',
-              background: error.startsWith('✅') ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)',
-              border: `1px solid ${error.startsWith('✅') ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)'}`,
-              padding: '10px 14px', borderRadius: '10px', marginBottom: '20px',
-              textAlign: 'center',
-            }}>
-              {error}
+            <div className={`mb-6 p-4 rounded-xl text-sm font-medium flex items-start gap-3 border ${
+              error.startsWith('✅') 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}>
+              <div className="mt-0.5">
+                {error.startsWith('✅') ? <Activity size={16} /> : <ShieldAlert size={16} className="lucide lucide-shield-alert" />}
+              </div>
+              <div className="flex-1 leading-snug">{error.replace('✅ ', '')}</div>
             </div>
           )}
 
           {!showEmailForm ? (
-            <>
-              {/* Google Button */}
-              <button onClick={handleGoogleLogin} disabled={loading} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
-                width: '100%', padding: '13px 20px',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: '12px', color: '#fff', fontSize: '15px', fontWeight: '500',
-                cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
-                marginBottom: '12px',
-              }}
-              onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.1)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)' }}
+            <div className="flex flex-col gap-4">
+              <button 
+                onClick={handleGoogleLogin} 
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-3 bg-white hover:bg-slate-100 text-black font-semibold py-3.5 px-4 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <svg viewBox="0 0 48 48" width="20" height="20">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
                 {loading ? 'Menghubungkan...' : 'Lanjutkan dengan Google'}
               </button>
 
-              {/* Divider */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
-                <span style={{ fontSize: '12px', color: '#4b5563', fontWeight: '500' }}>atau</span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow border-t border-white/10"></div>
+                <span className="flex-shrink-0 mx-4 text-xs font-medium text-slate-500 uppercase tracking-widest">Atau</span>
+                <div className="flex-grow border-t border-white/10"></div>
               </div>
 
-              {/* Email Button */}
-              <button onClick={() => setShowEmailForm(true)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
-                width: '100%', padding: '13px 20px',
-                background: 'transparent',
-                border: '1px solid rgba(139,92,246,0.3)',
-                borderRadius: '12px', color: '#a78bfa', fontSize: '15px', fontWeight: '500',
-                cursor: 'pointer', transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(139,92,246,0.08)' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
+              <button 
+                onClick={() => setShowEmailForm(true)}
+                className="w-full flex items-center justify-center gap-3 bg-[#111] hover:bg-[#1A1A1A] text-white border border-white/10 font-medium py-3.5 px-4 rounded-xl transition-all"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="2" y="4" width="20" height="16" rx="2"/>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                </svg>
+                <Mail size={18} className="text-slate-400" />
                 Lanjutkan dengan Email
               </button>
-
-              {/* Footer */}
-              <p style={{ marginTop: '28px', fontSize: '11px', color: '#374151', textAlign: 'center', lineHeight: '1.6' }}>
-                Dengan masuk, kamu menyetujui{' '}
-                <a href="#" style={{ color: '#6b7280', textDecoration: 'underline' }}>Syarat Layanan</a>
-                {' '}dan{' '}
-                <a href="#" style={{ color: '#6b7280', textDecoration: 'underline' }}>Kebijakan Privasi</a>
-              </p>
-            </>
+            </div>
           ) : (
-            <>
-              {/* Back */}
-              <button onClick={() => { setShowEmailForm(false); setError('') }} style={{
-                background: 'none', border: 'none', color: '#6b7280',
-                fontSize: '13px', cursor: 'pointer', marginBottom: '20px',
-                display: 'flex', alignItems: 'center', gap: '6px', padding: 0,
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m15 18-6-6 6-6"/>
-                </svg>
-                Kembali
-              </button>
-
-              <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#fff', marginBottom: '24px', textAlign: 'center' }}>
-                {mode === 'login' ? 'Masuk ke akun' : 'Buat akun baru'}
-              </h2>
-
-              <form onSubmit={handleEmailSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#9ca3af', marginBottom: '6px' }}>
-                    Email
-                  </label>
-                  <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="nama@domain.com" required
-                    style={{
-                      width: '100%', padding: '12px 14px', borderRadius: '10px',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '14px',
-                      outline: 'none', boxSizing: 'border-box',
-                    }} />
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <form onSubmit={handleEmailSubmit} className="flex flex-col gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-400 pl-1">Email Address</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail size={18} className="text-slate-500" />
+                    </div>
+                    <input 
+                      type="email" 
+                      value={email} 
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="nama@perusahaan.com" 
+                      required
+                      className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#9ca3af', marginBottom: '6px' }}>
-                    Password
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter" required minLength={6}
-                      style={{
-                        width: '100%', padding: '12px 44px 12px 14px', borderRadius: '10px',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        background: 'rgba(255,255,255,0.04)', color: '#fff', fontSize: '14px',
-                        outline: 'none', boxSizing: 'border-box',
-                      }} />
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-400 pl-1">Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock size={18} className="text-slate-500" />
+                    </div>
+                    <input 
+                      type={showPassword ? 'text' : 'password'} 
+                      value={password} 
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter" 
+                      required 
+                      minLength={6}
+                      className="w-full pl-11 pr-12 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all"
+                    />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(v => !v)}
-                      style={{
-                        position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        color: '#6b7280', padding: '4px', display: 'flex', alignItems: 'center',
-                        transition: 'color 0.2s',
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#a78bfa' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#6b7280' }}
-                      title={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-indigo-400 transition-colors"
                     >
-                      {showPassword ? (
-                        // Eye-off icon
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                      ) : (
-                        // Eye icon
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      )}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
 
-                <button type="submit" disabled={loading} style={{
-                  width: '100%', padding: '13px',
-                  background: loading ? 'rgba(139,92,246,0.5)' : 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                  color: 'white', border: 'none', borderRadius: '10px',
-                  fontSize: '15px', fontWeight: '600',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  marginTop: '4px', transition: 'all 0.2s',
-                  boxShadow: loading ? 'none' : '0 4px 15px rgba(139,92,246,0.3)',
-                }}>
-                  {loading ? 'Memproses...' : mode === 'login' ? 'Masuk' : 'Buat Akun'}
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all shadow-[0_0_20px_-5px_rgba(79,70,229,0.5)] disabled:opacity-70 disabled:cursor-not-allowed group"
+                >
+                  {loading ? 'Memproses...' : (mode === 'login' ? 'Masuk ke Dashboard' : 'Buat Akun Baru')}
+                  {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                 </button>
               </form>
 
-              <button onClick={() => { setMode(m => m === 'login' ? 'register' : 'login'); setError('') }} style={{
-                marginTop: '20px', background: 'none', border: 'none',
-                color: '#6b7280', fontSize: '13px', cursor: 'pointer',
-                width: '100%', textAlign: 'center',
-              }}>
-                {mode === 'login'
-                  ? <span>Belum punya akun? <span style={{ color: '#a78bfa', fontWeight: '500' }}>Daftar gratis</span></span>
-                  : <span>Sudah punya akun? <span style={{ color: '#a78bfa', fontWeight: '500' }}>Masuk</span></span>
-                }
-              </button>
-            </>
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-col gap-4">
+                <button 
+                  onClick={() => { setMode(m => m === 'login' ? 'register' : 'login'); setError('') }}
+                  className="text-sm text-slate-400 hover:text-white transition-colors"
+                >
+                  {mode === 'login' 
+                    ? <p>Belum punya akun? <span className="text-indigo-400 font-semibold">Daftar sekarang</span></p>
+                    : <p>Sudah punya akun? <span className="text-indigo-400 font-semibold">Masuk di sini</span></p>
+                  }
+                </button>
+
+                <button 
+                  onClick={() => { setShowEmailForm(false); setError('') }}
+                  className="text-xs text-slate-500 hover:text-slate-300 transition-colors flex items-center justify-center gap-1 mx-auto"
+                >
+                  <ArrowLeft size={12} /> Kembali ke Pilihan Login
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Bottom text */}
-        <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '12px', color: '#374151' }}>
-          🛡️ Data kamu aman dengan enkripsi Supabase
+        {/* Footer Text */}
+        <p className="text-center mt-8 text-xs text-slate-600">
+          Dilindungi oleh enkripsi End-to-End Supabase.<br/>
+          Melanjutkan berarti Anda menyetujui Syarat & Ketentuan kami.
         </p>
       </div>
     </div>
