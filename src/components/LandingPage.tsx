@@ -46,8 +46,9 @@ export default function LandingPage() {
         maxWidth: '900px',
         margin: '0 auto',
         display: 'flex',
-        flexDirection: 'col',
-        gap: '24px'
+        flexDirection: 'column',
+        gap: '24px',
+        alignItems: 'center'
       }}>
         <div style={{ 
           display: 'inline-block',
