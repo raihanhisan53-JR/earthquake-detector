@@ -25,8 +25,8 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redirect ke login jika belum auth dan bukan di halaman login
-  if (!user && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
+  // Redirect ke login jika belum auth dan bukan di halaman login atau root
+  if (!user && request.nextUrl.pathname !== '/' && !request.nextUrl.pathname.startsWith('/login') && !request.nextUrl.pathname.startsWith('/auth')) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -38,6 +38,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Hanya protect halaman, bukan API routes atau static files
-    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|m4a|json)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|m4a|json|html)$).*)',
   ],
 }
