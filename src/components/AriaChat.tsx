@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User, Trash2, AlertTriangle, Info } from 'lucide-react'
+import { Send, Bot, User, Trash2, AlertTriangle, Info, Search, X, ChevronUp, ChevronDown } from 'lucide-react'
 
 interface Message {
   id: string
@@ -53,15 +53,28 @@ function TypingIndicator() {
   )
 }
 
-function MessageBubble({ msg }: { msg: Message }) {
+function highlight(text: string, query: string) {
+  if (!query.trim()) return text
+  const parts = text.split(new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? `<mark style="background:rgba(139,92,246,0.35);color:#c4b5fd;border-radius:3px;padding:0 2px">${part}</mark>`
+      : part
+  ).join('')
+}
+
+function MessageBubble({ msg, searchQuery }: { msg: Message; searchQuery: string }) {
   const isUser = msg.role === 'user'
 
-  // Simple markdown: bold, code, newlines
   const formatContent = (text: string) => {
-    return text
+    let out = text
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/`([^`]+)`/g, '<code style="background:rgba(139,92,246,0.15);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.85em">$1</code>')
       .replace(/\n/g, '<br/>')
+    if (searchQuery.trim()) {
+      out = highlight(out, searchQuery)
+    }
+    return out
   }
 
   return (
@@ -78,7 +91,6 @@ function MessageBubble({ msg }: { msg: Message }) {
         background: isUser ? 'linear-gradient(135deg, #8b5cf6, #6d28d9)' : 'linear-gradient(135deg, #0f172a, #1e3a5f)',
         border: isUser ? '2px solid rgba(139,92,246,0.4)' : '2px solid rgba(59,130,246,0.4)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '14px',
       }}>
         {isUser ? <User size={16} color="#fff" /> : <Bot size={16} color="#60a5fa" />}
       </div>
@@ -118,18 +130,32 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Load history from localStorage
+  // Search state
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchIdx, setSearchIdx] = useState(0)
+
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Filter messages by search
+  const filteredMessages = searchQuery.trim()
+    ? messages.filter(m => !m.isTyping && m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    : messages
+
+  const matchCount = filteredMessages.filter(m => !m.isTyping).length
+
+  // Load history
   useEffect(() => {
     const saved = localStorage.getItem('aria_chat_history')
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
         setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })))
-      } catch (e) {}
+      } catch {}
     } else {
       setMessages([{
         id: 'welcome',
@@ -141,18 +167,20 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
     setIsInitialized(true)
   }, [])
 
-  // Save history to localStorage
+  // Save history
   useEffect(() => {
     if (isInitialized && messages.length > 0) {
       localStorage.setItem('aria_chat_history', JSON.stringify(messages))
     }
   }, [messages, isInitialized])
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  useEffect(() => { if (!searchQuery) scrollToBottom() }, [messages, searchQuery])
 
-  useEffect(() => { scrollToBottom() }, [messages])
+  // Focus search input when opened
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus()
+  }, [searchOpen])
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || loading) return
@@ -163,7 +191,6 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
       content: text.trim(),
       timestamp: new Date(),
     }
-
     const typingMsg: Message = {
       id: 'typing',
       role: 'assistant',
@@ -188,17 +215,11 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
         body: JSON.stringify({
           message: text.trim(),
           history,
-          context: {
-            latestEarthquake,
-            esp32Connected,
-            esp32Status,
-            esp32AlertLevel,
-          },
+          context: { latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel },
         }),
       })
 
       const data = await res.json()
-
       setMessages(prev => [
         ...prev.filter(m => m.id !== 'typing'),
         {
@@ -206,7 +227,7 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
           role: 'assistant',
           content: data.reply || data.error || 'Maaf, terjadi kesalahan.',
           timestamp: new Date(),
-        }
+        },
       ])
     } catch {
       setMessages(prev => [
@@ -216,7 +237,7 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
           role: 'assistant',
           content: '⚠️ Koneksi ke ARIA terputus. Periksa API key di environment variables.',
           timestamp: new Date(),
-        }
+        },
       ])
     } finally {
       setLoading(false)
@@ -225,10 +246,7 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
   }, [loading, messages, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage(input)
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }
   }
 
   const clearChat = () => {
@@ -241,103 +259,117 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
     }])
   }
 
+  const toggleSearch = () => {
+    setSearchOpen(v => !v)
+    setSearchQuery('')
+    setSearchIdx(0)
+  }
+
+  const displayMessages = searchQuery.trim() ? filteredMessages : messages
+
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', height: '100%',
-      background: 'var(--bg-card, rgba(15,23,42,0.9))',
-      border: '1px solid rgba(139,92,246,0.2)',
-      borderRadius: '16px', overflow: 'hidden',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '16px 20px',
-        background: 'linear-gradient(135deg, rgba(139,92,246,0.15), rgba(59,130,246,0.1))',
-        borderBottom: '1px solid rgba(139,92,246,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
+    <div className="aria-chat">
+      {/* ── Header ── */}
+      <div className="aria-chat-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '40px', height: '40px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(139,92,246,0.4)',
-          }}>
+          <div className="aria-avatar-icon">
             <Bot size={20} color="#fff" />
           </div>
           <div>
             <div style={{ fontWeight: '700', fontSize: '15px', color: '#f1f5f9' }}>
               ARIA
-              <span style={{
-                marginLeft: '8px', fontSize: '10px', fontWeight: '600',
-                background: 'rgba(34,197,94,0.15)', color: '#22c55e',
-                padding: '2px 8px', borderRadius: '99px', border: '1px solid rgba(34,197,94,0.3)',
-              }}>● ONLINE</span>
+              <span className="aria-online-badge">● ONLINE</span>
             </div>
             <div style={{ fontSize: '12px', color: '#64748b' }}>
               Adaptive Response Intelligence for Alerts
             </div>
           </div>
         </div>
-        <button onClick={clearChat} title="Bersihkan chat" style={{
-          background: 'transparent', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '8px', padding: '6px', cursor: 'pointer', color: '#64748b',
-          display: 'flex', alignItems: 'center',
-        }}>
-          <Trash2 size={14} />
-        </button>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* Search toggle */}
+          <button
+            onClick={toggleSearch}
+            title="Cari pesan"
+            className={`aria-header-btn${searchOpen ? ' aria-header-btn--active' : ''}`}
+          >
+            <Search size={14} />
+          </button>
+          {/* Clear */}
+          <button onClick={clearChat} title="Bersihkan chat" className="aria-header-btn">
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
 
-      {/* Context bar - tampil jika ada gempa aktif */}
+      {/* ── Gemini-style Search bar ── */}
+      {searchOpen && (
+        <div className="aria-search-bar">
+          <Search size={14} className="aria-search-ico" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            placeholder="Cari di percakapan..."
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setSearchIdx(0) }}
+            className="aria-search-inp"
+          />
+          {searchQuery && (
+            <span className="aria-search-count">
+              {matchCount} hasil
+            </span>
+          )}
+          {searchQuery && (
+            <>
+              <button className="aria-search-nav" onClick={() => setSearchIdx(i => Math.max(0, i - 1))} title="Sebelumnya">
+                <ChevronUp size={13} />
+              </button>
+              <button className="aria-search-nav" onClick={() => setSearchIdx(i => Math.min(matchCount - 1, i + 1))} title="Berikutnya">
+                <ChevronDown size={13} />
+              </button>
+            </>
+          )}
+          <button className="aria-search-nav" onClick={toggleSearch} title="Tutup">
+            <X size={13} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Context bar ── */}
       {latestEarthquake && (
-        <div style={{
-          padding: '8px 16px', fontSize: '12px',
-          background: 'rgba(249,115,22,0.08)',
-          borderBottom: '1px solid rgba(249,115,22,0.2)',
-          display: 'flex', alignItems: 'center', gap: '8px', color: '#f97316',
-        }}>
+        <div className="aria-context-bar">
           <AlertTriangle size={12} />
           <span>Konteks aktif: Gempa M{latestEarthquake.magnitude} — {latestEarthquake.location}</span>
         </div>
       )}
 
-      {/* Messages */}
-      <div style={{
-        flex: 1, overflowY: 'auto', padding: '20px',
-        display: 'flex', flexDirection: 'column',
-      }}>
-        {messages.map(msg => (
-          <MessageBubble key={msg.id} msg={msg} />
-        ))}
+      {/* ── Messages ── */}
+      <div className="aria-messages">
+        {searchQuery.trim() && matchCount === 0 ? (
+          <div className="aria-search-empty">
+            <Search size={24} style={{ opacity: 0.3 }} />
+            <span>Tidak ada pesan yang cocok dengan &ldquo;{searchQuery}&rdquo;</span>
+          </div>
+        ) : (
+          displayMessages.map(msg => (
+            <MessageBubble key={msg.id} msg={msg} searchQuery={searchOpen ? searchQuery : ''} />
+          ))
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick questions */}
-      <div style={{
-        padding: '8px 16px',
-        borderTop: '1px solid rgba(255,255,255,0.05)',
-        display: 'flex', gap: '6px', overflowX: 'auto',
-        scrollbarWidth: 'none',
-      }}>
-        {QUICK_QUESTIONS.map(q => (
-          <button key={q} onClick={() => sendMessage(q)} disabled={loading} style={{
-            flexShrink: 0, padding: '5px 12px',
-            background: 'rgba(139,92,246,0.08)',
-            border: '1px solid rgba(139,92,246,0.2)',
-            borderRadius: '99px', color: '#a78bfa',
-            fontSize: '11px', fontWeight: '500', cursor: 'pointer',
-            whiteSpace: 'nowrap', transition: 'all 0.2s',
-          }}>
-            {q}
-          </button>
-        ))}
-      </div>
+      {/* ── Quick questions (hidden while searching) ── */}
+      {!searchQuery && (
+        <div className="aria-quick-row">
+          {QUICK_QUESTIONS.map(q => (
+            <button key={q} onClick={() => sendMessage(q)} disabled={loading} className="aria-quick-btn">
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Input */}
-      <div style={{
-        padding: '12px 16px',
-        borderTop: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', gap: '10px', alignItems: 'center',
-      }}>
+      {/* ── Input ── */}
+      <div className="aria-input-row">
         <input
           ref={inputRef}
           value={input}
@@ -345,39 +377,19 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
           onKeyDown={handleKeyDown}
           placeholder="Tanya ARIA tentang gempa..."
           disabled={loading}
-          style={{
-            flex: 1, padding: '10px 16px',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(139,92,246,0.3)',
-            borderRadius: '12px',
-            color: 'var(--text-primary, #f1f5f9)',
-            fontSize: '14px', outline: 'none',
-            WebkitTextFillColor: 'var(--text-primary, #f1f5f9)',
-          }}
+          className="aria-input"
         />
         <button
           onClick={() => sendMessage(input)}
           disabled={loading || !input.trim()}
-          style={{
-            width: '40px', height: '40px', borderRadius: '12px',
-            background: loading || !input.trim()
-              ? 'rgba(139,92,246,0.3)'
-              : 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-            border: 'none', cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: loading || !input.trim() ? 'none' : '0 4px 15px rgba(139,92,246,0.4)',
-            transition: 'all 0.2s',
-          }}
+          className={`aria-send-btn${loading || !input.trim() ? ' aria-send-btn--disabled' : ''}`}
         >
           <Send size={16} color="#fff" />
         </button>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        padding: '6px 16px 10px',
-        fontSize: '10px', color: '#334155', textAlign: 'center',
-      }}>
+      {/* ── Footer ── */}
+      <div className="aria-footer">
         <Info size={10} style={{ display: 'inline', marginRight: '4px' }} />
         Powered by Groq · ARIA dapat membuat kesalahan, selalu verifikasi dengan BMKG resmi
       </div>

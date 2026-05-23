@@ -1,7 +1,9 @@
 "use client"
-import { useState, useEffect } from 'react';
-import { CloudSun, Cpu, History, Home, LayoutGrid, MapPinned, Play, X, Globe, Globe2, Video, Bot, Map } from 'lucide-react';
-import { useI18n } from '@/hooks/useI18n';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  CloudSun, Cpu, History, Home, LayoutGrid, MapPinned,
+  Play, X, Globe, Globe2, Video, Bot, Search, TrendingUp,
+} from 'lucide-react';
 
 export default function Sidebar({
   connected,
@@ -10,48 +12,72 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
   collapsed = false,
-  toggleCollapsed = () => { },
+  toggleCollapsed = () => {},
   user = null,
 }) {
-  const { t } = useI18n();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [savedAvatar, setSavedAvatar] = useState(null);
+  const [savedName, setSavedName] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const navSections = [
     {
       title: '',
       items: [
-        { id: 'overview',  icon: <LayoutGrid size={18} />, labelKey: 'overview' },
-      ]
+        { id: 'overview', icon: <LayoutGrid size={18} />, label: 'Dashboard' },
+      ],
     },
     {
       title: 'Monitoring',
       items: [
-        { id: 'peta',      icon: <MapPinned size={18} />,  labelKey: 'map' },
-        { id: 'globe',     icon: <Globe2 size={18} />,     labelKey: 'googleMaps' },
-        { id: 'livecctv',  icon: <Video size={18} />,      labelKey: 'liveCctv' },
-        { id: 'cuaca',     icon: <CloudSun size={18} />,   labelKey: 'weather' },
-      ]
+        { id: 'peta',     icon: <MapPinned size={18} />, label: 'Peta Gempa'  },
+        { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Google Maps' },
+        { id: 'livecctv', icon: <Video size={18} />,     label: 'Live CCTV'  },
+        { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca'       },
+      ],
     },
     {
       title: 'Analisa & Data',
       items: [
-        { id: 'gempa',     icon: <Home size={18} />,       labelKey: 'earthquake' },
-        { id: 'analitik',  icon: <Globe size={18} />,      labelKey: 'analytics' },
-        { id: 'riwayat',   icon: <History size={18} />,    labelKey: 'history' },
-      ]
+        { id: 'gempa',   icon: <Home size={18} />,    label: 'Gempa Terkini' },
+        { id: 'analitik',icon: <Globe size={18} />,   label: 'Analitik'      },
+        { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat'       },
+      ],
     },
     {
       title: 'Sistem Pro',
       items: [
-        { id: 'esp32',     icon: <Cpu size={18} />,        labelKey: 'esp32' },
-        { id: 'edukasi',   icon: <Play size={18} />,       labelKey: 'education' },
-        { id: 'aria',      icon: <Bot size={18} />,        labelKey: 'aria' },
-      ]
-    }
+        { id: 'esp32',  icon: <Cpu size={18} />,  label: 'ESP32 Sensor' },
+        { id: 'edukasi',icon: <Play size={18} />, label: 'Edukasi'      },
+        { id: 'aria',   icon: <Bot size={18} />,  label: 'ARIA AI'      },
+      ],
+    },
+    {
+      title: 'Panduan',
+      items: [
+        { id: 'seo', icon: <TrendingUp size={18} />, label: 'SEO & Google', badge: 'NEW' },
+      ],
+    },
   ];
 
-  // Load saved avatar + display name from localStorage (set by ProfilePage)
-  const [savedAvatar, setSavedAvatar] = useState(null);
-  const [savedName, setSavedName] = useState(null);
+  const isVisuallyCollapsed = collapsed && !isHovered;
+
+  // Filter nav based on search
+  const filteredSections = useMemo(() => {
+    if (!searchQuery.trim()) return navSections;
+    const q = searchQuery.toLowerCase();
+    return navSections
+      .map(section => ({
+        ...section,
+        items: section.items.filter(
+          item =>
+            item.label.toLowerCase().includes(q) ||
+            item.id.toLowerCase().includes(q)
+        ),
+      }))
+      .filter(section => section.items.length > 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -60,116 +86,117 @@ export default function Sidebar({
       if (raw) {
         const p = JSON.parse(raw);
         if (p.avatarDataUrl) setSavedAvatar(p.avatarDataUrl);
-        if (p.displayName) setSavedName(p.displayName);
+        if (p.displayName)   setSavedName(p.displayName);
       }
     } catch { /* ignore */ }
   }, [user?.id, activeTab]);
 
-  const [isHovered, setIsHovered] = useState(false);
-  const isVisuallyCollapsed = collapsed && !isHovered;
-
   let sidebarClass = `sidebar ${mobileOpen ? 'mobile-open' : ''}`;
   if (collapsed) {
-    if (isHovered) {
-      sidebarClass += ' sidebar--hover-expanded';
-    } else {
-      sidebarClass += ' sidebar--collapsed';
-    }
+    sidebarClass += isHovered ? ' sidebar--hover-expanded' : ' sidebar--collapsed';
   }
 
-  const avatarSrc = savedAvatar || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
-  const displayName = savedName || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+  const avatarSrc   = savedAvatar || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+  const displayName = savedName   || user?.user_metadata?.full_name  || user?.email?.split('@')[0]   || 'User';
 
-  const getNavClass = (id) => `nav-item ${activeTab === id ? 'active' : ''}`;
-
-  const handleNav = (event, id) => {
-    event.preventDefault();
+  const handleNav = (e, id) => {
+    e.preventDefault();
     setActiveTab(id);
     setMobileOpen?.(false);
   };
 
   return (
     <>
-      <div className={`mobile-overlay ${mobileOpen ? 'visible' : ''}`} onClick={() => setMobileOpen(false)}></div>
-      <aside 
+      <div className={`mobile-overlay ${mobileOpen ? 'visible' : ''}`} onClick={() => setMobileOpen(false)} />
+      <aside
         className={sidebarClass}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* ── Header ── */}
         <div className="sidebar-header">
           <div className="sidebar-header__brand">
             <div className="sidebar-brand-mark">
-              <img
-                src="/logo.png"
-                alt="Logo"
-                style={{ width: '34px', height: '34px', objectFit: 'contain' }}
-              />
+              <img src="/logo.png" alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
             </div>
             <span className="sidebar-brand">Earthquake Detector</span>
           </div>
-          <button type="button" className="mobile-close-btn" onClick={() => setMobileOpen(false)} aria-label={t('overview')}>
+          <button type="button" className="mobile-close-btn" onClick={() => setMobileOpen(false)} aria-label="Tutup menu">
             <X size={20} />
           </button>
         </div>
 
+        {/* ── Gemini-style Search bar ── */}
+        {!isVisuallyCollapsed && (
+          <div className="sidebar-search-wrap">
+            <div className="sidebar-search-box">
+              <Search size={14} className="sidebar-search-ico" />
+              <input
+                type="text"
+                placeholder="Cari menu..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="sidebar-search-inp"
+                aria-label="Cari menu"
+              />
+              {searchQuery && (
+                <button className="sidebar-search-clr" onClick={() => setSearchQuery('')} aria-label="Hapus pencarian">
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Nav ── */}
         <nav className="sidebar-nav">
-          {navSections.map((section, idx) => (
-            <div key={idx} className="sidebar-nav-section" style={{ marginBottom: section.title ? '12px' : '4px' }}>
+          {filteredSections.map((section, idx) => (
+            <div key={idx} className="sidebar-nav-section">
+              {/* Section label */}
               {section.title && !isVisuallyCollapsed && (
-                <div className="sidebar-nav-title" style={{
-                  fontSize: '10px',
-                  fontWeight: '700',
-                  color: '#64748b',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  padding: '8px 16px',
-                  marginBottom: '4px'
-                }}>
-                  {section.title}
-                </div>
+                <div className="sidebar-section-label">{section.title}</div>
               )}
               {section.title && isVisuallyCollapsed && (
-                 <div className="sidebar-nav-title-collapsed" style={{
-                    height: '1px',
-                    background: 'rgba(100,116,139,0.2)',
-                    margin: '12px 16px 8px 16px'
-                 }} />
+                <div className="sidebar-section-sep" />
               )}
-              {section.items.map((item) => (
+
+              {section.items.map(item => (
                 <a
                   key={item.id}
                   href="#"
-                  className={getNavClass(item.id)}
-                  onClick={(event) => handleNav(event, item.id)}
-                  title={isVisuallyCollapsed ? t(item.labelKey) : undefined}
+                  className={`nav-item${activeTab === item.id ? ' active' : ''}`}
+                  onClick={e => handleNav(e, item.id)}
+                  title={isVisuallyCollapsed ? item.label : undefined}
                 >
-                  {item.icon}
+                  <span className="nav-item__icon">{item.icon}</span>
                   <span className="nav-item__label">
-                    {t(item.labelKey)}
+                    {item.label}
                     {item.badge && (
-                      <span style={{
-                        marginLeft: '6px', fontSize: '9px', fontWeight: '700',
-                        background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
-                        color: '#fff', padding: '1px 5px', borderRadius: '4px',
-                        letterSpacing: '0.5px',
-                      }}>{item.badge}</span>
+                      <span className="nav-item__badge">{item.badge}</span>
                     )}
                   </span>
                 </a>
               ))}
             </div>
           ))}
+
+          {/* Empty search state */}
+          {searchQuery && filteredSections.length === 0 && (
+            <div className="sidebar-search-empty">
+              <Search size={22} />
+              <span>Menu tidak ditemukan</span>
+            </div>
+          )}
         </nav>
 
+        {/* ── Footer / Profile ── */}
         <div className="sidebar-footer">
-          {/* Profile card — klik untuk buka tab profil */}
           <button
             type="button"
-            className={`sidebar-profile-btn ${activeTab === 'profil' ? 'active' : ''}`}
+            className={`sidebar-profile-btn${activeTab === 'profil' ? ' active' : ''}`}
             onClick={() => { setActiveTab('profil'); setMobileOpen?.(false); }}
-            title={t('profile')}
+            title="Profil"
           >
-            {/* Avatar: prioritas savedAvatar (dari localStorage), lalu Google avatar, lalu inisial */}
             {avatarSrc ? (
               <img
                 src={avatarSrc}
@@ -182,12 +209,11 @@ export default function Sidebar({
                 {(displayName || 'U')[0].toUpperCase()}
               </div>
             )}
-            {/* Info — hidden when collapsed */}
             <div className="sidebar-profile-info">
               <span className="sidebar-profile-name">{displayName}</span>
               <span className="sidebar-profile-sub">
                 <span className={`sidebar-esp-dot ${connected ? 'online' : 'offline'}`} />
-                {connected ? t('esp32Online') : t('esp32Offline')}
+                {connected ? 'ESP32 Online' : 'ESP32 Offline'}
               </span>
             </div>
           </button>

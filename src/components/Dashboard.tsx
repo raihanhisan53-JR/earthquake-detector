@@ -47,6 +47,8 @@ const AriaChat        = dynamic<any>(() => import('./AriaChat'), { ssr: false })
 const NotificationPanel = dynamic<any>(() => import('./NotificationPanel'), { ssr: false })
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ProfilePage = dynamic<any>(() => import('./ProfilePage'), { ssr: false })
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const SeoGuideCard = dynamic<any>(() => import('./SeoGuideCard'), { ssr: false })
 
 interface DashboardProps { user: User }
 
@@ -333,6 +335,12 @@ function DashboardInner({ user }: DashboardProps) {
             />
           </div>
         )
+      case 'seo':
+        return (
+          <div className="tab-content">
+            <SeoGuideCard />
+          </div>
+        )
 
       default: // overview
         const now = Date.now()
@@ -529,6 +537,7 @@ function DashboardInner({ user }: DashboardProps) {
     riwayat:   t('history'),
     aria:      t('aria'),
     profil:    t('profile'),
+    seo:       'SEO & Google',
   }
 
   const isCompact = activeTab !== 'overview'
