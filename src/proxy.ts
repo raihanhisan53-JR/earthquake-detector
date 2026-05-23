@@ -38,6 +38,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Hanya protect halaman, bukan API routes atau static files
-    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|m4a|json|html)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|logo.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|m4a|json|html|xml|txt)$).*)',
   ],
 }
