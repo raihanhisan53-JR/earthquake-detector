@@ -86,20 +86,19 @@ export default function LoginPage() {
         gap: '24px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-          <div style={{ 
-            backgroundColor: 'var(--accent)', 
-            width: '64px',
-            height: '64px',
-            margin: '0 auto 24px',
-            borderRadius: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Activity color="#fff" size={32} />
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="Earthquake Detector" 
+            style={{ 
+              width: '64px',
+              height: '64px',
+              margin: '0 auto 24px',
+              borderRadius: '16px',
+              objectFit: 'contain'
+            }} 
+          />
           <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px' }}>
-            {showEmailForm ? (mode === 'login' ? 'Selamat Datang Kembali' : 'Buat Akun Tectra') : 'Masuk ke Tectra Pro'}
+            {showEmailForm ? (mode === 'login' ? 'Selamat Datang Kembali' : 'Buat Akun Baru') : 'Earthquake Detector'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
             {showEmailForm ? 'Masukkan kredensial Anda di bawah ini' : 'Sistem Monitoring Gempa Real-Time'}

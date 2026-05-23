@@ -53,17 +53,8 @@ export default function LandingPage() {
         zIndex: 50
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ 
-            backgroundColor: 'var(--accent)', 
-            padding: '8px', 
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Activity color="#fff" size={24} />
-          </div>
-          <span style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '1px' }}>TECTRA PRO</span>
+          <img src="/logo.png" alt="Earthquake Detector Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+          <span style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '1px' }}>Earthquake Detector</span>
         </div>
         <div>
           <Link href="/login" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 24px', fontWeight: '600' }}>
@@ -264,8 +255,8 @@ export default function LandingPage() {
         marginTop: '20px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
-          <Activity color="var(--accent)" size={20} />
-          <span style={{ fontWeight: '700' }}>TECTRA PRO</span>
+          <img src="/logo.png" alt="Earthquake Detector" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
+          <span style={{ fontWeight: '700' }}>Earthquake Detector</span>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
           © {new Date().getFullYear()} Hak Cipta Dilindungi. Sistem Monitoring Gempa Indonesia.
