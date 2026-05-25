@@ -1,8 +1,9 @@
 "use client"
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import {
   CloudSun, Cpu, History, Home, LayoutGrid, MapPinned,
-  Play, X, Globe, Globe2, Video, Bot, Search, TrendingUp,
+  Play, X, Globe, Globe2, Video, Bot, Search,
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -12,13 +13,27 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
   collapsed = false,
-  toggleCollapsed = () => {},
   user = null,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [savedAvatar, setSavedAvatar] = useState(null);
-  const [savedName, setSavedName] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+
+  const { savedAvatar, savedName } = useMemo(() => {
+    if (!user?.id || typeof window === 'undefined') {
+      return { savedAvatar: null, savedName: null };
+    }
+    try {
+      const raw = localStorage.getItem(`tectra_profile_${user.id}`);
+      if (!raw) return { savedAvatar: null, savedName: null };
+      const p = JSON.parse(raw);
+      return {
+        savedAvatar: p.avatarDataUrl ?? null,
+        savedName: p.displayName ?? null,
+      };
+    } catch {
+      return { savedAvatar: null, savedName: null };
+    }
+  }, [user?.id]);
 
   const navSections = [
     {
@@ -52,18 +67,12 @@ export default function Sidebar({
         { id: 'aria',   icon: <Bot size={18} />,  label: 'ARIA AI'      },
       ],
     },
-    {
-      title: 'Panduan',
-      items: [
-        { id: 'seo', icon: <TrendingUp size={18} />, label: 'SEO & Google', badge: 'NEW' },
-      ],
-    },
   ];
 
   const isVisuallyCollapsed = collapsed && !isHovered;
 
   // Filter nav based on search
-  const filteredSections = useMemo(() => {
+  const filteredSections = (() => {
     if (!searchQuery.trim()) return navSections;
     const q = searchQuery.toLowerCase();
     return navSections
@@ -76,20 +85,9 @@ export default function Sidebar({
         ),
       }))
       .filter(section => section.items.length > 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  })();
 
-  useEffect(() => {
-    if (!user?.id) return;
-    try {
-      const raw = localStorage.getItem(`tectra_profile_${user.id}`);
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (p.avatarDataUrl) setSavedAvatar(p.avatarDataUrl);
-        if (p.displayName)   setSavedName(p.displayName);
-      }
-    } catch { /* ignore */ }
-  }, [user?.id, activeTab]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   let sidebarClass = `sidebar ${mobileOpen ? 'mobile-open' : ''}`;
   if (collapsed) {
@@ -117,7 +115,7 @@ export default function Sidebar({
         <div className="sidebar-header">
           <div className="sidebar-header__brand">
             <div className="sidebar-brand-mark">
-              <img src="/logo.png" alt="Logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+              <Image src="/logo.png" alt="Logo" width={28} height={28} style={{ objectFit: 'contain' }} />
             </div>
             <span className="sidebar-brand">Earthquake Detector</span>
           </div>
@@ -198,11 +196,14 @@ export default function Sidebar({
             title="Profil"
           >
             {avatarSrc ? (
-              <img
+              <Image
                 src={avatarSrc}
                 alt="avatar"
+                width={40}
+                height={40}
                 className="sidebar-profile-avatar sidebar-profile-avatar--img"
                 referrerPolicy="no-referrer"
+                unoptimized
               />
             ) : (
               <div className="sidebar-profile-avatar sidebar-profile-avatar--init">

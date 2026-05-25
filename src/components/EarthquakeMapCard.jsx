@@ -349,7 +349,7 @@ function MapInteractionController() {
 export default function EarthquakeMapCard({
   fullView = false,
   notificationsEnabled = true,
-  notifyUser = () => {},
+  notifyUser = (..._args) => {},
 }) {
   const { t } = useI18n();
   const { points, bmkgPoints, usgsPoints, loading, error, refresh, health } = useBMKGMap();

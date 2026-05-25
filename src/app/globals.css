@@ -59,6 +59,7 @@
 
 /* ── Light mode overrides spesifik ── */
 [data-theme="light"] body {
+  overflow-x: hidden;
   background: var(--bg-main);
   color: var(--text-primary);
 }
@@ -373,6 +374,7 @@ html {
 }
 
 body {
+  overflow-x: hidden;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background: var(--bg-main);
   color: var(--text-primary);
@@ -389,6 +391,7 @@ body {
 }
 
 .dashboard-body {
+  overflow-x: hidden;
   display: flex;
   flex: 1;
   overflow: hidden;
@@ -1260,6 +1263,7 @@ body {
 }
 
 .card-body {
+  overflow-x: hidden;
   padding: 20px;
 }
 
@@ -2314,7 +2318,7 @@ select option {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
-  z-index: 999;
+  z-index: 400; /* Fixes overlap over sidebar */
   backdrop-filter: blur(12px);
   font-size: 12px;
 }
@@ -2616,6 +2620,7 @@ select option {
 }
 
 .quake-row-body {
+  overflow-x: hidden;
   flex: 1;
   min-width: 0;
 }
@@ -2821,6 +2826,7 @@ select option {
 }
 
 .quake-video-card__body {
+  overflow-x: hidden;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -3003,6 +3009,7 @@ select option {
 }
 
 .event-log-card .card-body {
+  overflow-x: hidden;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -4524,6 +4531,7 @@ img {
 }
 
 .cctv-modal__body {
+  overflow-x: hidden;
   flex: 1;
   overflow: hidden;
   min-height: 400px;
@@ -4682,6 +4690,7 @@ img {
 }
 
 .analitik-row-body {
+  overflow-x: hidden;
   flex: 1;
   min-width: 0;
 }
@@ -5046,6 +5055,7 @@ img {
 
 /* Body */
 .analitik-body {
+  overflow-x: hidden;
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
@@ -5483,6 +5493,7 @@ img {
 
 /* Body layout */
 .edu-card__body {
+  overflow-x: hidden;
   display: grid;
   grid-template-columns: 1fr 320px;
   min-height: 500px;
@@ -5490,6 +5501,7 @@ img {
 
 @media (max-width: 900px) {
   .edu-card__body {
+  overflow-x: hidden;
     grid-template-columns: 1fr;
   }
 }
@@ -6027,6 +6039,7 @@ img {
 }
 
 .notif-item__body {
+  overflow-x: hidden;
   font-size: 0.75rem;
   color: var(--text-secondary);
   line-height: 1.4;
@@ -7078,6 +7091,7 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   .card-body {
+  overflow-x: hidden;
     padding: 12px 14px;
   }
 
@@ -7656,6 +7670,7 @@ body:has(.alarm-banner) .dashboard-layout {
 }
 
 .cctv-modal__body {
+  overflow-x: hidden;
   flex: 1;
   overflow: auto;
   background: #000;
@@ -8275,6 +8290,7 @@ body:has(.alarm-banner) .dashboard-layout {
 @media (max-width: 768px) {
 
   html, body {
+  overflow-x: hidden;
     overflow-x: hidden;
     height: 100% !important;
     overscroll-behavior-y: contain;
@@ -8288,6 +8304,7 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   .dashboard-body {
+  overflow-x: hidden;
     overflow: hidden !important;
     flex: 1;
     display: flex;
@@ -9609,6 +9626,7 @@ body:has(.alarm-banner) .dashboard-layout {
 
 /* Body */
 .bmkg-map-body {
+  overflow-x: hidden;
   display: flex;
   flex: 1;
   overflow: hidden;
@@ -11481,6 +11499,7 @@ body:has(.alarm-banner) .dashboard-layout {
 }
 
 .seo-step-body {
+  overflow-x: hidden;
   flex: 1;
   padding-bottom: 28px;
   min-width: 0;

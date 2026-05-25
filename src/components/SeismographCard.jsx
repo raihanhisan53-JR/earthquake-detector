@@ -63,7 +63,7 @@ export default function SeismographCard({
   changeMode = () => {},
   isChangingMode = false,
   connectionIssue = '',
-  notifyUser = () => {},
+  notifyUser = (..._args) => {},
   pgaCms2 = 0,
   pgaPeakCms2 = 0,
 }) {

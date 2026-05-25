@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { CloudRain, CloudSun, Droplets, ThermometerSun, Wind, AlertTriangle, RefreshCw } from 'lucide-react'
 
-export default function WeatherCard({ type, fullView }) {
+export default function WeatherCard({ type = 'weather', fullView = false }) {
   const isAQI = type === 'aqi'
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)

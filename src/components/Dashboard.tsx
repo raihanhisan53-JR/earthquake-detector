@@ -1,10 +1,11 @@
 'use client'
 
+import Image from 'next/image'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Play, CloudSun, Cpu, History, Video, Bot, Globe2, Activity, Clock, Radio, Database, AlertTriangle, RefreshCw } from 'lucide-react'
+import { MapPinned, Cpu, History, Globe2, Activity, Clock, Radio, Database, AlertTriangle } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -13,44 +14,40 @@ import { useBMKGMap } from '@/hooks/useBMKGMap'
 import { useESP32 } from '@/hooks/useESP32'
 import { usePWA } from '@/hooks/usePWA'
 import { I18nProvider, useI18n } from '@/hooks/useI18n'
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LanguageToggle  = dynamic<any>(() => import('./LanguageToggle'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const BMKGGoogleMap = dynamic<any>(() => import('./BMKGGoogleMap'), { ssr: false })
+const BMKGGoogleMap = dynamic(() => import('./BMKGGoogleMap'), { ssr: false })
 
 // Dynamic imports — semua komponen di-load client-side saja
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const EarthquakeCard  = dynamic<any>(() => import('./EarthquakeCard'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const AnalitikCard    = dynamic<any>(() => import('./AnalitikCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const EventLogCard    = dynamic<any>(() => import('./EventLogCard'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const EarthquakeMapCard = dynamic<any>(() => import('./EarthquakeMapCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const LiveCCTVCard    = dynamic<any>(() => import('./LiveCCTVCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ReelsEducation  = dynamic<any>(() => import('./ReelsEducation.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const WeatherCard     = dynamic<any>(() => import('./WeatherCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const VisualisasiCard = dynamic<any>(() => import('./VisualisasiCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SeismographCard = dynamic<any>(() => import('./SeismographCard.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Topbar          = dynamic<any>(() => import('./Topbar.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const Sidebar         = dynamic<any>(() => import('./Sidebar.jsx'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const AriaChat        = dynamic<any>(() => import('./AriaChat'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const NotificationPanel = dynamic<any>(() => import('./NotificationPanel'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ProfilePage = dynamic<any>(() => import('./ProfilePage'), { ssr: false })
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SeoGuideCard = dynamic<any>(() => import('./SeoGuideCard'), { ssr: false })
+const EarthquakeCard  = dynamic(() => import('./EarthquakeCard'), { ssr: false })
+const AnalitikCard    = dynamic(() => import('./AnalitikCard.jsx'), { ssr: false })
+const EventLogCard    = dynamic(() => import('./EventLogCard'), { ssr: false })
+const EarthquakeMapCard = dynamic(() => import('./EarthquakeMapCard.jsx'), { ssr: false })
+const LiveCCTVCard    = dynamic(() => import('./LiveCCTVCard.jsx'), { ssr: false })
+const ReelsEducation  = dynamic(() => import('./ReelsEducation.jsx'), { ssr: false })
+const WeatherCard     = dynamic(() => import('./WeatherCard.jsx'), { ssr: false })
+const VisualisasiCard = dynamic(() => import('./VisualisasiCard.jsx'), { ssr: false })
+const SeismographCard = dynamic(() => import('./SeismographCard.jsx'), { ssr: false })
+const Topbar          = dynamic(() => import('./Topbar.jsx'), { ssr: false })
+const Sidebar         = dynamic(() => import('./Sidebar.jsx'), { ssr: false })
+const AriaChat        = dynamic(() => import('./AriaChat'), { ssr: false })
+const ProfilePage = dynamic(() => import('./ProfilePage'), { ssr: false })
+
 
 interface DashboardProps { user: User }
+interface AppNotice {
+  id: string
+  type: 'info' | 'warning' | 'error'
+  title: string
+  message: string
+  timestamp?: number
+  source?: string
+  magnitude?: number
+}
+interface NotifyPayload {
+  type?: 'info' | 'warning' | 'error'
+  title?: string
+  message?: string
+  duration?: number
+}
 
 // Inner component — needs I18nProvider wrapper
 function DashboardInner({ user }: DashboardProps) {
@@ -63,9 +60,9 @@ function DashboardInner({ user }: DashboardProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [theme, setTheme]               = useState('dark')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [appNotices, setAppNotices]     = useState<any[]>([])
+  const [appNotices, setAppNotices]     = useState<AppNotice[]>([])
   const [mounted, setMounted]           = useState(false)
+  const [now, setNow]                   = useState(0)
   const mainContentRef   = useRef<HTMLElement>(null)
   const noticeTimersRef  = useRef(new Map())
 
@@ -92,6 +89,11 @@ function DashboardInner({ user }: DashboardProps) {
     if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
   }, [])
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setNow(Date.now())
+  }, [])
+
   const handleSetActiveTab = (tab: string) => {
     setActiveTabState(tab)
     localStorage.setItem('activeTab', tab)
@@ -109,11 +111,10 @@ function DashboardInner({ user }: DashboardProps) {
     setAppNotices(current => current.filter(n => n.id !== id))
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: any) => {
+  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: NotifyPayload) => {
     if (!title) return ''
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    setAppNotices(current => [...current, { id, type, title, message }].slice(-4))
+    setAppNotices(current => [...current, { id, type, title, message, timestamp: Date.now() }].slice(-4))
     const timeoutId = window.setTimeout(() => dismissNotice(id), duration)
     noticeTimersRef.current.set(id, timeoutId)
     return id
@@ -335,15 +336,9 @@ function DashboardInner({ user }: DashboardProps) {
             />
           </div>
         )
-      case 'seo':
-        return (
-          <div className="tab-content">
-            <SeoGuideCard />
-          </div>
-        )
+
 
       default: // overview
-        const now = Date.now()
         const pts = bmkgMap.points || []
         const todayPoints = pts.filter(p => p.epochMs && (now - p.epochMs) < 86400000)
         const maxMagToday = todayPoints.length > 0 ? Math.max(...todayPoints.map(p => p.magnitude)) : 0
@@ -537,7 +532,6 @@ function DashboardInner({ user }: DashboardProps) {
     riwayat:   t('history'),
     aria:      t('aria'),
     profil:    t('profile'),
-    seo:       'SEO & Google',
   }
 
   const isCompact = activeTab !== 'overview'
@@ -570,7 +564,7 @@ function DashboardInner({ user }: DashboardProps) {
         connected={esp32.connected}
         compact={isCompact}
         pageLabel={tabLabelMap[activeTab] || ''}
-        user={user}
+        user={user as any}
         onLogout={handleLogout}
         esp32Ip={esp32.esp32Ip}
         onConnect={esp32.connectToESP32}
@@ -601,7 +595,6 @@ function DashboardInner({ user }: DashboardProps) {
           mobileOpen={sidebarOpen}
           setMobileOpen={setSidebarOpen}
           collapsed={sidebarCollapsed}
-          toggleCollapsed={() => setSidebarCollapsed(v => !v)}
           user={user}
         />
 
@@ -613,7 +606,7 @@ function DashboardInner({ user }: DashboardProps) {
           <footer className="app-footer">
             <div className="app-footer-inner">
               <div className="app-footer-brand">
-                <img src="/logo.png" alt="logo" className="app-footer-logo" />
+                <Image src="/logo.png" alt="logo" width={28} height={28} className="app-footer-logo" />
                 <span>{t('footer')}</span>
               </div>
               <div className="app-footer-links">
