@@ -27,11 +27,11 @@ async function requestDesktopPermission() {
   return result;
 }
 
-function sendDesktopNotification(title, body, icon = '/logo.png') {
+function sendDesktopNotification(title, body, icon = '/logo-v2.png') {
   if (typeof window === 'undefined' || !('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
   try {
-    new Notification(title, { body, icon, badge: '/logo.png', tag: 'earthquake-alert' });
+    new Notification(title, { body, icon, badge: '/logo-v2.png', tag: 'earthquake-alert' });
   } catch (e) {
     console.warn('[Desktop Notif]', e);
   }

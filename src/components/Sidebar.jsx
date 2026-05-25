@@ -102,7 +102,7 @@ export default function Sidebar({
         <div className="sidebar-header">
           <div className="sidebar-header__brand">
             <div className="sidebar-brand-mark">
-              <Image src="/logo.png" alt="Logo" width={28} height={28} style={{ objectFit: 'contain' }} />
+              <Image src="/logo-v2.png" alt="Logo" width={28} height={28} style={{ objectFit: 'contain' }} />
             </div>
             <span className="sidebar-brand">Earthquake Detector</span>
           </div>

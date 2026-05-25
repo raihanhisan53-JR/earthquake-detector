@@ -11,7 +11,7 @@ const API_CACHE = 'eq-api-v1';
 const PRECACHE_URLS = [
   '/',
   '/manifest.json',
-  '/logo.png',
+  '/logo-v2.png',
   '/tornado-siren.mp3',
   '/alert.m4a',
   '/siren-alert.mp3',
@@ -139,8 +139,8 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
       self.registration.showNotification(data.title || 'Earthquake Alert', {
         body: data.body || '',
-        icon: '/logo.png',
-        badge: '/logo.png',
+        icon: '/logo-v2.png',
+        badge: '/logo-v2.png',
         tag: 'earthquake-alert',
         requireInteraction: data.requireInteraction || false,
         data: { url: data.url || '/' },

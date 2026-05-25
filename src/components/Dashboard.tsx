@@ -606,7 +606,7 @@ function DashboardInner({ user }: DashboardProps) {
           <footer className="app-footer">
             <div className="app-footer-inner">
               <div className="app-footer-brand">
-                <Image src="/logo.png" alt="logo" width={28} height={28} className="app-footer-logo" />
+                <Image src="/logo-v2.png" alt="logo" width={28} height={28} className="app-footer-logo" />
                 <span>{t('footer')}</span>
               </div>
               <div className="app-footer-links">

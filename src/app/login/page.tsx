@@ -87,7 +87,7 @@ export default function LoginPage() {
       }}>
         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
           <img 
-            src="/logo.png" 
+            src="/logo-v2.png" 
             alt="Earthquake Detector" 
             style={{ 
               width: '64px',

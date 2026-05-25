@@ -76,9 +76,9 @@ export const metadata: Metadata = {
     title: 'TECTRA PRO',
   },
   icons: {
-    icon:     [{ url: '/logo.png', sizes: '32x32' }],
-    apple:    [{ url: '/logo.png', sizes: '180x180' }],
-    shortcut: '/logo.png',
+    icon:     [{ url: '/logo-v2.png', sizes: '32x32' }],
+    apple:    [{ url: '/logo-v2.png', sizes: '180x180' }],
+    shortcut: '/logo-v2.png',
   },
   // ── Verification (isi setelah verifikasi di Google Search Console) ──
   // verification: {
@@ -109,7 +109,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="TECTRA PRO" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo-v2.png" />
         {/* Structured Data — JSON-LD untuk Google */}
         <script
           type="application/ld+json"

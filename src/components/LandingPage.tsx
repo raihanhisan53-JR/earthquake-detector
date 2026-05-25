@@ -53,7 +53,7 @@ export default function LandingPage() {
         zIndex: 50
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo.png" alt="Earthquake Detector Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
+          <img src="/logo-v2.png" alt="Earthquake Detector Logo" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
           <span style={{ fontSize: '20px', fontWeight: '700', letterSpacing: '1px' }}>Earthquake Detector</span>
         </div>
         <div>
@@ -255,7 +255,7 @@ export default function LandingPage() {
         marginTop: '20px'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
-          <img src="/logo.png" alt="Earthquake Detector" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
+          <img src="/logo-v2.png" alt="Earthquake Detector" style={{ width: '24px', height: '24px', borderRadius: '6px' }} />
           <span style={{ fontWeight: '700' }}>Earthquake Detector</span>
         </div>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
