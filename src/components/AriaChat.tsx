@@ -151,20 +151,22 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
   // Load history
   useEffect(() => {
     const saved = localStorage.getItem('aria_chat_history')
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved)
-        setMessages(parsed.map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })))
-      } catch {}
-    } else {
-      setMessages([{
-        id: 'welcome',
-        role: 'assistant',
-        content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n• ⚡ Interpretasi data sensor ESP32\n\nAda yang ingin kamu tanyakan?`,
-        timestamp: new Date(),
-      }])
-    }
-    setIsInitialized(true)
+    setTimeout(() => {
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          setMessages(parsed.map((m: Message) => ({ ...m, timestamp: new Date(m.timestamp) })))
+        } catch {}
+      } else {
+        setMessages([{
+          id: 'welcome',
+          role: 'assistant',
+          content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n• ⚡ Interpretasi data sensor ESP32\n\nAda yang ingin kamu tanyakan?`,
+          timestamp: new Date(),
+        }])
+      }
+      setIsInitialized(true)
+    }, 0)
   }, [])
 
   // Save history

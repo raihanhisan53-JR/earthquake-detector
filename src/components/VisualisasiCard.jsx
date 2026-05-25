@@ -1,5 +1,6 @@
 "use client"
-﻿import { useState } from 'react';
+import { useState } from 'react';
+import Image from 'next/image';
 import { ArrowRight, ChevronLeft, ChevronRight, CloudRain, Flame, Maximize, Satellite, Sun, Waves, Wind, X, ZoomIn, ZoomOut } from 'lucide-react';
 
 export default function VisualisasiCard() {
@@ -86,11 +87,12 @@ export default function VisualisasiCard() {
         <div className="visual-grid">
           {visuals.map((visual, index) => (
             <div key={visual.title} className="visual-item" onClick={() => handleOpen(index)}>
-              <div className="visual-media">
-                <img
+              <div className="visual-media" style={{ position: 'relative' }}>
+                <Image
                   src={visual.img}
                   alt={visual.title}
-                  onError={handleImgError}
+                  fill
+                  style={{ objectFit: 'cover' }}
                 />
                 <div className="visual-overlay">
                   <Maximize size={24} color="white" />
@@ -136,11 +138,16 @@ export default function VisualisasiCard() {
 
             <div className="gallery-main">
               <button type="button" className="nav-btn prev" onClick={prev}><ChevronLeft size={48} /></button>
-              <div className="image-stage">
-                <img
+              <div className="image-stage" style={{ position: 'relative' }}>
+                <Image
                   src={visuals[activeIndex].img}
                   alt={visuals[activeIndex].title}
-                  style={{ transform: `scale(${zoom})`, transition: 'transform 0.3s ease' }}
+                  fill
+                  style={{ 
+                    objectFit: 'contain',
+                    transform: `scale(${zoom})`, 
+                    transition: 'transform 0.3s ease' 
+                  }}
                 />
               </div>
               <button type="button" className="nav-btn next" onClick={next}><ChevronRight size={48} /></button>
@@ -158,7 +165,7 @@ export default function VisualisasiCard() {
                       setZoom(1);
                     }}
                   >
-                    <img src={visual.img} alt={visual.title} onError={handleImgError} />
+                    <Image src={visual.img} alt={visual.title} width={80} height={60} style={{ objectFit: 'cover' }} />
                   </div>
                 ))}
               </div>

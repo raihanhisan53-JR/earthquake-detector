@@ -84,27 +84,6 @@ export function useNotifications({
     }
   }, []);
 
-  // ── Uji Alarm ──────────────────────────────────────
-  const triggerTestAlarm = useCallback(() => {
-    if (!sirenEnabled) return;
-    stopAllAudio();
-    sirenActiveRef.current = true;
-    playSiren({ durationMs: 8000, level: 3 });
-    // eslint-disable-next-line no-use-before-define
-    addNotificationInternal({
-      type: 'warning',
-      title: 'Uji Alarm',
-      message: 'Sirine tornado aktif — ini hanya tes.',
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sirenEnabled]);
-
-  // ── Stop Alarm ─────────────────────────────────────
-  const stopAlarm = useCallback(() => {
-    stopAllAudio();
-    sirenActiveRef.current = false;
-  }, []);
-
   // ── Helper internal: tambah notifikasi (tanpa filter threshold) ──
   const addNotificationInternal = useCallback((n) => {
     const id = `${Date.now()}-${Math.random()}`;
@@ -114,6 +93,23 @@ export function useNotifications({
     ].slice(0, 30));
     setUnreadCount(c => c + 1);
   }, []);
+
+  // ── Simulasi Alarm (Test) ──────────────────────────
+  const triggerTestAlarm = useCallback(() => {
+    if (!sirenEnabled) return;
+    stopAllAudio();
+    sirenActiveRef.current = true;
+    playSiren({ durationMs: 8000, level: 3 });
+    addNotificationInternal({
+      type: 'warning',
+      title: 'Uji Alarm',
+      message: 'Sirine tornado aktif — ini hanya tes.',
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sirenEnabled, addNotificationInternal]);
+
+  // ── Stop Alarm ─────────────────────────────────────
+
 
   // ── Public addNotification: respects magnitude threshold ──────
   // Pakai ref untuk threshold agar tidak stale di closure
@@ -139,10 +135,14 @@ export function useNotifications({
     // ESP32 alerts bypass magnitude threshold (sensor lokal selalu penting)
     if (esp32AlertLevel >= 3) {
       if (sirenEnabled) { sirenActiveRef.current = true; playSiren({ level: esp32AlertLevel }); }
-      addNotificationInternal({ type: 'error', title: '🚨 Gempa Terdeteksi Sensor!', message: `Level bahaya ESP32: ${esp32AlertLevel}` });
+      setTimeout(() => {
+        addNotificationInternal({ type: 'error', title: '🚨 Gempa Terdeteksi Sensor!', message: `Level bahaya ESP32: ${esp32AlertLevel}` });
+      }, 0);
     } else if (esp32AlertLevel >= 1) {
       playBeep();
-      addNotificationInternal({ type: 'warning', title: '⚠️ Getaran Terdeteksi', message: `Sensor level: ${esp32AlertLevel}` });
+      setTimeout(() => {
+        addNotificationInternal({ type: 'warning', title: '⚠️ Getaran Terdeteksi', message: `Sensor level: ${esp32AlertLevel}` });
+      }, 0);
     }
   }, [esp32AlertLevel, esp32Connected, notificationsEnabled, sirenEnabled, addNotificationInternal]);
 

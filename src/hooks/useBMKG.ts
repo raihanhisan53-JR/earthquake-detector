@@ -55,10 +55,14 @@ export function useBMKG() {
   }, [])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchData()
+    const timer = setTimeout(() => {
+      void fetchData()
+    }, 0)
     const id = setInterval(() => void fetchData(), 5 * 60 * 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(timer)
+      clearInterval(id)
+    }
   }, [fetchData])
 
   return { gempa, loading, error, refresh: fetchData }

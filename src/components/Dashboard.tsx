@@ -564,7 +564,7 @@ function DashboardInner({ user }: DashboardProps) {
         connected={esp32.connected}
         compact={isCompact}
         pageLabel={tabLabelMap[activeTab] || ''}
-        user={user as any}
+        user={user}
         onLogout={handleLogout}
         esp32Ip={esp32.esp32Ip}
         onConnect={esp32.connectToESP32}

@@ -36,11 +36,11 @@ export async function GET(request: Request) {
         'Cache-Control': 'no-store',
       }
     })
-  } catch (error: any) {
-    if (error.name === 'AbortError') {
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json({ error: 'ESP32 timeout - pastikan sensor menyala dan terhubung WiFi' }, { status: 408 })
     }
-    return NextResponse.json({ error: 'ESP32 tidak dapat dijangkau', detail: error.message }, { status: 503 })
+    return NextResponse.json({ error: 'ESP32 tidak dapat dijangkau', detail: error instanceof Error ? error.message : String(error) }, { status: 503 })
   }
 }
 

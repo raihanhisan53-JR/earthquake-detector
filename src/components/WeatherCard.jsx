@@ -24,9 +24,14 @@ export default function WeatherCard({ type = 'weather', fullView = false }) {
   }
 
   useEffect(() => {
-    fetchWeather()
+    const timer = setTimeout(() => {
+      fetchWeather()
+    }, 0)
     const id = setInterval(fetchWeather, 5 * 60 * 1000)
-    return () => clearInterval(id)
+    return () => {
+      clearTimeout(timer)
+      clearInterval(id)
+    }
   }, [])
 
   if (loading && !data) {

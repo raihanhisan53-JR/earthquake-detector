@@ -101,7 +101,9 @@ export function useRadiusAlert() {
     if (typeof navigator === 'undefined') return;
     if (!navigator.permissions) {
       // Fallback: coba langsung
-      if (persisted.enabled && persisted.radiusKm > 0) requestLocation();
+      if (persisted.enabled && persisted.radiusKm > 0) {
+        setTimeout(() => requestLocation(), 0);
+      }
       return;
     }
     navigator.permissions.query({ name: 'geolocation' }).then((result) => {

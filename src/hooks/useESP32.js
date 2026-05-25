@@ -334,12 +334,15 @@ export const useESP32 = () => {
   }, [clearThresholdTimer, connected, sendCommand]);
 
   useEffect(() => {
+    let timer;
     if (esp32Ip) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      connectToESP32(esp32Ip);
+      timer = setTimeout(() => {
+        connectToESP32(esp32Ip);
+      }, 0);
     }
 
     return () => {
+      if (timer) clearTimeout(timer);
       clearPolling();
       clearThresholdTimer();
     };

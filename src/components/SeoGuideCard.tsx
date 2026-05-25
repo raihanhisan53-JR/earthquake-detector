@@ -150,7 +150,7 @@ export default function SeoGuideCard() {
               Perhatikan hasil paling atas di Google yang memiliki tulisan{' '}
               <span className="seo-inline-badge seo-inline-badge--sponsored">Sponsored</span>.
               Pemilik website membayar Google agar situs mereka muncul di urutan teratas ketika
-              seseorang mengetik kata kunci tertentu (misalnya <em>"earthquake detector"</em>).
+              seseorang mengetik kata kunci tertentu (misalnya <em>&quot;earthquake detector&quot;</em>).
             </p>
             <ul className="seo-path-facts">
               <li>

@@ -1,5 +1,6 @@
 "use client"
 import { useState } from 'react';
+import Image from 'next/image';
 import { ExternalLink, Maximize2, Video, X, Play, Tv2, Wind, AlertCircle } from 'lucide-react';
 
 // ════════════════════════════════════════════════════════
@@ -113,9 +114,6 @@ function PremiumLinkCard({ feed }) {
       style={{
         flex: 1,
         minHeight: '220px',
-        backgroundImage: `url(${feed.image})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         backgroundColor: '#0f0f0f',
         position: 'relative',
         display: 'flex',
@@ -128,6 +126,12 @@ function PremiumLinkCard({ feed }) {
         borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}
     >
+      <Image 
+        src={feed.image} 
+        alt={feed.title} 
+        fill 
+        style={{ objectFit: 'cover' }}
+      />
       {/* Dark overlay for text readability */}
       <div style={{
         position: 'absolute', inset: 0,
@@ -232,10 +236,11 @@ function FullscreenModal({ feed, onClose }) {
               style={{ height: '100%', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0f0f0f', cursor: 'pointer', position: 'relative' }}
               onClick={() => window.open(feed.directUrl, '_blank')}
             >
-              <img
+              <Image
                 src={feed.image}
                 alt={feed.title}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+                fill
+                style={{ objectFit: 'contain', background: '#000' }}
               />
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
@@ -262,10 +267,11 @@ function FullscreenModal({ feed, onClose }) {
               style={{ height: '100%', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', background: '#0f0f0f', cursor: 'pointer', position: 'relative' }}
               onClick={() => setLoaded(true)}
             >
-              <img
+              <Image
                 src={`https://img.youtube.com/vi/${feed.videoId}/mqdefault.jpg`}
                 alt={feed.title}
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }}
+                fill
+                style={{ objectFit: 'cover', opacity: 0.25 }}
               />
               <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(239,68,68,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 32px rgba(239,68,68,0.5)' }}>

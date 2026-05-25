@@ -582,7 +582,9 @@ export function I18nProvider({ children }) {
 
   useEffect(() => {
     const saved = localStorage.getItem('eq-lang');
-    if (['en', 'id', 'ar', 'ja'].includes(saved)) setLangState(saved);
+    if (['en', 'id', 'ar', 'ja'].includes(saved)) {
+      setTimeout(() => setLangState(saved), 0);
+    }
   }, []);
 
   const setLang = useCallback((l) => {

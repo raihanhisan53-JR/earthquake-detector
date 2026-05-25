@@ -223,8 +223,9 @@ export default function AnalitikCard() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 0);
     timerRef.current   = window.setInterval(() => fetchData(), AUTO_REFRESH_MS);
     cdTimerRef.current = window.setInterval(() => {
       cdRef.current -= 1;
@@ -232,6 +233,7 @@ export default function AnalitikCard() {
       setCountdown(cdRef.current);
     }, 1000);
     return () => {
+      clearTimeout(timer);
       window.clearInterval(timerRef.current);
       window.clearInterval(cdTimerRef.current);
     };

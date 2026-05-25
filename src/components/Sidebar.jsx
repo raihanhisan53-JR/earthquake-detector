@@ -34,7 +34,7 @@ export default function Sidebar({
     } catch {
       return { savedAvatar: null, savedName: null };
     }
-  }, [user?.id]);
+  }, [user]);
 
   const navSections = [
     {

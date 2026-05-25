@@ -1,5 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   AlertTriangle,
   BellOff,
@@ -144,8 +145,12 @@ export default function Topbar({
   const profileInitials = user ? getProfileInitials(user) : '';
   const providerLabel = user ? getProviderLabel(user) : '';
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setIpInput(esp32Ip); }, [esp32Ip]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIpInput(esp32Ip);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [esp32Ip]);
 
   // Clock — format sesuai bahasa
   useEffect(() => {
@@ -342,7 +347,7 @@ export default function Topbar({
                 <span className={`account-avatar ${profilePhoto ? '' : 'account-avatar--generated'}`}
                   style={!profilePhoto ? { background: `linear-gradient(135deg, ${getAvatarColor(profileName)}, ${getAvatarColor(profileName + '1')})` } : {}}>
                   {profilePhoto
-                    ? <img src={profilePhoto} alt={profileName} referrerPolicy="no-referrer" />
+                    ? <Image src={profilePhoto} alt={profileName} width={32} height={32} unoptimized />
                     : <span>{profileInitials}</span>}
                 </span>
                 <span className="account-trigger__copy">
@@ -360,7 +365,7 @@ export default function Topbar({
                     <span className={`account-avatar account-avatar--xl ${profilePhoto ? '' : 'account-avatar--generated'}`}
                       style={{ width: '72px', height: '72px', fontSize: '32px' }}>
                       {profilePhoto
-                        ? <img src={profilePhoto} alt={profileName} referrerPolicy="no-referrer" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+                        ? <Image src={profilePhoto} alt={profileName} width={72} height={72} unoptimized style={{ borderRadius: '50%' }} />
                         : <span>{profileInitials}</span>}
                     </span>
                     <button type="button" className="avatar-camera-btn" title="Change profile picture"

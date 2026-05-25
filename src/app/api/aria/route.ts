@@ -86,10 +86,10 @@ export async function POST(request: Request) {
     }
 
     // Build messages untuk Groq
-    const messages: any[] = [
+    const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
       { role: 'system', content: ARIA_SYSTEM_PROMPT + contextStr },
       // Kurangi history jadi 4 saja agar hemat kuota token per menit
-      ...history.slice(-4).map((msg: any) => ({
+      ...history.slice(-4).map((msg: { role: string; content: string }) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content,
       })),
@@ -121,8 +121,8 @@ export async function POST(request: Request) {
     const reply = data.choices?.[0]?.message?.content || 'Maaf, tidak ada respons.'
 
     return NextResponse.json({ reply, model: 'llama-3.3-70b-versatile' })
-  } catch (error: any) {
+  } catch (error) {
     console.error('ARIA API error:', error)
-    return NextResponse.json({ error: `ARIA error: ${error?.message || error}` }, { status: 500 })
+    return NextResponse.json({ error: `ARIA error: ${error instanceof Error ? error.message : String(error)}` }, { status: 500 })
   }
 }

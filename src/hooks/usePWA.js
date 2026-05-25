@@ -17,7 +17,7 @@ export function usePWA() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    setSwStatus('registering');
+    setTimeout(() => setSwStatus('registering'), 0);
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })
       .then((reg) => {
@@ -45,7 +45,9 @@ export function usePWA() {
   // Detect if already installed (standalone mode)
   useEffect(() => {
     const mq = window.matchMedia('(display-mode: standalone)');
-    setIsInstalled(mq.matches || navigator.standalone === true);
+    setTimeout(() => {
+      setIsInstalled(mq.matches || navigator.standalone === true);
+    }, 0);
     const handler = (e) => setIsInstalled(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);

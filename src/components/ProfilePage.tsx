@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
@@ -51,14 +52,16 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
 
   // Load from localStorage on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LOCAL_KEY(user.id))
-      if (saved) {
-        const parsed = JSON.parse(saved) as Partial<ProfileData>
-        setProfile(p => ({ ...p, ...parsed }))
-        setDraft(p => ({ ...p, ...parsed }))
-      }
-    } catch { /* ignore */ }
+    const saved = localStorage.getItem(LOCAL_KEY(user.id))
+    if (saved) {
+      setTimeout(() => {
+        try {
+          const parsed = JSON.parse(saved) as Partial<ProfileData>
+          setProfile(p => ({ ...p, ...parsed }))
+          setDraft(p => ({ ...p, ...parsed }))
+        } catch { /* ignore */ }
+      }, 0)
+    }
   }, [user.id])
 
   const showToast = (type: 'success' | 'error', msg: string) => {
@@ -157,7 +160,7 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
       <div className="pp-avatar-section">
         <div className="pp-avatar-wrap">
           {avatarSrc ? (
-            <img src={avatarSrc} alt="avatar" className="pp-avatar-img" />
+            <Image src={avatarSrc} alt="avatar" className="pp-avatar-img" width={120} height={120} />
           ) : (
             <div className="pp-avatar-init">
               {(displayName || user.email || 'U')[0].toUpperCase()}

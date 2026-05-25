@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import { Activity, Mail, Lock, Eye, EyeOff, ShieldAlert } from 'lucide-react'
@@ -60,9 +61,8 @@ export default function LoginPage() {
           setMode('login')
         }
       }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan.')
     } finally {
       setLoading(false)
     }
@@ -86,12 +86,12 @@ export default function LoginPage() {
         gap: '24px'
       }}>
         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
-          <img 
+          <Image 
             src="/logo-v2.png" 
             alt="Earthquake Detector" 
+            width={64}
+            height={64}
             style={{ 
-              width: '64px',
-              height: '64px',
               margin: '0 auto 24px',
               borderRadius: '16px',
               objectFit: 'contain'

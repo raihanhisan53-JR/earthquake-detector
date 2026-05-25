@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: '*.googleusercontent.com' },
+      { protocol: 'https', hostname: 'dataweb.bmkg.go.id' },
+      { protocol: 'https', hostname: 'img.youtube.com' },
     ],
   },
   async headers() {

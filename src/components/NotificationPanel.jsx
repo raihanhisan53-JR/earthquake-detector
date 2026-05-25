@@ -76,7 +76,9 @@ export default function NotificationPanel({
   // Init: cek permission saat mount
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      setDesktopPermission(Notification.permission);
+      setTimeout(() => {
+        setDesktopPermission(Notification.permission);
+      }, 0);
     }
   }, []);
 
