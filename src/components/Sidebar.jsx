@@ -13,7 +13,7 @@ export default function Sidebar({
   mobileOpen,
   setMobileOpen,
   collapsed = false,
-  user = null,
+  user,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
