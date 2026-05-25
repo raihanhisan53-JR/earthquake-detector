@@ -431,7 +431,7 @@ body {
   flex-direction: column;
   height: 100%;
   overflow-y: hidden; /* Only the nav area should scroll, keeping header fixed */
-  z-index: 100;
+  z-index: 1500;
   transition: width 0.22s ease, min-width 0.22s ease;
 }
 
@@ -585,7 +585,7 @@ body {
   width: 290px;
   min-width: 290px;
   margin-right: -208px;
-  z-index: 105;
+  z-index: 1505;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
   transition: width 0.22s ease, min-width 0.22s ease, margin-right 0.22s ease, box-shadow 0.22s ease;
 }
@@ -2421,6 +2421,7 @@ select option {
 .quake-side-section {
   padding: 14px 16px;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .panel-title {
@@ -2551,8 +2552,6 @@ select option {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 400px;
-  overflow-y: auto;
 }
 
 .quake-list--radar {
@@ -10018,7 +10017,10 @@ body:has(.alarm-banner) .dashboard-layout {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .bmkg-sidebar { display: none; }
+  .bmkg-map-body { flex-direction: column; overflow-y: auto; }
+  .bmkg-map-canvas { height: 350px; flex: none; }
+  .bmkg-sidebar { display: flex; width: 100%; flex: none; border-left: none; border-top: 1px solid var(--border-color); }
+  .bmkg-sidebar-list { overflow-y: visible; max-height: none; }
   .bmkg-map-header { flex-direction: column; align-items: flex-start; }
   .bmkg-stat-latest { display: none; }
 }
@@ -10793,7 +10795,10 @@ body:has(.alarm-banner) .dashboard-layout {
 
   /* Map layout: stack vertikal di mobile */
   .map-layout-grid {
+    display: flex !important;
     flex-direction: column !important;
+    height: auto !important;
+    max-height: none !important;
     gap: 0 !important;
   }
 
