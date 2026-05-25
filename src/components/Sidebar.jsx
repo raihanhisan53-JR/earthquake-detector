@@ -3,8 +3,9 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import {
   CloudSun, Cpu, History, Home, LayoutGrid, MapPinned,
-  Play, X, Globe, Globe2, Video, Bot, Search,
+  Play, X, Globe, Globe2, Video, Bot
 } from 'lucide-react';
+import { useI18n } from '../hooks/useI18n';
 
 export default function Sidebar({
   connected,
@@ -15,7 +16,7 @@ export default function Sidebar({
   collapsed = false,
   user,
 }) {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { t } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
 
   const { savedAvatar, savedName } = useMemo(() => {
@@ -39,53 +40,39 @@ export default function Sidebar({
     {
       title: '',
       items: [
-        { id: 'overview', icon: <LayoutGrid size={18} />, label: 'Dashboard' },
+        { id: 'overview', icon: <LayoutGrid size={18} />, label: t('overview') },
       ],
     },
     {
-      title: 'Monitoring',
+      title: t('navMonitoring') || 'Monitoring',
       items: [
-        { id: 'peta',     icon: <MapPinned size={18} />, label: 'Peta Gempa'  },
-        { id: 'globe',    icon: <Globe2 size={18} />,    label: 'Google Maps' },
-        { id: 'livecctv', icon: <Video size={18} />,     label: 'Live CCTV'  },
-        { id: 'cuaca',    icon: <CloudSun size={18} />,  label: 'Cuaca'       },
+        { id: 'peta',     icon: <MapPinned size={18} />, label: t('map')  },
+        { id: 'globe',    icon: <Globe2 size={18} />,    label: t('googleMaps') },
+        { id: 'livecctv', icon: <Video size={18} />,     label: t('liveCctv')  },
+        { id: 'cuaca',    icon: <CloudSun size={18} />,  label: t('weather')       },
       ],
     },
     {
-      title: 'Analisa & Data',
+      title: t('navAnalytics') || 'Analisa & Data',
       items: [
-        { id: 'gempa',   icon: <Home size={18} />,    label: 'Gempa Terkini' },
-        { id: 'analitik',icon: <Globe size={18} />,   label: 'Analitik'      },
-        { id: 'riwayat', icon: <History size={18} />, label: 'Riwayat'       },
+        { id: 'gempa',   icon: <Home size={18} />,    label: t('earthquake') },
+        { id: 'analitik',icon: <Globe size={18} />,   label: t('analytics')      },
+        { id: 'riwayat', icon: <History size={18} />, label: t('history')       },
       ],
     },
     {
-      title: 'Sistem Pro',
+      title: t('navSystemPro') || 'Sistem Pro',
       items: [
-        { id: 'esp32',  icon: <Cpu size={18} />,  label: 'ESP32 Sensor' },
-        { id: 'edukasi',icon: <Play size={18} />, label: 'Edukasi'      },
-        { id: 'aria',   icon: <Bot size={18} />,  label: 'ARIA AI'      },
+        { id: 'esp32',  icon: <Cpu size={18} />,  label: t('esp32') },
+        { id: 'edukasi',icon: <Play size={18} />, label: t('education')      },
+        { id: 'aria',   icon: <Bot size={18} />,  label: t('aria')      },
       ],
     },
   ];
 
   const isVisuallyCollapsed = collapsed && !isHovered;
 
-  // Filter nav based on search
-  const filteredSections = (() => {
-    if (!searchQuery.trim()) return navSections;
-    const q = searchQuery.toLowerCase();
-    return navSections
-      .map(section => ({
-        ...section,
-        items: section.items.filter(
-          item =>
-            item.label.toLowerCase().includes(q) ||
-            item.id.toLowerCase().includes(q)
-        ),
-      }))
-      .filter(section => section.items.length > 0);
-  })();
+
 
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -124,31 +111,10 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* ── Gemini-style Search bar ── */}
-        {!isVisuallyCollapsed && (
-          <div className="sidebar-search-wrap">
-            <div className="sidebar-search-box">
-              <Search size={14} className="sidebar-search-ico" />
-              <input
-                type="text"
-                placeholder="Cari menu..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="sidebar-search-inp"
-                aria-label="Cari menu"
-              />
-              {searchQuery && (
-                <button className="sidebar-search-clr" onClick={() => setSearchQuery('')} aria-label="Hapus pencarian">
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* ── Nav ── */}
         <nav className="sidebar-nav">
-          {filteredSections.map((section, idx) => (
+          {navSections.map((section, idx) => (
             <div key={idx} className="sidebar-nav-section">
               {/* Section label */}
               {section.title && !isVisuallyCollapsed && (
@@ -178,13 +144,7 @@ export default function Sidebar({
             </div>
           ))}
 
-          {/* Empty search state */}
-          {searchQuery && filteredSections.length === 0 && (
-            <div className="sidebar-search-empty">
-              <Search size={22} />
-              <span>Menu tidak ditemukan</span>
-            </div>
-          )}
+
         </nav>
 
         {/* ── Footer / Profile ── */}

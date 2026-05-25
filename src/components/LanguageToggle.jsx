@@ -24,6 +24,24 @@ export default function LanguageToggle({ compact = false }) {
       >
         {compact ? '🇺🇸' : '🇺🇸 EN'}
       </button>
+      <button
+        type="button"
+        className={`lang-btn ${lang === 'ar' ? 'active' : ''}`}
+        onClick={() => setLang('ar')}
+        aria-pressed={lang === 'ar'}
+        title="العربية (Arabic)"
+      >
+        {compact ? '🇸🇦' : '🇸🇦 AR'}
+      </button>
+      <button
+        type="button"
+        className={`lang-btn ${lang === 'ja' ? 'active' : ''}`}
+        onClick={() => setLang('ja')}
+        aria-pressed={lang === 'ja'}
+        title="日本語 (Japanese)"
+      >
+        {compact ? '🇯🇵' : '🇯🇵 JA'}
+      </button>
     </div>
   );
 }
