@@ -1,14 +1,18 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  let url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // Cek apakah URL valid (harus mulai dengan http)
+  // Bersihkan URL jika ada /rest/v1/ atau garis miring di ujung
+  if (url) {
+    url = url.split('/rest/v1')[0].replace(/\/$/, '')
+  }
+
   const isValidUrl = url && url.startsWith('http')
 
   return createBrowserClient(
-    isValidUrl ? url : 'https://placeholder-project.supabase.co',
-    key || 'placeholder-key'
+    (isValidUrl ? url : 'https://placeholder-project.supabase.co') as string,
+    (key || 'placeholder-key') as string
   )
 }
