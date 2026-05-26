@@ -4,13 +4,11 @@ export function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!url || !key) {
-    // Fallback atau error handling yang lebih baik di client-side
-    console.error('Supabase client keys are missing')
-  }
+  // Cek apakah URL valid (harus mulai dengan http)
+  const isValidUrl = url && url.startsWith('http')
 
   return createBrowserClient(
-    url || 'https://placeholder.supabase.co',
-    key || 'placeholder'
+    isValidUrl ? url : 'https://placeholder-project.supabase.co',
+    key || 'placeholder-key'
   )
 }

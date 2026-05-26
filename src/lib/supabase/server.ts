@@ -6,13 +6,11 @@ export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  if (!url || !key) {
-    console.warn('Supabase keys are missing. Using placeholder for build.')
-  }
+  const isValidUrl = url && url.startsWith('http')
 
   return createServerClient(
-    url || 'https://placeholder.supabase.co',
-    key || 'placeholder',
+    isValidUrl ? url : 'https://placeholder-project.supabase.co',
+    key || 'placeholder-key',
     {
       cookies: {
         getAll() {

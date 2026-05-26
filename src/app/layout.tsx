@@ -94,6 +94,8 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" data-theme="dark">
