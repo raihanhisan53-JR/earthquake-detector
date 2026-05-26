@@ -2,6 +2,8 @@ import Dashboard from '@/components/Dashboard'
 import LandingPage from '@/components/LandingPage'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   try {
     const supabase = await createClient()
