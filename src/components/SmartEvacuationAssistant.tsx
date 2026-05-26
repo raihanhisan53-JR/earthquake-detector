@@ -13,13 +13,13 @@ interface SmartEvacuationAssistantProps {
 }
 
 export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuationAssistantProps) {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [activeCategory, setActiveCategory] = useState('safe-zones');
 
   const safeZones = [
-    { name: 'Alun-alun Kota', type: 'Titik Kumpul', dist: '1.2 km', status: 'Terbuka' },
-    { name: 'Stadion Utama', type: 'Shelter Utama', dist: '2.5 km', status: 'Terbuka' },
-    { name: 'RSUD Daerah', type: 'Rumah Sakit', dist: '3.1 km', status: 'Siaga' },
+    { name: lang === 'ar' ? 'ساحة المدينة' : 'Alun-alun Kota', type: lang === 'ar' ? 'نقطة تجمع' : 'Titik Kumpul', dist: '1.2 km', status: 'Terbuka' },
+    { name: lang === 'ar' ? 'الملعب الرئيسي' : 'Stadion Utama', type: lang === 'ar' ? 'ملجأ رئيسي' : 'Shelter Utama', dist: '2.5 km', status: 'Terbuka' },
+    { name: lang === 'ar' ? 'المستشفى الإقليمي' : 'RSUD Daerah', type: lang === 'ar' ? 'مستشفى' : 'Rumah Sakit', dist: '3.1 km', status: 'Siaga' },
   ];
 
   const emergencyContacts = [
@@ -37,7 +37,7 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
   return (
     <div className="card evacuation-assistant">
       <div className="card-header">
-        <h2><Shield size={18} className="text-safe" /> {lang === 'en' ? 'Smart Evacuation Assistant' : 'Asisten Evakuasi Pintar'}</h2>
+        <h2><Shield size={18} className="text-safe" /> {t('smartEvacuation')}</h2>
       </div>
 
       <div className="assistant-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '16px' }}>
@@ -45,13 +45,13 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
           onClick={() => setActiveCategory('safe-zones')}
           style={{ flex: 1, padding: '12px', background: 'none', border: 'none', color: activeCategory === 'safe-zones' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeCategory === 'safe-zones' ? '2px solid var(--accent)' : 'none', cursor: 'pointer', fontWeight: '600' }}
         >
-          Safe Zones
+          {t('safeZones')}
         </button>
         <button 
           onClick={() => setActiveCategory('contacts')}
           style={{ flex: 1, padding: '12px', background: 'none', border: 'none', color: activeCategory === 'contacts' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeCategory === 'contacts' ? '2px solid var(--accent)' : 'none', cursor: 'pointer', fontWeight: '600' }}
         >
-          Emergency
+          {t('emergency')}
         </button>
       </div>
 
@@ -59,8 +59,8 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
         <div className="assistant-content">
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
             {userLocation 
-              ? `Menampilkan area aman di sekitar lokasi Anda (${userLocation.lat.toFixed(2)}, ${userLocation.lon.toFixed(2)})`
-              : 'Aktifkan lokasi untuk melihat rute evakuasi terdekat.'}
+              ? `${t('safeZonesDesc')} (${userLocation.lat.toFixed(2)}, ${userLocation.lon.toFixed(2)})`
+              : t('enableLocation')}
           </p>
           
           <div className="safe-zones-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -81,11 +81,11 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
           </div>
 
           <button 
-            onClick={() => openInMaps('Titik Kumpul Terdekat')}
+            onClick={() => openInMaps(lang === 'ar' ? 'أقرب نقطة تجمع' : 'Titik Kumpul Terdekat')}
             className="btn btn-primary" 
             style={{ width: '100%', marginTop: '16px', gap: '8px' }}
           >
-            <MapPin size={16} /> Cari di Google Maps
+            <MapPin size={16} /> {t('findInMaps')}
           </button>
         </div>
       )}

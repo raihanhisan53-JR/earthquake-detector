@@ -17,24 +17,24 @@ interface DocumentItem {
 }
 
 export default function SurvivalKitVault() {
-  const { lang } = useI18n();
+  const { lang, t } = useI18n();
   const [activeTab, setActiveTab] = useState('checklist');
 
   // Survival Checklist State (Mock for now, can be persisted to localStorage)
   const [checklist, setChecklist] = useState<ChecklistItem[]>([
-    { id: 1, task: 'Air minum (3 liter/orang/hari)', checked: false },
-    { id: 2, task: 'Makanan tahan lama (biskuit, kaleng)', checked: false },
-    { id: 3, task: 'Kotak P3K & Obat-obatan pribadi', checked: true },
-    { id: 4, task: 'Senter & Baterai cadangan', checked: false },
-    { id: 5, task: 'Peluit (untuk memanggil bantuan)', checked: false },
-    { id: 6, task: 'Masker & Hand Sanitizer', checked: true },
-    { id: 7, task: 'Uang tunai secukupnya', checked: false },
-    { id: 8, task: 'Pakaian ganti & Selimut', checked: false },
+    { id: 1, task: lang === 'ar' ? 'مياه شرب (3 لتر/شخص/يوم)' : 'Air minum (3 liter/orang/hari)', checked: false },
+    { id: 2, task: lang === 'ar' ? 'أطعمة تدوم طويلاً (بسكويت، معلبات)' : 'Makanan tahan lama (biskuit, kaleng)', checked: false },
+    { id: 3, task: lang === 'ar' ? 'صندوق الإسعافات الأولية والأدوية الشخصية' : 'Kotak P3K & Obat-obatan pribadi', checked: true },
+    { id: 4, task: lang === 'ar' ? 'مصباح يدوي وبطاريات احتياطية' : 'Senter & Baterai cadangan', checked: false },
+    { id: 5, task: lang === 'ar' ? 'صافرة (لطلب المساعدة)' : 'Peluit (untuk memanggil bantuan)', checked: false },
+    { id: 6, task: lang === 'ar' ? 'كمامة ومعقم يدين' : 'Masker & Hand Sanitizer', checked: true },
+    { id: 7, task: lang === 'ar' ? 'نقود نقدية كافية' : 'Uang tunai secukupnya', checked: false },
+    { id: 8, task: lang === 'ar' ? 'ملابس بديلة وبطانية' : 'Pakaian ganti & Selimut', checked: false },
   ]);
 
   const [documents, setDocuments] = useState<DocumentItem[]>([
-    { id: 1, name: 'KTP - Digital Copy', type: 'PDF/Image', date: '12 Mei 2026' },
-    { id: 2, name: 'Kartu Keluarga', type: 'PDF', date: '15 Mei 2026' },
+    { id: 1, name: lang === 'ar' ? 'الهوية الوطنية - نسخة رقمية' : 'KTP - Digital Copy', type: 'PDF/Image', date: '12 Mei 2026' },
+    { id: 2, name: lang === 'ar' ? 'بطاقة العائلة' : 'Kartu Keluarga', type: 'PDF', date: '15 Mei 2026' },
   ]);
 
   const toggleCheck = (id: number) => {
@@ -48,7 +48,7 @@ export default function SurvivalKitVault() {
   return (
     <div className="card survival-vault">
       <div className="card-header">
-        <h2><ShieldCheck size={18} className="text-accent" /> {lang === 'en' ? 'Survival & Document Vault' : 'Kesiapan & Vault Digital'}</h2>
+        <h2><ShieldCheck size={18} className="text-accent" /> {t('survivalVault')}</h2>
       </div>
 
       <div className="assistant-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '16px' }}>
@@ -56,13 +56,13 @@ export default function SurvivalKitVault() {
           onClick={() => setActiveTab('checklist')}
           style={{ flex: 1, padding: '12px', background: 'none', border: 'none', color: activeTab === 'checklist' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeTab === 'checklist' ? '2px solid var(--accent)' : 'none', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
-          <ClipboardList size={16} /> Checklist
+          <ClipboardList size={16} /> {t('checklist')}
         </button>
         <button 
           onClick={() => setActiveTab('docs')}
           style={{ flex: 1, padding: '12px', background: 'none', border: 'none', color: activeTab === 'docs' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeTab === 'docs' ? '2px solid var(--accent)' : 'none', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
         >
-          <FileText size={16} /> Documents
+          <FileText size={16} /> {t('documents')}
         </button>
       </div>
 
@@ -70,7 +70,7 @@ export default function SurvivalKitVault() {
         <div className="assistant-content">
           <div style={{ marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12px', fontWeight: '700' }}>
-              <span>Kesiapan Tas Siaga Bencana</span>
+              <span>{t('readiness')}</span>
               <span>{progress}%</span>
             </div>
             <div style={{ width: '100%', height: '8px', background: 'var(--bg-card-alt)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -94,7 +94,7 @@ export default function SurvivalKitVault() {
           </div>
           
           <button className="btn btn-outline" style={{ width: '100%', marginTop: '16px', fontSize: '12px' }}>
-            <Plus size={14} /> Tambah Barang Lainnya
+            <Plus size={14} /> {t('addItems')}
           </button>
         </div>
       )}

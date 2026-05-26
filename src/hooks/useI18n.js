@@ -307,6 +307,25 @@ const translations = {
 
     // Footer
     footer: '© 2026 Raihan Hisan · TECTRA PRO Earthquake Detector',
+    navMonitoring: 'Monitoring',
+    navAnalytics: 'Analytics & Data',
+    navSystemPro: 'System Pro',
+
+    // Evacuation & Globe
+    smartEvacuation: 'Smart Evacuation Assistant',
+    survivalVault: 'Survival & Document Vault',
+    safeZones: 'Safe Zones',
+    emergency: 'Emergency',
+    safeZonesDesc: 'Showing safe areas around your location',
+    enableLocation: 'Enable location to see nearby evacuation routes.',
+    findInMaps: 'Find in Google Maps',
+    nearLocation: 'near your location',
+    checklist: 'Checklist',
+    documents: 'Documents',
+    readiness: 'Emergency Bag Readiness',
+    addItems: 'Add More Items',
+    globalHistory: 'Global Earthquake History',
+    visualize3d: '3D visualization of all recent earthquakes',
   },
   ar: {
     appName: 'كاشف الزلازل',
@@ -434,7 +453,23 @@ const translations = {
     footer: '© 2026 Raihan Hisan · TECTRA PRO Earthquake Detector',
     navMonitoring: 'مراقبة',
     navAnalytics: 'التحليلات والبيانات',
-    navSystemPro: 'نظام برو'
+    navSystemPro: 'نظام برو',
+
+    // Evacuation & Globe
+    smartEvacuation: 'مساعد الإخلاء الذكي',
+    survivalVault: 'خزنة النجاة والوثائق',
+    safeZones: 'مناطق آمنة',
+    emergency: 'طوارئ',
+    safeZonesDesc: 'عرض المناطق الآمنة حول موقعك',
+    enableLocation: 'قم بتفعيل الموقع لمشروع طرق الإخلاء القريبة.',
+    findInMaps: 'البحث في خرائط جوجل',
+    nearLocation: 'بالقرب من موقعك',
+    checklist: 'قائمة التحقق',
+    documents: 'وثائق',
+    readiness: 'جاهزية حقيبة الطوارئ',
+    addItems: 'إضافة المزيد من العناصر',
+    globalHistory: 'تاريخ الزلازل العالمي',
+    visualize3d: 'تصور ثلاثي الأبعاد لجميع الزلازل الأخيرة',
   },
   ja: {
     appName: '地震検出器',

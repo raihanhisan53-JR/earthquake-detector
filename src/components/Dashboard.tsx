@@ -59,7 +59,7 @@ interface NotifyPayload {
 
 // Inner component — needs I18nProvider wrapper
 function DashboardInner({ user }: DashboardProps) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const router  = useRouter()
   const supabase = createClient()
 
@@ -164,7 +164,7 @@ function DashboardInner({ user }: DashboardProps) {
 
       // Check for pending upgrade after login
       const pendingUpgrade = sessionStorage.getItem('pending_upgrade')
-      if (pendingUpgrade && userPlan.toUpperCase() === 'STARTER') {
+      if (pendingUpgrade) {
         sessionStorage.removeItem('pending_upgrade')
         // Trigger checkout again for this user
         fetch('/api/billing/checkout', {
@@ -176,13 +176,15 @@ function DashboardInner({ user }: DashboardProps) {
         })
         .then(res => res.json())
         .then(data => {
-          if (data.invoiceUrl) window.location.href = data.invoiceUrl
+          if (data.invoiceUrl) {
+            window.location.href = data.invoiceUrl
+          }
         })
         .catch(console.error)
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [notifyUser, userPlan])
+  }, [notifyUser])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -401,13 +403,15 @@ function DashboardInner({ user }: DashboardProps) {
             />
             {/* Overlay controls if needed */}
             <div style={{ 
-              position: 'absolute', bottom: '20px', left: '20px', zIndex: 10,
-              background: 'rgba(15, 23, 42, 0.8)', padding: '12px', borderRadius: '12px',
-              border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)'
-            }}>
-              <h3 style={{ margin: 0, fontSize: '14px', color: '#fff' }}>Global Earthquake History</h3>
-              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>Visualisasi 3D seluruh gempa terkini</p>
-            </div>
+                position: 'absolute', bottom: '20px', left: lang === 'ar' ? 'auto' : '20px', right: lang === 'ar' ? '20px' : 'auto', zIndex: 10,
+                background: 'rgba(15, 23, 42, 0.8)', padding: '12px', borderRadius: '12px',
+                border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)',
+                direction: lang === 'ar' ? 'rtl' : 'ltr',
+                textAlign: lang === 'ar' ? 'right' : 'left'
+              }}>
+                <h3 style={{ margin: 0, fontSize: '14px', color: '#fff' }}>{t('globalHistory')}</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>{t('visualize3d')}</p>
+              </div>
           </div>
         )
       case 'profil':

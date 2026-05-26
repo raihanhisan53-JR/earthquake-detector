@@ -29,7 +29,7 @@ export async function GET(req: Request) {
       })
     });
 
-    return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/dashboard?pay_status=success`);
+    return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/?pay_success=true`);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

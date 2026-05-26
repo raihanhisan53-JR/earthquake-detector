@@ -2,8 +2,10 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
 import * as THREE from 'three';
+import { useI18n } from '../hooks/useI18n';
 
 export default function EarthquakeGlobe3D({ points, markerColorMode }) {
+  const { lang, t } = useI18n();
   const globeEl = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
@@ -141,25 +143,27 @@ export default function EarthquakeGlobe3D({ points, markerColorMode }) {
         pointerEvents: 'none',
         fontSize: '11px',
         color: '#fff',
-        zIndex: 10
+        zIndex: 10,
+        direction: lang === 'ar' ? 'rtl' : 'ltr',
+        textAlign: lang === 'ar' ? 'right' : 'left'
       }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Globe Visualization</div>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>{lang === 'ar' ? 'توضيح الخريطة' : 'Globe Visualization'}</div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></span>
-            <span>Magnitudo Tinggi (≥ 6.0)</span>
+            <span>{lang === 'ar' ? 'قوة عالية (≥ 6.0)' : 'Magnitudo Tinggi (≥ 6.0)'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316' }}></span>
-            <span>Magnitudo Sedang (5.0 - 5.9)</span>
+            <span>{lang === 'ar' ? 'قوة متوسطة (5.0 - 5.9)' : 'Magnitudo Sedang (5.0 - 5.9)'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span>
-            <span>Magnitudo Rendah (4.0 - 4.9)</span>
+            <span>{lang === 'ar' ? 'قوة منخفضة (4.0 - 4.9)' : 'Magnitudo Rendah (4.0 - 4.9)'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
             <div style={{ width: '12px', height: '2px', background: '#dc2626' }}></div>
-            <span>Potensi Tsunami</span>
+            <span>{lang === 'ar' ? 'احتمال حدوث تسونامي' : 'Potensi Tsunami'}</span>
           </div>
         </div>
       </div>

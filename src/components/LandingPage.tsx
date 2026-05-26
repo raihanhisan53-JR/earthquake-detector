@@ -656,16 +656,46 @@ function PricingSection() {
   const [loading, setLoading] = useState<string | null>(null)
 
   const handleCheckout = async (plan: any) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
     if (plan.name === 'Starter') {
       window.location.href = '/login'
       return
     }
     
-    // Untuk Professional, kita harus login dulu agar tau siapa yang bayar
-    if (plan.name === 'Professional') {
-      // Simpan keinginan upgrade di session storage
-      sessionStorage.setItem('pending_upgrade', 'Professional')
+    // Jika belum login, simpan keinginan upgrade dan arahkan ke login
+    if (!user) {
+      if (plan.name === 'Professional') {
+        sessionStorage.setItem('pending_upgrade', 'Professional')
+      }
       window.location.href = '/login'
+      return
+    }
+
+    // Jika sudah login, langsung proses checkout
+    if (plan.name === 'Professional') {
+      setLoading(plan.name)
+      try {
+        const res = await fetch('/api/billing/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            plan: 'PROFESSIONAL',
+          })
+        })
+        const data = await res.json()
+        if (data.invoiceUrl) {
+          window.location.href = data.invoiceUrl
+        } else {
+          throw new Error(data.error || 'Gagal membuat invoice')
+        }
+      } catch (e: any) {
+        console.error(e)
+        alert(`Gagal memproses pembayaran: ${e.message}`)
+      } finally {
+        setLoading(null)
+      }
       return
     }
 
@@ -815,6 +845,8 @@ function PricingSection() {
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     padding: '14px', borderRadius: '12px', fontWeight: '700', fontSize: '15px',
                     border: 'none', cursor: 'pointer',
+                    position: 'relative',
+                    zIndex: 2,
                     ...(plan.ctaStyle === 'primary'
                       ? { background: `linear-gradient(135deg, ${plan.color}, ${plan.color}cc)`, color: '#fff', boxShadow: `0 4px 16px ${plan.color}40` }
                       : { background: 'transparent', border: `1px solid ${plan.color}`, color: plan.color }
