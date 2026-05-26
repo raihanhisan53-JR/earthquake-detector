@@ -1,10 +1,16 @@
 "use client"
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Info, Send, AlertTriangle, Home, Ghost, ShieldAlert, CheckCircle2 } from 'lucide-react';
 
-export default function IntensityReporter({ earthquakeId, earthquakeTitle, onClose }) {
+interface IntensityReporterProps {
+  earthquakeId: string | number;
+  earthquakeTitle: string;
+  onClose: () => void;
+}
+
+export default function IntensityReporter({ earthquakeId, earthquakeTitle, onClose }: IntensityReporterProps) {
   const [step, setStep] = useState(1);
-  const [intensity, setIntensity] = useState(null);
+  const [intensity, setIntensity] = useState<number | null>(null);
   const [impact, setImpact] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -86,7 +92,7 @@ export default function IntensityReporter({ earthquakeId, earthquakeTitle, onClo
           
           {intensity && (
             <div style={{ marginTop: '12px', padding: '10px', borderRadius: '8px', background: 'var(--bg-card)', fontSize: '11px', color: 'var(--text-secondary)' }}>
-              {levels.find(l => l.level === intensity).desc}
+              {levels.find(l => l.level === intensity)?.desc}
             </div>
           )}
 

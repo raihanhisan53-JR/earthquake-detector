@@ -1,10 +1,19 @@
 "use client"
-import React, { useState } from 'react';
-import { Shield, MapPin, Navigation, Info, AlertTriangle, Phone, ExternalLink } from 'lucide-react';
+import { useState } from 'react';
+import { Shield, MapPin, Navigation, AlertTriangle, Phone } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 
-export default function SmartEvacuationAssistant({ userLocation }) {
-  const { t, lang } = useI18n();
+interface UserLocation {
+  lat: number;
+  lon: number;
+}
+
+interface SmartEvacuationAssistantProps {
+  userLocation: UserLocation | null;
+}
+
+export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuationAssistantProps) {
+  const { lang } = useI18n();
   const [activeCategory, setActiveCategory] = useState('safe-zones');
 
   const safeZones = [
@@ -20,7 +29,7 @@ export default function SmartEvacuationAssistant({ userLocation }) {
     { name: 'Pemadam Kebakaran', phone: '113' },
   ];
 
-  const openInMaps = (query) => {
+  const openInMaps = (query: string) => {
     const url = `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${userLocation?.lat},${userLocation?.lon},15z`;
     window.open(url, '_blank');
   };

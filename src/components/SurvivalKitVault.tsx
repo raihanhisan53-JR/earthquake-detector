@@ -1,14 +1,27 @@
 "use client"
-import React, { useState } from 'react';
-import { ClipboardList, FileText, CheckCircle, Download, Plus, Trash2, ShieldCheck, Info } from 'lucide-react';
+import { useState } from 'react';
+import { ClipboardList, FileText, CheckCircle, Plus, ShieldCheck, Info, Download, Trash2 } from 'lucide-react';
 import { useI18n } from '@/hooks/useI18n';
 
+interface ChecklistItem {
+  id: number;
+  task: string;
+  checked: boolean;
+}
+
+interface DocumentItem {
+  id: number;
+  name: string;
+  type: string;
+  date: string;
+}
+
 export default function SurvivalKitVault() {
-  const { t, lang } = useI18n();
+  const { lang } = useI18n();
   const [activeTab, setActiveTab] = useState('checklist');
 
   // Survival Checklist State (Mock for now, can be persisted to localStorage)
-  const [checklist, setChecklist] = useState([
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([
     { id: 1, task: 'Air minum (3 liter/orang/hari)', checked: false },
     { id: 2, task: 'Makanan tahan lama (biskuit, kaleng)', checked: false },
     { id: 3, task: 'Kotak P3K & Obat-obatan pribadi', checked: true },
@@ -19,12 +32,12 @@ export default function SurvivalKitVault() {
     { id: 8, task: 'Pakaian ganti & Selimut', checked: false },
   ]);
 
-  const [documents, setDocuments] = useState([
+  const [documents, setDocuments] = useState<DocumentItem[]>([
     { id: 1, name: 'KTP - Digital Copy', type: 'PDF/Image', date: '12 Mei 2026' },
     { id: 2, name: 'Kartu Keluarga', type: 'PDF', date: '15 Mei 2026' },
   ]);
 
-  const toggleCheck = (id) => {
+  const toggleCheck = (id: number) => {
     setChecklist(prev => prev.map(item => 
       item.id === id ? { ...item, checked: !item.checked } : item
     ));

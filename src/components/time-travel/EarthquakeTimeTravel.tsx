@@ -1,8 +1,22 @@
 "use client"
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { History, Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 
-export default function EarthquakeTimeTravel({ events, onPointSelect }) {
+interface EarthquakeEvent {
+  id: string | number;
+  epochMs: number | string;
+  tanggal: string;
+  jam: string;
+  magnitude: number;
+  wilayah: string;
+}
+
+interface EarthquakeTimeTravelProps {
+  events: EarthquakeEvent[];
+  onPointSelect?: (id: string | number) => void;
+}
+
+export default function EarthquakeTimeTravel({ events, onPointSelect }: EarthquakeTimeTravelProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [speed, setSpeed] = useState(1000); // ms
@@ -11,8 +25,8 @@ export default function EarthquakeTimeTravel({ events, onPointSelect }) {
     return [...events].sort((a, b) => (Number(a.epochMs) || 0) - (Number(b.epochMs) || 0));
   }, [events]);
 
-  React.useEffect(() => {
-    let timer;
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isPlaying && currentIndex < sortedEvents.length - 1) {
       timer = setTimeout(() => {
         setCurrentIndex(prev => prev + 1);
