@@ -676,22 +676,22 @@ function PricingSection() {
 
     setLoading(plan.name)
     try {
-      const res = await fetch('/api/checkout', {
+      const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          planName: plan.name,
-          price: 99000,
-          userEmail: 'customer@example.com',
+          plan: plan.name.toUpperCase(), // Match Plan enum: PROFESSIONAL
         })
       })
-      const { invoiceUrl } = await res.json()
-      if (invoiceUrl) {
-        window.location.href = invoiceUrl
+      const data = await res.json()
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl
+      } else {
+        throw new Error(data.error || 'Failed to create checkout')
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e)
-      alert('Gagal memproses pembayaran. Silakan hubungi kami via WhatsApp.')
+      alert(`Gagal memproses pembayaran: ${e.message}. Silakan hubungi kami via WhatsApp.`)
     } finally {
       setLoading(null)
     }

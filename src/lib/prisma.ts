@@ -10,11 +10,11 @@ function createPrismaClient(): any {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
     console.error('DATABASE_URL is missing')
-    const { PrismaClient } = require('@prisma/client')
+    const { PrismaClient } = require('../generated/client')
     return new PrismaClient()
   }
   const adapter = new PrismaPg(connectionString)
-  const { PrismaClient } = require('@prisma/client')
+  const { PrismaClient } = require('../generated/client')
   return new PrismaClient({ adapter })
 }
 

@@ -1,0 +1,192 @@
+// Prisma Schema - Earthquake Detector
+// Database: Supabase PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// USER - Data pengguna (sync dari Supabase Auth)
+// ============================================
+model User {
+  id        String   @id // Supabase Auth UUID
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  provider  String? // "google", "email"
+  plan      Plan     @default(STARTER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  earthquakeLogs EarthquakeLog[]
+  settings       UserSettings?
+  transactions   Transaction[]
+  subscription   Subscription?
+  auditLogs      AuditLog[]
+
+  @@map("users")
+}
+
+// ============================================
+// SUBSCRIPTION - Subscription lifecycle
+// ============================================
+model Subscription {
+  id        String    @id @default(cuid())
+  userId    String    @unique @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      Plan      @default(STARTER)
+  active    Boolean   @default(true)
+  startedAt DateTime  @default(now()) @map("started_at")
+  expiresAt DateTime? @map("expires_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+// ============================================
+// TRANSACTION - Payment history
+// ============================================
+model Transaction {
+  id         String        @id @default(cuid())
+  userId     String        @map("user_id")
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceId  String        @unique @map("invoice_id") // Xendit Invoice ID
+  externalId String        @unique @map("external_id") // Your unique ID
+  amount     Float
+  currency   String        @default("IDR")
+  status     PaymentStatus @default(PENDING)
+  plan       Plan
+  paidAt     DateTime?     @map("paid_at")
+  expiresAt  DateTime?     @map("expires_at")
+  metadata   Json?
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([externalId])
+  @@map("transactions")
+}
+
+// ============================================
+// AUDIT_LOG - Security & history tracking
+// ============================================
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String // e.g., "PAYMENT_SUCCESS", "SUBSCRIPTION_UPGRADE"
+  entity    String // e.g., "TRANSACTION", "USER"
+  entityId  String   @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
+// ============================================
+// EARTHQUAKE_LOG - Riwayat gempa yang terdeteksi
+// ============================================
+model EarthquakeLog {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  level     Level    @default(WASPADA)
+  magnitude Float
+  location  String
+  source    Source   @default(BMKG)
+  status    String   @default("NEW")
+  detail    String?
+  latitude  Float?
+  longitude Float?
+  depth     Float? // kedalaman dalam km
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Optional: siapa yang mencatat (bisa null = sistem)
+  userId String? @map("user_id")
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp(sort: Desc)])
+  @@index([source])
+  @@index([level])
+  @@map("earthquake_logs")
+}
+
+// ============================================
+// SENSOR_READING - Data sensor ESP32
+// ============================================
+model SensorReading {
+  id         String   @id @default(cuid())
+  timestamp  DateTime @default(now())
+  pgaCms2    Float    @map("pga_cms2") // PGA dalam cm/s²
+  pgaPeak    Float    @map("pga_peak") // PGA peak
+  alertLevel Int      @default(0) @map("alert_level") // 0=aman, 1=waspada, 2=bahaya
+  status     String   @default("AMAN")
+  sensorIp   String?  @map("sensor_ip")
+
+  @@index([timestamp(sort: Desc)])
+  @@map("sensor_readings")
+}
+
+// ============================================
+// USER_SETTINGS - Preferensi notifikasi pengguna
+// ============================================
+model UserSettings {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifyRegion    String   @default("Semua") @map("notify_region")
+  notifyThreshold Float    @default(4.0) @map("notify_threshold")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
+}
+
+// ============================================
+// COMMENT - Testimonial / Feedback Pengguna
+// ============================================
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  name      String
+  role      String?
+  rating    Int      @default(5)
+  avatar    String? // initials atau URL
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("comments")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum Plan {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  EXPIRED
+  FAILED
+}
+
+enum Level {
+  AMAN
+  WASPADA
+  BAHAYA
+}
+
+enum Source {
+  BMKG
+  USGS
+  ESP32
+  FALLBACK
+}

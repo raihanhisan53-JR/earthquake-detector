@@ -25,6 +25,14 @@ const LiveCCTVCard    = dynamic(() => import('./LiveCCTVCard.jsx'), { ssr: false
 const ReelsEducation  = dynamic(() => import('./ReelsEducation.jsx'), { ssr: false })
 const WeatherCard     = dynamic(() => import('./WeatherCard.jsx'), { ssr: false })
 const VisualisasiCard = dynamic(() => import('./VisualisasiCard.jsx'), { ssr: false })
+const EarthquakeGlobe3D = dynamic(() => import('./EarthquakeGlobe3D.jsx'), { ssr: false })
+const SmartEvacuationAssistant = dynamic(() => import('./SmartEvacuationAssistant'), { ssr: false })
+const SurvivalKitVault = dynamic(() => import('./SurvivalKitVault'), { ssr: false })
+
+interface UserLocation {
+  lat: number;
+  lon: number;
+}
 const SeismographCard = dynamic(() => import('./SeismographCard.jsx'), { ssr: false })
 const Topbar          = dynamic(() => import('./Topbar.jsx'), { ssr: false })
 const Sidebar         = dynamic(() => import('./Sidebar.jsx'), { ssr: false })
@@ -58,6 +66,18 @@ function DashboardInner({ user }: DashboardProps) {
   const [activeTab, setActiveTabState] = useState('overview')
   const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+
+  // Get user location for evacuation features
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        (err) => console.warn('Geolocation error:', err),
+        { enableHighAccuracy: true }
+      )
+    }
+  }, [])
   const [theme, setTheme]               = useState('dark')
   const [userPlan, setUserPlan]         = useState('Starter')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
@@ -144,15 +164,14 @@ function DashboardInner({ user }: DashboardProps) {
 
       // Check for pending upgrade after login
       const pendingUpgrade = sessionStorage.getItem('pending_upgrade')
-      if (pendingUpgrade && userPlan === 'Starter') {
+      if (pendingUpgrade && userPlan.toUpperCase() === 'STARTER') {
         sessionStorage.removeItem('pending_upgrade')
         // Trigger checkout again for this user
-        fetch('/api/checkout', {
+        fetch('/api/billing/checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            planName: pendingUpgrade,
-            price: 99000
+            plan: pendingUpgrade.toUpperCase()
           })
         })
         .then(res => res.json())
@@ -364,6 +383,33 @@ function DashboardInner({ user }: DashboardProps) {
         )
       case 'riwayat':
         return <div className="tab-content"><EventLogCard /></div>
+      case 'evakuasi':
+        return (
+          <div className="tab-content">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '20px' }}>
+              <SmartEvacuationAssistant userLocation={userLocation} />
+              <SurvivalKitVault />
+            </div>
+          </div>
+        )
+      case 'timetravel':
+        return (
+          <div className="tab-content" style={{ padding: 0, height: 'calc(100vh - 72px)', background: '#000' }}>
+            <EarthquakeGlobe3D 
+              points={bmkgMap.points || []} 
+              markerColorMode="magnitude" 
+            />
+            {/* Overlay controls if needed */}
+            <div style={{ 
+              position: 'absolute', bottom: '20px', left: '20px', zIndex: 10,
+              background: 'rgba(15, 23, 42, 0.8)', padding: '12px', borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)'
+            }}>
+              <h3 style={{ margin: 0, fontSize: '14px', color: '#fff' }}>Global Earthquake History</h3>
+              <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>Visualisasi 3D seluruh gempa terkini</p>
+            </div>
+          </div>
+        )
       case 'profil':
         return (
           <div className="tab-content">

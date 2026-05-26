@@ -133,7 +133,7 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  const isPro = userPlan === 'Professional' || userPlan === 'Enterprise'
+  const isPro = userPlan?.toUpperCase() === 'PROFESSIONAL' || userPlan?.toUpperCase() === 'ENTERPRISE'
 
   // Search state
   const [searchOpen, setSearchOpen] = useState(false)

@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -18,15 +19,75 @@ model User {
   name      String?
   avatarUrl String?  @map("avatar_url")
   provider  String?  // "google", "email"
-  plan      String   @default("Starter") // "Starter", "Professional", "Enterprise"
+  plan      Plan     @default(STARTER)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   earthquakeLogs EarthquakeLog[]
   settings       UserSettings?
+  transactions   Transaction[]
+  subscription   Subscription?
+  auditLogs      AuditLog[]
 
   @@map("users")
+}
+
+// ============================================
+// SUBSCRIPTION - Subscription lifecycle
+// ============================================
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      Plan     @default(STARTER)
+  active    Boolean  @default(true)
+  startedAt DateTime @default(now()) @map("started_at")
+  expiresAt DateTime? @map("expires_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("subscriptions")
+}
+
+// ============================================
+// TRANSACTION - Payment history
+// ============================================
+model Transaction {
+  id          String        @id @default(cuid())
+  userId      String        @map("user_id")
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoiceId   String        @unique @map("invoice_id") // Xendit Invoice ID
+  externalId  String        @unique @map("external_id") // Your unique ID
+  amount      Float
+  currency    String        @default("IDR")
+  status      PaymentStatus @default(PENDING)
+  plan        Plan
+  paidAt      DateTime?     @map("paid_at")
+  expiresAt   DateTime?     @map("expires_at")
+  metadata    Json?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([externalId])
+  @@map("transactions")
+}
+
+// ============================================
+// AUDIT_LOG - Security & history tracking
+// ============================================
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // e.g., "PAYMENT_SUCCESS", "SUBSCRIPTION_UPGRADE"
+  entity    String   // e.g., "TRANSACTION", "USER"
+  entityId  String   @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
 }
 
 // ============================================
@@ -73,22 +134,6 @@ model SensorReading {
 }
 
 // ============================================
-// ENUMS
-// ============================================
-enum Level {
-  AMAN
-  WASPADA
-  BAHAYA
-}
-
-enum Source {
-  BMKG
-  USGS
-  ESP32
-  FALLBACK
-}
-
-// ============================================
 // USER_SETTINGS - Preferensi notifikasi pengguna
 // ============================================
 model UserSettings {
@@ -115,4 +160,33 @@ model Comment {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("comments")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+enum Plan {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  EXPIRED
+  FAILED
+}
+
+enum Level {
+  AMAN
+  WASPADA
+  BAHAYA
+}
+
+enum Source {
+  BMKG
+  USGS
+  ESP32
+  FALLBACK
 }
