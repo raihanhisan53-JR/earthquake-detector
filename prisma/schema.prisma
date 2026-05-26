@@ -100,3 +100,18 @@ model UserSettings {
 
   @@map("user_settings")
 }
+
+// ============================================
+// COMMENT - Testimonial / Feedback Pengguna
+// ============================================
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  name      String
+  role      String?
+  rating    Int      @default(5)
+  avatar    String?  // initials atau URL
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("comments")
+}

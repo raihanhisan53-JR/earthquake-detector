@@ -651,6 +651,41 @@ function LiveDataSection() {
 
 /* ─── Pricing Section ─── */
 function PricingSection() {
+  const [loading, setLoading] = useState<string | null>(null)
+
+  const handleCheckout = async (plan: any) => {
+    if (plan.name === 'Starter') {
+      window.location.href = '/login'
+      return
+    }
+    if (plan.name === 'Enterprise') {
+      window.open('https://wa.me/6281234567890?text=Halo%20Sales%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20paket%20Enterprise.', '_blank')
+      return
+    }
+
+    setLoading(plan.name)
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planName: plan.name,
+          price: 99000,
+          userEmail: 'customer@example.com',
+        })
+      })
+      const { invoiceUrl } = await res.json()
+      if (invoiceUrl) {
+        window.location.href = invoiceUrl
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Gagal memproses pembayaran. Silakan hubungi kami via WhatsApp.')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   const plans = [
     {
       name: 'Starter', price: 'Gratis', period: '/ selamanya', color: '#6d28d9',
@@ -762,21 +797,24 @@ function PricingSection() {
                   ))}
                 </div>
 
-                <Link
-                  href={plan.name === 'Enterprise' ? '#kontak' : '/login'}
+                <button
+                  onClick={() => handleCheckout(plan)}
+                  disabled={loading !== null}
                   style={{
+                    width: '100%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                     padding: '14px', borderRadius: '12px', fontWeight: '700', fontSize: '15px',
-                    textDecoration: 'none',
+                    border: 'none', cursor: 'pointer',
                     ...(plan.ctaStyle === 'primary'
                       ? { background: `linear-gradient(135deg, ${plan.color}, ${plan.color}cc)`, color: '#fff', boxShadow: `0 4px 16px ${plan.color}40` }
                       : { background: 'transparent', border: `1px solid ${plan.color}`, color: plan.color }
                     ),
                     transition: 'all 0.2s',
+                    opacity: loading === plan.name ? 0.7 : 1,
                   }}
                 >
-                  {plan.cta} <ArrowRight size={16} />
-                </Link>
+                  {loading === plan.name ? 'Memproses...' : plan.cta} <ArrowRight size={16} />
+                </button>
               </div>
             </AnimatedSection>
           ))}
@@ -788,38 +826,56 @@ function PricingSection() {
 
 /* ─── Testimonials ─── */
 function TestimonialsSection() {
-  const testimonials = [
-    {
-      name: 'Ahmad Fauzi', role: 'Ketua RT 05, Yogyakarta',
-      text: 'Sejak pakai TECTRA PRO, warga RT kami jadi lebih siap. Notifikasi datang sebelum gempa dirasakan. Sistem early warning-nya nyawa!',
-      rating: 5, avatar: 'AF',
-    },
-    {
-      name: 'Dr. Siti Rahayu', role: 'Peneliti Seismologi ITB',
-      text: 'Data historisnya sangat lengkap dan akurat. Saya gunakan untuk riset pola seismik Jawa. API-nya mudah diintegrasikan dengan Python.',
-      rating: 5, avatar: 'SR',
-    },
-    {
-      name: 'Budi Santoso', role: 'Tim SAR Basarnas',
-      text: 'Dashboard real-time membantu kami koordinasi evakuasi. Fitur radius alert sangat berguna untuk menentukan zona prioritas.',
-      rating: 5, avatar: 'BS',
-    },
-    {
-      name: 'Rina Wulandari', role: 'Guru Geografi SMA',
-      text: 'Saya ajarkan siswa tentang gempa menggunakan TECTRA PRO. Mereka bisa lihat data live dan seismograf. Belajar jadi lebih seru!',
-      rating: 4, avatar: 'RW',
-    },
-    {
-      name: 'Dimas Pratama', role: 'IoT Developer',
-      text: 'Integrasi ESP32-nya seamless. Saya pasang sensor MPU6050 di rumah dan data langsung masuk ke dashboard. Keren banget!',
-      rating: 5, avatar: 'DP',
-    },
-    {
-      name: 'Hendra Wijaya', role: 'Manager Operasi Mall',
-      text: 'Kami pasang TECTRA PRO di semua mall. Saat gempa, sistem otomatis trigger alarm dan buka pintu evakuasi. Safety first!',
-      rating: 5, avatar: 'HW',
-    },
-  ]
+  const [comments, setComments] = useState<any[]>([])
+  const [newComment, setNewComment] = useState({ name: '', text: '', role: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchComments = async () => {
+    try {
+      const res = await fetch('/api/comments')
+      const data = await res.json()
+      if (Array.isArray(data) && data.length > 0) {
+        setComments(data)
+      } else {
+        setComments([
+          { name: 'Ahmad Fauzi', role: 'Ketua RT 05, Yogyakarta', text: 'Sejak pakai TECTRA PRO, warga RT kami jadi lebih siap. Notifikasi datang sebelum gempa dirasakan.', rating: 5, avatar: 'AF' },
+          { name: 'Dr. Siti Rahayu', role: 'Peneliti Seismologi ITB', text: 'Data historisnya sangat lengkap dan akurat. Saya gunakan untuk riset pola seismik Jawa.', rating: 5, avatar: 'SR' },
+          { name: 'Budi Santoso', role: 'Tim SAR Basarnas', text: 'Dashboard real-time membantu kami koordinasi evakuasi. Fitur radius alert sangat berguna.', rating: 5, avatar: 'BS' },
+        ])
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  useEffect(() => {
+    fetchComments()
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newComment.name || !newComment.text) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...newComment,
+          avatar: newComment.name.substring(0, 2).toUpperCase(),
+          rating: 5
+        })
+      })
+      if (res.ok) {
+        setNewComment({ name: '', text: '', role: '' })
+        fetchComments()
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
     <section id="testimoni" style={{ padding: '100px 32px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -834,25 +890,22 @@ function TestimonialsSection() {
             Dipercaya <span style={{ color: 'var(--accent)' }}>Ribuan Pengguna</span> di Indonesia
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '500px', margin: '0 auto' }}>
-            Dari RT biasa sampai BNPB — semua mempercayai TECTRA PRO untuk keselamatan mereka.
+            Bagikan pengalaman Anda menggunakan TECTRA PRO untuk membantu sesama.
           </p>
         </div>
       </AnimatedSection>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-        {testimonials.map((t, i) => (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '64px' }}>
+        {comments.map((t, i) => (
           <AnimatedSection key={i} delay={i * 80}>
             <div style={{
               padding: '28px', background: 'var(--bg-card)', borderRadius: '16px',
               border: '1px solid var(--border-color)',
               transition: 'all 0.3s', height: '100%',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.transform = 'translateY(-4px)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-color)'; e.currentTarget.style.transform = '' }}
-            >
+            }}>
               <div style={{ display: 'flex', gap: '4px', marginBottom: '16px' }}>
                 {Array.from({ length: 5 }).map((_, si) => (
-                  <Star key={si} size={16} fill={si < t.rating ? '#e88a00' : 'none'} color={si < t.rating ? '#e88a00' : 'var(--text-muted)'} />
+                  <Star key={si} size={16} fill={si < (t.rating || 5) ? '#e88a00' : 'none'} color={si < (t.rating || 5) ? '#e88a00' : 'var(--text-muted)'} />
                 ))}
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.7', marginBottom: '20px' }}>
@@ -864,7 +917,7 @@ function TestimonialsSection() {
                   background: 'linear-gradient(135deg, var(--accent), var(--danger))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   color: '#fff', fontWeight: '700', fontSize: '14px',
-                }}>{t.avatar}</div>
+                }}>{t.avatar || 'U'}</div>
                 <div>
                   <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px' }}>{t.name}</div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{t.role}</div>
@@ -874,6 +927,53 @@ function TestimonialsSection() {
           </AnimatedSection>
         ))}
       </div>
+
+      <AnimatedSection>
+        <div style={{
+          maxWidth: '600px', margin: '0 auto', padding: '32px',
+          background: 'var(--bg-card-alt)', borderRadius: '24px',
+          border: '1px solid var(--border-color)',
+        }}>
+          <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', textAlign: 'center' }}>Kirim Testimoni Anda</h3>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <input
+                type="text"
+                placeholder="Nama Lengkap"
+                value={newComment.name}
+                onChange={e => setNewComment({ ...newComment, name: e.target.value })}
+                required
+                style={{ padding: '12px 16px', borderRadius: '10px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+              <input
+                type="text"
+                placeholder="Pekerjaan / Lokasi"
+                value={newComment.role}
+                onChange={e => setNewComment({ ...newComment, role: e.target.value })}
+                style={{ padding: '12px 16px', borderRadius: '10px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+            </div>
+            <textarea
+              placeholder="Apa yang Anda rasakan setelah menggunakan TECTRA PRO?"
+              value={newComment.text}
+              onChange={e => setNewComment({ ...newComment, text: e.target.value })}
+              required
+              rows={4}
+              style={{ padding: '12px 16px', borderRadius: '10px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'none' }}
+            />
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                padding: '14px', borderRadius: '12px', background: 'var(--accent)', color: '#fff',
+                border: 'none', fontWeight: '700', cursor: 'pointer', transition: 'opacity 0.2s',
+              }}
+            >
+              {submitting ? 'Mengirim...' : 'Kirim Testimoni'}
+            </button>
+          </form>
+        </div>
+      </AnimatedSection>
     </section>
   )
 }
@@ -983,13 +1083,13 @@ function FinalCTASection() {
               >
                 Mulai Sekarang — Gratis <ArrowRight size={20} />
               </Link>
-              <a href="mailto:hello@tectrapro.id" style={{
+              <a href="https://wa.me/6281234567890?text=Halo%20Admin%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20layanan%20Anda." target="_blank" rel="noopener noreferrer" style={{
                 display: 'inline-flex', alignItems: 'center', gap: '10px',
                 padding: '16px 36px', fontSize: '16px', fontWeight: '600', borderRadius: '50px',
                 background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)',
                 color: 'var(--text-primary)', textDecoration: 'none',
               }}>
-                <Mail size={20} /> Hubungi Kami
+                <MessageCircle size={20} /> Hubungi Kami
               </a>
             </div>
           </div>
@@ -1032,8 +1132,8 @@ function Footer() {
               Sistem monitoring gempa bumi real-time terpercaya di Indonesia. Data resmi BMKG & USGS, sensor IoT, dan AI prediktif dalam satu platform.
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>
-              {[Share2, Code, Mail].map((Icon, i) => (
-                <a key={i} href="#" style={{
+              {[Share2, Code, MessageCircle].map((Icon, i) => (
+                <a key={i} href={i === 2 ? "https://wa.me/6281234567890" : "#"} target={i === 2 ? "_blank" : "_self"} style={{
                   width: '36px', height: '36px', borderRadius: '8px',
                   background: 'var(--bg-card-alt)', border: '1px solid var(--border-color)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
