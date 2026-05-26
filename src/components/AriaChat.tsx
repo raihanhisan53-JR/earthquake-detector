@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Send, Bot, User, Trash2, AlertTriangle, Info, Search, X, ChevronUp, ChevronDown } from 'lucide-react'
+import { Send, Bot, User, Trash2, AlertTriangle, Info, Search, X, ChevronUp, ChevronDown, Lock, ArrowRight } from 'lucide-react'
 
 interface Message {
   id: string
@@ -12,6 +12,7 @@ interface Message {
 }
 
 interface AriaChatProps {
+  userPlan?: string
   latestEarthquake?: {
     magnitude: number
     location: string
@@ -126,11 +127,13 @@ function MessageBubble({ msg, searchQuery }: { msg: Message; searchQuery: string
   )
 }
 
-export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel }: AriaChatProps) {
+export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel }: AriaChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+
+  const isPro = userPlan === 'Professional' || userPlan === 'Enterprise'
 
   // Search state
   const [searchOpen, setSearchOpen] = useState(false)
@@ -268,6 +271,70 @@ export default function AriaChat({ latestEarthquake, esp32Connected, esp32Status
   }
 
   const displayMessages = searchQuery.trim() ? filteredMessages : messages
+
+  if (!isPro) {
+    return (
+      <div style={{
+        height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        background: 'radial-gradient(circle at center, #0f172a 0%, #050505 100%)', padding: '32px', textAlign: 'center'
+      }}>
+        <div style={{
+          width: '80px', height: '80px', borderRadius: '24px', background: 'rgba(139,92,246,0.1)',
+          border: '1px solid rgba(139,92,246,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: '24px', position: 'relative'
+        }}>
+          <Bot size={40} color="#8b5cf6" style={{ opacity: 0.5 }} />
+          <div style={{
+            position: 'absolute', bottom: '-5px', right: '-5px', width: '32px', height: '32px',
+            borderRadius: '10px', background: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: '3px solid #050505', boxShadow: '0 4px 12px rgba(220,38,38,0.3)'
+          }}>
+            <Lock size={16} color="#fff" />
+          </div>
+        </div>
+        
+        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#fff', marginBottom: '12px' }}>
+          Ngobrol Eksklusif dengan <span style={{ color: '#8b5cf6' }}>ARIA AI</span>
+        </h2>
+        
+        <p style={{ color: '#94a3b8', fontSize: '15px', lineHeight: '1.6', maxWidth: '400px', marginBottom: '32px' }}>
+          Dapatkan asisten pribadi yang siap membantu analisis gempa, prosedur evakuasi, dan interpretasi data sensor Anda secara real-time.
+        </p>
+
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%', maxWidth: '400px', marginBottom: '32px'
+        }}>
+          {[
+            'Analisis Data Real-time',
+            'Panduan Evakuasi AI',
+            'Interpretasi Sensor',
+            'Chat Tanpa Batas'
+          ].map(feat => (
+            <div key={feat} style={{
+              padding: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '12px', fontSize: '13px', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '8px'
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#8b5cf6' }} />
+              {feat}
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={() => window.location.href = '/#harga'}
+          style={{
+            padding: '16px 32px', borderRadius: '14px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
+            color: '#fff', fontWeight: '700', border: 'none', cursor: 'pointer', display: 'flex',
+            alignItems: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(109,40,217,0.3)', transition: 'transform 0.2s'
+          }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          Upgrade ke Paket PRO <ArrowRight size={18} />
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="aria-chat">

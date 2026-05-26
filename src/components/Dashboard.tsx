@@ -59,6 +59,7 @@ function DashboardInner({ user }: DashboardProps) {
   const [sidebarOpen, setSidebarOpen]   = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [theme, setTheme]               = useState('dark')
+  const [userPlan, setUserPlan]         = useState('Starter')
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [appNotices, setAppNotices]     = useState<AppNotice[]>([])
   const [mounted, setMounted]           = useState(false)
@@ -83,9 +84,11 @@ function DashboardInner({ user }: DashboardProps) {
     const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
     const savedTheme     = localStorage.getItem('theme') || 'dark'
     const savedNotif     = localStorage.getItem('notificationsEnabled')
+    const savedPlan      = localStorage.getItem('userPlan') || 'Starter'
     setActiveTabState(savedTab)
     setSidebarCollapsed(savedCollapsed)
     setTheme(savedTheme)
+    setUserPlan(savedPlan)
     if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
   }, [])
 
@@ -262,7 +265,7 @@ function DashboardInner({ user }: DashboardProps) {
     { id: 'peta',     icon: <MapPinned size={18} />, label: t('map'),        desc: 'Peta gempa interaktif' },
     { id: 'globe',    icon: <Globe2 size={18} />,    label: t('googleMaps'), desc: 'Google Maps BMKG live' },
     { id: 'esp32',    icon: <Cpu size={18} />,       label: t('esp32'),      desc: t('esp32') },
-    { id: 'riwayat',  icon: <History size={18} />,   label: t('history'),    desc: t('history') },
+    { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',       desc: 'Asisten AI Cerdas' },
   ]
 
   // Build latestEarthquake object for ARIA from real BMKG data
@@ -329,6 +332,7 @@ function DashboardInner({ user }: DashboardProps) {
             flexDirection: 'column',
           }}>
             <AriaChat
+              userPlan={userPlan}
               latestEarthquake={latestEarthquakeForAria}
               esp32Connected={esp32.connected}
               esp32Status={esp32.status}
