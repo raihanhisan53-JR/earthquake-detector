@@ -109,7 +109,10 @@ export function useNotifications({
   }, [sirenEnabled, addNotificationInternal]);
 
   // ── Stop Alarm ─────────────────────────────────────
-
+  const stopAlarm = useCallback(() => {
+    stopAllAudio();
+    sirenActiveRef.current = false;
+  }, []);
 
   // ── Public addNotification: respects magnitude threshold ──────
   // Pakai ref untuk threshold agar tidak stale di closure

@@ -136,6 +136,8 @@ function DashboardInner({ user }: DashboardProps) {
     addNotification,
     notifThreshold,
     setNotifThreshold,
+    triggerTestAlarm,
+    stopAlarm,
   } = useNotifications({
     esp32AlertLevel: esp32.alertLevel,
     esp32Connected:  esp32.connected,
@@ -590,6 +592,8 @@ function DashboardInner({ user }: DashboardProps) {
         installPrompt={installPrompt}
         isInstalled={isInstalled}
         installApp={installApp}
+        triggerTestAlarm={triggerTestAlarm}
+        stopAlarm={stopAlarm}
       />
 
       <div className="dashboard-body">
