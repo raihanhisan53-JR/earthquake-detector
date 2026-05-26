@@ -6,6 +6,8 @@ import { useState } from 'react'
 import { Activity, Mail, Lock, Eye, EyeOff, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')

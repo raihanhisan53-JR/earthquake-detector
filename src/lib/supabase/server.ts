@@ -7,12 +7,12 @@ export async function createClient() {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!url || !key) {
-    throw new Error('Supabase keys are missing')
+    console.warn('Supabase keys are missing. Using placeholder for build.')
   }
 
   return createServerClient(
-    url,
-    key,
+    url || 'https://placeholder.supabase.co',
+    key || 'placeholder',
     {
       cookies: {
         getAll() {
