@@ -5,7 +5,7 @@ import { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { MapPinned, Cpu, History, Globe2, Activity, Clock, Radio, Database, AlertTriangle, Bot } from 'lucide-react'
+import { MapPinned, Cpu, Globe2, Activity, Clock, Radio, Database, AlertTriangle, Bot } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -76,6 +76,32 @@ function DashboardInner({ user }: DashboardProps) {
   const bmkgMap   = useBMKGMap()
   const { installPrompt, isInstalled, installApp } = usePWA()
 
+  const dismissNotice = useCallback((id: string) => {
+    const timer = noticeTimersRef.current.get(id)
+    if (timer) { window.clearTimeout(timer); noticeTimersRef.current.delete(id) }
+    setAppNotices(current => current.filter(n => n.id !== id))
+  }, [])
+
+  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: NotifyPayload) => {
+    if (!title) return ''
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    setAppNotices(current => [...current, { id, type, title, message, timestamp: Date.now() }].slice(-4))
+    const timeoutId = window.setTimeout(() => dismissNotice(id), duration)
+    noticeTimersRef.current.set(id, timeoutId)
+    return id
+  }, [dismissNotice])
+
+  const handleSetActiveTab = useCallback((tab: string) => {
+    setActiveTabState(tab)
+    localStorage.setItem('activeTab', tab)
+  }, [])
+
+  const handleLogout = useCallback(async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }, [supabase.auth, router])
+
   // Hydration fix: baca localStorage setelah mount
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -137,7 +163,7 @@ function DashboardInner({ user }: DashboardProps) {
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [notifyUser])
+  }, [notifyUser, userPlan])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -145,32 +171,6 @@ function DashboardInner({ user }: DashboardProps) {
     }, 0)
     return () => clearTimeout(timer)
   }, [])
-
-  const handleSetActiveTab = (tab: string) => {
-    setActiveTabState(tab)
-    localStorage.setItem('activeTab', tab)
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  const dismissNotice = useCallback((id: string) => {
-    const timer = noticeTimersRef.current.get(id)
-    if (timer) { window.clearTimeout(timer); noticeTimersRef.current.delete(id) }
-    setAppNotices(current => current.filter(n => n.id !== id))
-  }, [])
-
-  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: NotifyPayload) => {
-    if (!title) return ''
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    setAppNotices(current => [...current, { id, type, title, message, timestamp: Date.now() }].slice(-4))
-    const timeoutId = window.setTimeout(() => dismissNotice(id), duration)
-    noticeTimersRef.current.set(id, timeoutId)
-    return id
-  }, [dismissNotice])
 
   // ── Auto-fetch BMKG & USGS untuk Supabase (data juga dipakai di Globe & ARIA) ──
 
