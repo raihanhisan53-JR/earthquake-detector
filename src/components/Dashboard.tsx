@@ -78,23 +78,72 @@ function DashboardInner({ user }: DashboardProps) {
 
   // Hydration fix: baca localStorage setelah mount
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-    const savedTab       = localStorage.getItem('activeTab') || 'overview'
-    const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
-    const savedTheme     = localStorage.getItem('theme') || 'dark'
-    const savedNotif     = localStorage.getItem('notificationsEnabled')
-    const savedPlan      = localStorage.getItem('userPlan') || 'Starter'
-    setActiveTabState(savedTab)
-    setSidebarCollapsed(savedCollapsed)
-    setTheme(savedTheme)
-    setUserPlan(savedPlan)
-    if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
-  }, [])
+    const timer = setTimeout(() => {
+      setMounted(true)
+      const savedTab       = localStorage.getItem('activeTab') || 'overview'
+      const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true'
+      const savedTheme     = localStorage.getItem('theme') || 'dark'
+      const savedNotif     = localStorage.getItem('notificationsEnabled')
+      const savedPlan      = localStorage.getItem('userPlan') || 'Starter'
+      
+      setActiveTabState(savedTab)
+      setSidebarCollapsed(savedCollapsed)
+      setTheme(savedTheme)
+      setUserPlan(savedPlan)
+      if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
+
+      // Fetch actual settings and plan from API
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data.plan) {
+            setUserPlan(data.plan)
+            localStorage.setItem('userPlan', data.plan)
+          }
+        })
+        .catch(console.error)
+
+      // Check for payment success from URL
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('pay_success') === 'true') {
+        notifyUser({
+          type: 'info',
+          title: 'Pembayaran Berhasil!',
+          message: 'Paket Pro Anda telah aktif. Fitur ARIA AI kini terbuka.',
+          duration: 6000
+        })
+        // Clear query param
+        window.history.replaceState({}, '', '/')
+      }
+
+      // Check for pending upgrade after login
+      const pendingUpgrade = sessionStorage.getItem('pending_upgrade')
+      if (pendingUpgrade && userPlan === 'Starter') {
+        sessionStorage.removeItem('pending_upgrade')
+        // Trigger checkout again for this user
+        fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            planName: pendingUpgrade,
+            price: 99000
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.invoiceUrl) window.location.href = data.invoiceUrl
+        })
+        .catch(console.error)
+      }
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [notifyUser])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setNow(Date.now())
+    const timer = setTimeout(() => {
+      setNow(Date.now())
+    }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
   const handleSetActiveTab = (tab: string) => {

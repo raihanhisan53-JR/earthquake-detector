@@ -231,7 +231,7 @@ export default function AnalitikCard() {
     timerRef.current   = window.setInterval(() => fetchData(), AUTO_REFRESH_MS);
     cdTimerRef.current = window.setInterval(() => {
       cdRef.current -= 1;
-      if (cdRef.current < 0) cdRef.current = AUTO_REFRESH_MS / 1000;
+      if (cdRef.current <= 0) cdRef.current = AUTO_REFRESH_MS / 1000;
       setCountdown(cdRef.current);
     }, 1000);
     return () => {
@@ -243,16 +243,17 @@ export default function AnalitikCard() {
 
   const stats = useMemo(() => {
     if (!events.length) return null;
-    const mags   = events.map(e => e.magnitude);
+    const recentEvents = events.slice(0, 15);
+    const mags   = recentEvents.map(e => e.magnitude);
     const maxMag = Math.max(...mags);
     const avgMag = mags.reduce((a, b) => a + b, 0) / mags.length;
-    const above7 = events.filter(e => e.magnitude >= 7).length;
-    const above6 = events.filter(e => e.magnitude >= 6 && e.magnitude < 7).length;
-    const above5 = events.filter(e => e.magnitude >= 5 && e.magnitude < 6).length;
-    const above4 = events.filter(e => e.magnitude >= 4 && e.magnitude < 5).length;
-    const below4 = events.filter(e => e.magnitude < 4).length;
-    const tsunami = events.filter(e => e.potensi?.toLowerCase().includes('tsunami')).length;
-    return { total: events.length, maxMag: maxMag.toFixed(1), avgMag: avgMag.toFixed(2), above7, above6, above5, above4, below4, tsunami };
+    const above7 = recentEvents.filter(e => e.magnitude >= 7).length;
+    const above6 = recentEvents.filter(e => e.magnitude >= 6 && e.magnitude < 7).length;
+    const above5 = recentEvents.filter(e => e.magnitude >= 5 && e.magnitude < 6).length;
+    const above4 = recentEvents.filter(e => e.magnitude >= 4 && e.magnitude < 5).length;
+    const below4 = recentEvents.filter(e => e.magnitude < 4).length;
+    const tsunami = recentEvents.filter(e => e.potensi?.toLowerCase().includes('tsunami')).length;
+    return { total: recentEvents.length, maxMag: maxMag.toFixed(1), avgMag: avgMag.toFixed(2), above7, above6, above5, above4, below4, tsunami };
   }, [events]);
 
   const sparkData = useMemo(

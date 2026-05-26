@@ -15,11 +15,17 @@ export async function GET() {
       where: { userId: user.id }
     })
 
-    if (!settings) {
-      return NextResponse.json({ notifyRegion: 'Semua', notifyThreshold: 4.0 })
-    }
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { plan: true }
+    })
 
-    return NextResponse.json(settings)
+    return NextResponse.json({
+      ...settings,
+      plan: dbUser?.plan || 'Starter',
+      notifyRegion: settings?.notifyRegion || 'Semua',
+      notifyThreshold: settings?.notifyThreshold || 4.0
+    })
   } catch (error) {
     console.error('GET /api/settings error:', error)
     return NextResponse.json({ notifyRegion: 'Semua', notifyThreshold: 4.0 })

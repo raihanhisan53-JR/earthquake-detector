@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import {
   Activity, ShieldAlert, Cpu, Map, ChevronRight, BarChart3,
   AlertTriangle, Clock, Waves, Navigation, Smartphone, Globe,
@@ -658,6 +660,15 @@ function PricingSection() {
       window.location.href = '/login'
       return
     }
+    
+    // Untuk Professional, kita harus login dulu agar tau siapa yang bayar
+    if (plan.name === 'Professional') {
+      // Simpan keinginan upgrade di session storage
+      sessionStorage.setItem('pending_upgrade', 'Professional')
+      window.location.href = '/login'
+      return
+    }
+
     if (plan.name === 'Enterprise') {
       window.open('https://wa.me/6281234567890?text=Halo%20Sales%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20paket%20Enterprise.', '_blank')
       return

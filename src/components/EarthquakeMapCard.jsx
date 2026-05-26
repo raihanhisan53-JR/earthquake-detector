@@ -380,7 +380,7 @@ export default function EarthquakeMapCard({
   // 'Semua' | 'BMKG' | 'USGS'
   const [dataSourceFilter, setDataSourceFilter] = useState('Semua');
   const [searchTarget, setSearchTarget] = useState(null);
-  const [clockTick, setClockTick] = useState(0);
+  const [now, setNow] = useState(Date.now());
   const [selectedPointId, setSelectedPointId] = useState(null);
   const [showPlateBoundaries, setShowPlateBoundaries] = useState(storedPrefs.showPlateBoundaries);
   const [plateGeoJson, setPlateGeoJson] = useState(null);
@@ -413,14 +413,12 @@ export default function EarthquakeMapCard({
   const windowMs = resolveTimeWindowMs(timeRange);
 
   useEffect(() => {
-    const id = window.setInterval(() => setClockTick((n) => n + 1), 30_000);
+    const id = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(id);
   }, []);
 
   const filteredPoints = useMemo(() => {
-    void clockTick;
-    // eslint-disable-next-line react-hooks/purity
-    const t = Date.now();
+    const t = now;
     let pts = sourcePoints.filter((point) => {
       const byMagnitude = point.magnitude >= minMagnitude;
       const byRegion = region === 'Semua' || point.region === region;
@@ -437,20 +435,21 @@ export default function EarthquakeMapCard({
     }
     
     return pts;
-  }, [sourcePoints, minMagnitude, region, windowMs, clockTick, isTimeLapse, timeLapseIndex, isWithinRadius]);
+  }, [sourcePoints, minMagnitude, region, windowMs, now, isTimeLapse, timeLapseIndex, isWithinRadius]);
 
   useEffect(() => {
     if (!isTimeLapse) return;
     const totalPts = sourcePoints.filter((point) => {
       const bySource = dataSourceFilter === 'Semua' || point.source === dataSourceFilter;
-      return point.magnitude >= minMagnitude && (region === 'Semua' || point.region === region) && passesTimeWindow(point, windowMs, Date.now()) && bySource;
+      return point.magnitude >= minMagnitude && (region === 'Semua' || point.region === region) && passesTimeWindow(point, windowMs, now) && bySource;
     }).length;
     
     if (timeLapseIndex >= totalPts - 1) {
       // pause when finished
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsTimeLapse(false);
-      return;
+      const timer = setTimeout(() => {
+        setIsTimeLapse(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const interval = setInterval(() => {
@@ -458,7 +457,7 @@ export default function EarthquakeMapCard({
     }, 800); // speed of timelapse
 
     return () => clearInterval(interval);
-  }, [isTimeLapse, timeLapseIndex, sourcePoints, minMagnitude, region, windowMs]);
+  }, [isTimeLapse, timeLapseIndex, sourcePoints, minMagnitude, region, windowMs, now]);
 
   const lacksEventTime = useMemo(
     () =>
@@ -494,9 +493,7 @@ export default function EarthquakeMapCard({
   }, [filteredPoints, followLatest, mode, windowMs, sourcePoints, minMagnitude, region, selectedPointId]);
 
   const mapMarkers = useMemo(() => {
-    void clockTick;
-    // eslint-disable-next-line react-hooks/purity
-    const t = Date.now();
+    const t = now;
     if (!windowMs || mode === 'simulation') {
       return filteredPoints.map((point) => ({ point, dimmed: false }));
     }
@@ -517,7 +514,7 @@ export default function EarthquakeMapCard({
       point,
       dimmed: !passesTimeWindow(point, windowMs, t),
     }));
-  }, [filteredPoints, windowMs, mode, sourcePoints, minMagnitude, region, clockTick]);
+  }, [filteredPoints, windowMs, mode, sourcePoints, minMagnitude, region, now]);
 
   const listSource = mapMarkers; 
 
@@ -656,8 +653,7 @@ export default function EarthquakeMapCard({
     }
 
     const eventAgeMs = Number.isFinite(latestAlertPoint.epochMs)
-      // eslint-disable-next-line react-hooks/purity
-      ? Date.now() - latestAlertPoint.epochMs
+      ? now - latestAlertPoint.epochMs
       : Number.POSITIVE_INFINITY;
     // Allow alerts for events up to 60 minutes old to account for BMKG processing delay
     const isFreshRealtimeEvent = mode === 'simulation' || eventAgeMs <= 60 * 60 * 1000;
@@ -667,8 +663,6 @@ export default function EarthquakeMapCard({
       return; // Already notified about this specific earthquake
     }
 
-    // eslint-disable-next-line react-hooks/purity
-    const now = Date.now();
     const tooSoonSinceLastAlert = now - lastAlertTimestampRef.current < 15000;
 
     if (!shouldRaiseAlert || !isFreshRealtimeEvent || !notificationsEnabled) {

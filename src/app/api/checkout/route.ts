@@ -1,3 +1,4 @@
+import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 // Catatan: Anda perlu menginstal xendit-node: npm install xendit-node
@@ -5,7 +6,14 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { planName, price, userEmail } = await req.json()
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { planName, price } = await req.json()
     const secretKey = process.env.XENDIT_SECRET_KEY
 
     // Gunakan URL dinamis dari request agar redirect kembali ke tempat asal (Vercel atau Localhost)
@@ -26,11 +34,11 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        external_id: `invoice-${Date.now()}`,
+        external_id: `invoice-${user.id}-${Date.now()}`,
         amount: price,
-        payer_email: userEmail,
+        payer_email: user.email,
         description: `Pembayaran Paket ${planName} TECTRA PRO`,
-        success_redirect_url: `${origin}/dashboard`,
+        success_redirect_url: `${origin}/api/checkout/success?plan=${planName}`,
         failure_redirect_url: `${origin}/#harga`,
       })
     })
