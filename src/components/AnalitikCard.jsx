@@ -167,9 +167,11 @@ export default function AnalitikCard() {
   // Generate random base count on new latest to simulate active users
   useEffect(() => {
     if (latest) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFeltCount(Math.floor(Math.random() * 5000) + 100);
-      setHasFelt(false);
+      const timer = setTimeout(() => {
+        setFeltCount(Math.floor(Math.random() * 5000) + 100);
+        setHasFelt(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [latest]);
 

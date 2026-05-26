@@ -1,12 +1,14 @@
 "use client"
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import Globe from 'react-globe.gl';
+import * as THREE from 'three';
 
 export default function EarthquakeGlobe3D({ points, markerColorMode }) {
   const globeEl = useRef();
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
+  // Monitor container size for responsive globe
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
@@ -22,10 +24,11 @@ export default function EarthquakeGlobe3D({ points, markerColorMode }) {
   }, []);
 
   const getMagnitudeColor = (mag) => {
-    if (mag >= 6) return 'rgba(239, 68, 68, 0.9)';
-    if (mag >= 5) return 'rgba(249, 115, 22, 0.8)';
-    if (mag >= 4) return 'rgba(59, 130, 246, 0.7)';
-    return 'rgba(34, 197, 94, 0.6)';
+    if (mag >= 7) return '#ff0000'; // Critical Red
+    if (mag >= 6) return '#ef4444'; // Bright Red
+    if (mag >= 5) return '#f97316'; // Orange
+    if (mag >= 4) return '#3b82f6'; // Blue
+    return '#22c55e'; // Green
   };
 
   const getDepthColor = (depthKm) => {
@@ -39,62 +42,127 @@ export default function EarthquakeGlobe3D({ points, markerColorMode }) {
     return points.map(p => ({
       lat: p.lat,
       lng: p.lon,
-      size: Math.max(0.1, p.magnitude / 6),
+      // Size based on magnitude, but controlled altitude for "pro" look
+      magnitude: p.magnitude,
+      altitude: Math.min(0.5, p.magnitude / 20), 
       color: markerColorMode === 'depth' ? getDepthColor(p.depthKm) : getMagnitudeColor(p.magnitude),
-      label: `${p.wilayah} (M${p.magnitude})`
+      label: `<b>${p.wilayah}</b><br/>M${p.magnitude} · Depth: ${p.kedalaman || '-'}`
     }));
   }, [points, markerColorMode]);
 
   const ringsData = useMemo(() => {
-    // Tsunami risk / recent big earthquakes get expanding rings
+    // Large earthquakes or tsunami risk get pulse rings
     return points.filter(p => p.magnitude >= 5 || p.potensi?.toLowerCase().includes('tsunami')).map(p => ({
       lat: p.lat,
       lng: p.lon,
       maxR: p.magnitude * 2.5,
-      propagationSpeed: p.magnitude > 6 ? 4 : 2,
-      repeatPeriod: 1200,
-      color: p.potensi?.toLowerCase().includes('tsunami') ? '#dc2626' : (p.magnitude >= 6 ? '#ef4444' : '#f97316')
+      propagationSpeed: p.magnitude > 6 ? 3 : 1.5,
+      repeatPeriod: 2000,
+      color: p.potensi?.toLowerCase().includes('tsunami') ? '#dc2626' : getMagnitudeColor(p.magnitude)
     }));
   }, [points]);
 
   useEffect(() => {
     if (globeEl.current) {
-      globeEl.current.controls().autoRotate = false;
-      globeEl.current.controls().enableZoom = true;
-      globeEl.current.controls().enableDamping = true;
-      globeEl.current.controls().dampingFactor = 0.1;
-      // Focus on Indonesia — tetap di sini, tidak berputar
-      globeEl.current.pointOfView({ lat: -2.5, lng: 118, altitude: 1.2 }, 1500);
+      const controls = globeEl.current.controls();
+      controls.autoRotate = false;
+      controls.enableZoom = true;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.rotateSpeed = 0.5;
+
+      // Professional night-time look
+      const scene = globeEl.current.scene();
+      
+      // Add subtle glow
+      const ambientLight = new THREE.AmbientLight(0xbbbbbb, 0.3);
+      scene.add(ambientLight);
+      
+      // Atmosphere config
+      globeEl.current.pointOfView({ lat: -2.5, lng: 118, altitude: 2.5 }, 0);
+      globeEl.current.pointOfView({ lat: -2.5, lng: 118, altitude: 1.5 }, 2000);
     }
   }, []);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', background: '#0a0f1d', overflow: 'hidden' }}>
+    <div ref={containerRef} className="globe-container" style={{ 
+      width: '100%', 
+      height: '100%', 
+      background: 'radial-gradient(circle at center, #0a192f 0%, #020617 100%)', 
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
       <Globe
         ref={globeEl}
         width={dimensions.width}
         height={dimensions.height}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+        // Google Earth / Pro style textures
+        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
         bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
         backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+        
+        // Atmosphere
+        showAtmosphere={true}
+        atmosphereColor="#3a7bd5"
+        atmosphereAltitude={0.15}
+
+        // Earthquake Points (Vertical bars style)
         pointsData={globeData}
-        pointAltitude="size"
+        pointAltitude="altitude"
         pointColor="color"
-        pointRadius={0.2}
+        pointRadius={0.25}
         pointLabel="label"
+        
+        // Pulse Rings
         ringsData={ringsData}
         ringColor="color"
         ringMaxRadius="maxR"
         ringPropagationSpeed="propagationSpeed"
         ringRepeatPeriod="repeatPeriod"
-        backgroundColor="rgba(0,0,0,0)"
-        htmlElementsData={points.slice(0, 1)} // Top 1 point for test
-        htmlElement={(d) => {
-          const el = document.createElement('div');
-          el.innerHTML = `<div style="color: red; font-size: 10px; font-weight: bold; transform: translate(-50%, -50%); pointer-events: none;">🔴 M${d.magnitude}</div>`;
-          return el;
+
+        // Interactions
+        onPointClick={(point) => {
+          globeEl.current.pointOfView({ lat: point.lat, lng: point.lng, altitude: 1.0 }, 1000);
         }}
+        
+        backgroundColor="rgba(0,0,0,0)"
       />
+      
+      {/* Legend Overlay */}
+      <div style={{
+        position: 'absolute',
+        bottom: '20px',
+        left: '20px',
+        padding: '12px',
+        background: 'rgba(15, 23, 42, 0.8)',
+        backdropFilter: 'blur(8px)',
+        borderRadius: '8px',
+        border: '1px solid rgba(255,255,255,0.1)',
+        pointerEvents: 'none',
+        fontSize: '11px',
+        color: '#fff',
+        zIndex: 10
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>Globe Visualization</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }}></span>
+            <span>Magnitudo Tinggi (≥ 6.0)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f97316' }}></span>
+            <span>Magnitudo Sedang (5.0 - 5.9)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6' }}></span>
+            <span>Magnitudo Rendah (4.0 - 4.9)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+            <div style={{ width: '12px', height: '2px', background: '#dc2626' }}></div>
+            <span>Potensi Tsunami</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

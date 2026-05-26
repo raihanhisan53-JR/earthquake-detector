@@ -530,6 +530,8 @@ function DashboardInner({ user }: DashboardProps) {
     cuaca:     t('weather'),
     esp32:     t('esp32'),
     riwayat:   t('history'),
+    evakuasi:  'Evakuasi',
+    timetravel: 'History 3D',
     aria:      t('aria'),
     profil:    t('profile'),
   }

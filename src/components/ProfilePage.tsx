@@ -76,7 +76,7 @@ export default function ProfilePage({ user, onBack, onLogout }: Props) {
     const reader = new FileReader()
     reader.onload = () => {
       // Resize via canvas
-      const img = new Image()
+      const img = new window.Image()
       img.onload = () => {
         const canvas = document.createElement('canvas')
         const MAX = 256

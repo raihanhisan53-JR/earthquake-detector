@@ -3,7 +3,7 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import {
   CloudSun, Cpu, History, Home, LayoutGrid, MapPinned,
-  Play, X, Globe, Globe2, Video, Bot
+  Play, X, Globe, Globe2, Video, Bot, Shield
 } from 'lucide-react';
 import { useI18n } from '../hooks/useI18n';
 
@@ -65,16 +65,14 @@ export default function Sidebar({
       items: [
         { id: 'esp32',  icon: <Cpu size={18} />,  label: t('esp32') },
         { id: 'edukasi',icon: <Play size={18} />, label: t('education')      },
+        { id: 'evakuasi', icon: <Shield size={18} />, label: 'Evakuasi' },
+        { id: 'timetravel', icon: <History size={18} />, label: 'History 3D' },
         { id: 'aria',   icon: <Bot size={18} />,  label: t('aria')      },
       ],
     },
   ];
 
   const isVisuallyCollapsed = collapsed && !isHovered;
-
-
-
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   let sidebarClass = `sidebar ${mobileOpen ? 'mobile-open' : ''}`;
   if (collapsed) {
@@ -143,8 +141,6 @@ export default function Sidebar({
               ))}
             </div>
           ))}
-
-
         </nav>
 
         {/* ── Footer / Profile ── */}
@@ -173,7 +169,6 @@ export default function Sidebar({
             <div className="sidebar-profile-info">
               <span className="sidebar-profile-name">{displayName}</span>
               <span className="sidebar-profile-sub">
-                <span className={`sidebar-esp-dot ${connected ? 'online' : 'offline'}`} />
                 {connected ? 'ESP32 Online' : 'ESP32 Offline'}
               </span>
             </div>
