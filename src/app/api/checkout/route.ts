@@ -15,6 +15,8 @@ export async function POST(req: Request) {
     // Menggunakan Basic Auth sesuai standar Xendit
     const authHeader = Buffer.from(`${secretKey}:`).toString('base64')
 
+    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
     const response = await fetch('https://api.xendit.co/v2/invoices', {
       method: 'POST',
       headers: {
@@ -26,8 +28,8 @@ export async function POST(req: Request) {
         amount: price,
         payer_email: userEmail,
         description: `Pembayaran Paket ${planName} TECTRA PRO`,
-        success_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`,
-        failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/#harga`,
+        success_redirect_url: `${origin}/dashboard`,
+        failure_redirect_url: `${origin}/#harga`,
       })
     })
 
