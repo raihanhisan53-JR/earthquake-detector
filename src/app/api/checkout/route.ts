@@ -5,23 +5,41 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
   try {
-    const { planName, price, userEmail, userName } = await req.json()
+    const { planName, price, userEmail } = await req.json()
+    const secretKey = process.env.XENDIT_SECRET_KEY
 
-    // Mock response untuk simulasi Xendit
-    // Dalam produksi, gunakan:
-    // const x = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY! })
-    // const { Invoice } = x
-    // const invoice = new Invoice()
-    // const result = await invoice.createInvoice({ ... })
+    if (!secretKey) {
+      return NextResponse.json({ error: 'Xendit Secret Key tidak terkonfigurasi' }, { status: 500 })
+    }
 
-    console.log(`Creating invoice for ${planName} - ${price} for ${userEmail}`)
+    // Menggunakan Basic Auth sesuai standar Xendit
+    const authHeader = Buffer.from(`${secretKey}:`).toString('base64')
 
-    // Simulasi URL Invoice Xendit
-    const invoiceUrl = `https://checkout.xendit.co/web/test-invoice-${Math.random().toString(36).substring(7)}`
+    const response = await fetch('https://api.xendit.co/v2/invoices', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authHeader}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        external_id: `invoice-${Date.now()}`,
+        amount: price,
+        payer_email: userEmail,
+        description: `Pembayaran Paket ${planName} TECTRA PRO`,
+        success_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/dashboard`,
+        failure_redirect_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/#harga`,
+      })
+    })
 
-    return NextResponse.json({ invoiceUrl })
-  } catch (error) {
+    const result = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(result.message || 'Gagal membuat invoice Xendit')
+    }
+
+    return NextResponse.json({ invoiceUrl: result.invoice_url })
+  } catch (error: any) {
     console.error('Xendit checkout error:', error)
-    return NextResponse.json({ error: 'Gagal membuat invoice pembayaran' }, { status: 500 })
+    return NextResponse.json({ error: error.message || 'Gagal membuat invoice pembayaran' }, { status: 500 })
   }
 }
