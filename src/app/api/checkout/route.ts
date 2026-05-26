@@ -8,14 +8,16 @@ export async function POST(req: Request) {
     const { planName, price, userEmail } = await req.json()
     const secretKey = process.env.XENDIT_SECRET_KEY
 
+    // Gunakan URL dinamis dari request agar redirect kembali ke tempat asal (Vercel atau Localhost)
+    const url = new URL(req.url)
+    const origin = `${url.protocol}//${req.headers.get('host')}`
+
     if (!secretKey) {
       return NextResponse.json({ error: 'Xendit Secret Key tidak terkonfigurasi' }, { status: 500 })
     }
 
     // Menggunakan Basic Auth sesuai standar Xendit
     const authHeader = Buffer.from(`${secretKey}:`).toString('base64')
-
-    const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
     const response = await fetch('https://api.xendit.co/v2/invoices', {
       method: 'POST',

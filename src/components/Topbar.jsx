@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   AlertTriangle,
+  Bell,
   BellOff,
   FlaskConical,
   Link,
@@ -60,44 +61,6 @@ const getAvatarColor = (name) => {
   return colors[Math.abs(hash) % colors.length]
 }
 
-// ─── Audio singleton di luar React ───────────────────────────────────────────
-// Disimpan di module scope agar tidak hilang saat re-render
-let _siren = null;
-
-function playSiren(onOk, onErr) {
-  // Hentikan yang lama dulu
-  if (_siren) {
-    try { _siren.pause(); } catch (_) { /* ignore */ }
-    _siren = null;
-  }
-
-  function trySource(src, fallbackSrc) {
-    const a = new Audio(src);
-    a.loop = true;
-    a.volume = 1.0;
-    _siren = a;
-    a.play().then(onOk).catch(() => {
-      if (fallbackSrc) {
-        const b = new Audio(fallbackSrc);
-        b.loop = true;
-        b.volume = 1.0;
-        _siren = b;
-        b.play().then(onOk).catch(onErr);
-      } else {
-        onErr(new Error('All sources failed'));
-      }
-    });
-  }
-
-  trySource('/tornado-siren.mp3', '/alert.m4a');
-}
-
-function stopSiren() {
-  if (_siren) {
-    try { _siren.pause(); _siren.currentTime = 0; } catch (_) { /* ignore */ }
-    _siren = null;
-  }
-}
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Topbar({
@@ -197,9 +160,6 @@ export default function Topbar({
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [showIpPanel]);
 
-  // Cleanup siren on unmount
-  useEffect(() => () => stopSiren(), []);
-
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleConnect = () => {
     if (ipInput.trim()) { onConnect?.(ipInput.trim()); setShowIpPanel(false); }
@@ -211,28 +171,34 @@ export default function Topbar({
 
   const handleAlarm = () => {
     if (alarmActive) {
-      stopSiren();
+      stopAlarm?.();
       setAlarmActive(false);
       notifyUser({ type: 'info', title: lang === 'en' ? 'Siren stopped' : 'Sirine dihentikan', message: lang === 'en' ? 'Test alarm stopped.' : 'Uji alarm web sudah berhenti.' });
       return;
     }
-    playSiren(
-      () => {
-        setAlarmActive(true);
-        notifyUser({ type: 'warning', title: `🚨 ${lang === 'en' ? 'Test alarm active' : 'Uji alarm aktif'}`, message: lang === 'en' ? 'Click the button again to stop the siren.' : 'Klik tombol lagi untuk menghentikan sirine.' });
-      },
-      (err) => {
-        console.error('[Alarm] play failed:', err);
-        notifyUser({
-          type: 'error',
-          title: lang === 'en' ? 'Siren cannot play' : 'Sirine tidak bisa diputar',
-          message: lang === 'en'
-            ? 'Open chrome://settings/content/sound → add this site → Allow. Then refresh.'
-            : 'Buka chrome://settings/content/sound → tambahkan earthquake-detector.web.app → Allow. Lalu refresh halaman.',
-          duration: 12000,
-        });
-      }
-    );
+    
+    // Gunakan logic dari hook useNotifications via props
+    try {
+      triggerTestAlarm?.();
+      setAlarmActive(true);
+      notifyUser({ 
+        type: 'warning', 
+        title: `🚨 ${lang === 'en' ? 'Test alarm active' : 'Uji alarm aktif'}`, 
+        message: lang === 'en' ? 'Click the button again to stop the siren.' : 'Klik tombol lagi untuk menghentikan sirine.' 
+      });
+      
+      // Auto-reset button state setelah durasi siren (biasanya 8 detik di hook)
+      setTimeout(() => setAlarmActive(false), 8000);
+    } catch (err) {
+      console.error('[Alarm] play failed:', err);
+      notifyUser({
+        type: 'error',
+        title: lang === 'en' ? 'Siren cannot play' : 'Sirine tidak bisa diputar',
+        message: lang === 'en'
+          ? 'Check your audio settings and ensure the site has permission to play sound.'
+          : 'Periksa pengaturan audio Anda dan pastikan situs memiliki izin untuk memutar suara.',
+      });
+    }
   };
 
   const handleLogout = async () => { setAccountOpen(false); await onLogout?.(); };
