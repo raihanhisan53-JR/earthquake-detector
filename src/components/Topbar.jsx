@@ -129,6 +129,8 @@ export default function Topbar({
   installPrompt = false,
   isInstalled = false,
   installApp,
+  triggerTestAlarm,
+  stopAlarm,
 }) {
   const [time, setTime] = useState('');
   const [ipInput, setIpInput] = useState(esp32Ip);
