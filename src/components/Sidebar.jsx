@@ -65,8 +65,8 @@ export default function Sidebar({
       items: [
         { id: 'esp32',  icon: <Cpu size={18} />,  label: t('esp32') },
         { id: 'edukasi',icon: <Play size={18} />, label: t('education')      },
-        { id: 'evakuasi', icon: <Shield size={18} />, label: 'Evakuasi' },
-        { id: 'timetravel', icon: <History size={18} />, label: 'History 3D' },
+        { id: 'evakuasi', icon: <Shield size={18} />, label: t('evakuasi') },
+        { id: 'timetravel', icon: <History size={18} />, label: t('timetravel') },
         { id: 'aria',   icon: <Bot size={18} />,  label: t('aria')      },
       ],
     },

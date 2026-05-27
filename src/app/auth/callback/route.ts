@@ -34,7 +34,8 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       // Pastikan kita redirect ke domain yang benar
-      return NextResponse.redirect(`${origin}${next}`)
+      const redirectUrl = next.startsWith('http') ? next : `${origin}${next}`
+      return NextResponse.redirect(redirectUrl)
     }
   }
 

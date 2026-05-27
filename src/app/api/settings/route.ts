@@ -17,12 +17,21 @@ export async function GET() {
 
     const dbUser = await prisma.user.findUnique({
       where: { id: user.id },
-      select: { plan: true }
+      include: { subscription: true }
     })
+
+    // Determine plan from either user field or active subscription
+    let activePlan = dbUser?.plan || 'STARTER'
+    if (dbUser?.subscription && dbUser.subscription.active) {
+      // Check for expiration
+      if (!dbUser.subscription.expiresAt || new Date(dbUser.subscription.expiresAt) > new Date()) {
+        activePlan = dbUser.subscription.plan
+      }
+    }
 
     return NextResponse.json({
       ...settings,
-      plan: dbUser?.plan || 'Starter',
+      plan: activePlan,
       notifyRegion: settings?.notifyRegion || 'Semua',
       notifyThreshold: settings?.notifyThreshold || 4.0
     })

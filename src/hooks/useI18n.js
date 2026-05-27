@@ -23,6 +23,8 @@ const translations = {
     history: 'Riwayat',
     aria: 'ARIA AI',
     profile: 'Profil',
+    evakuasi: 'Evakuasi',
+    timetravel: 'History 3D',
 
     // Topbar
     alertOn: 'Alert On',
@@ -178,6 +180,8 @@ const translations = {
     history: 'History',
     aria: 'ARIA AI',
     profile: 'Profile',
+    evakuasi: 'Evacuation',
+    timetravel: 'History 3D',
 
     // Topbar
     alertOn: 'Alert On',
@@ -342,6 +346,8 @@ const translations = {
     history: 'سجل',
     aria: 'ARIA AI',
     profile: 'الملف الشخصي',
+    evakuasi: 'إخلاء',
+    timetravel: 'سجل ثلاثي الأبعاد',
     alertOn: 'تنبيه قيد التشغيل',
     alertOff: 'تنبيه متوقف',
     online: 'متصل',
@@ -470,6 +476,16 @@ const translations = {
     addItems: 'إضافة المزيد من العناصر',
     globalHistory: 'تاريخ الزلازل العالمي',
     visualize3d: 'تصور ثلاثي الأبعاد لجميع الزلازل الأخيرة',
+    evacuationProcedure: 'إجراءات الطوارئ',
+    evacuationProcedureDesc: 'حافظ على هدوئك، وابتعد عن المباني العالية/الزجاجية، وابحث عن منطقة مفتوحة. اتبع تعليمات السلطات المحلية.',
+    emergencyContacts: 'جهات اتصال الطوارئ',
+    titikKumpul: 'نقطة تجمع',
+    shelterUtama: 'ملجأ رئيسي',
+    rumahSakit: 'مستشفى',
+    polisi: 'شرطة',
+    pemadam: 'الدفاع المدني',
+    ambulans: 'إسعاف',
+    basarnas: 'البحث والإنقاذ',
   },
   ja: {
     appName: '地震検出器',
@@ -486,6 +502,18 @@ const translations = {
     history: '履歴',
     aria: 'ARIA AI',
     profile: 'プロフィール',
+    evakuasi: '避難',
+    timetravel: '履歴3D',
+    evacuationProcedure: '緊急時の手順',
+    evacuationProcedureDesc: '落ち着いて、高い建物やガラスから離れ、開けた場所を見つけてください。地元の当局の指示に従ってください。',
+    emergencyContacts: '緊急連絡先',
+    titikKumpul: '集合場所',
+    shelterUtama: '主要避難所',
+    rumahSakit: '病院',
+    polisi: '警察',
+    pemadam: '消防署',
+    ambulans: '救急車',
+    basarnas: '捜索救助',
     alertOn: 'アラートオン',
     alertOff: 'アラートオフ',
     online: 'オンライン',
@@ -637,4 +665,6 @@ export function I18nProvider({ children }) {
 
 export function useI18n() {
   return useContext(I18nContext);
+}
+ useContext(I18nContext);
 }

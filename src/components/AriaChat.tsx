@@ -163,7 +163,7 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
     try {
       const res = await fetch('/api/settings?t=' + Date.now())
       const data = await res.json()
-      if (data.plan && data.plan.toUpperCase() === 'PROFESSIONAL') {
+      if (data.plan && (data.plan.toUpperCase() === 'PROFESSIONAL' || data.plan.toUpperCase() === 'ENTERPRISE')) {
         window.location.reload() // Reload to refresh all state
       } else {
         alert('Status Pro belum aktif. Jika Anda sudah membayar, mohon tunggu 1-2 menit agar sistem kami memverifikasi transaksi.')
@@ -379,11 +379,15 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
           onClick={handleRefreshPlan}
           disabled={checkoutLoading}
           style={{
-            marginTop: '12px', background: 'none', border: 'none', color: 'var(--text-muted)',
-            fontSize: '13px', cursor: 'pointer', textDecoration: 'underline'
+            marginTop: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+            color: '#94a3b8', padding: '10px 20px', borderRadius: '10px',
+            fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+            transition: 'all 0.2s'
           }}
+          onMouseEnter={e => !checkoutLoading && (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+          onMouseLeave={e => !checkoutLoading && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
         >
-          Sudah bayar? Klik untuk cek status
+          {checkoutLoading ? 'Memverifikasi...' : 'Sudah bayar? Verifikasi Status Pro'}
         </button>
       </div>
     )

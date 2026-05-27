@@ -1227,6 +1227,46 @@ function Footer() {
 
 /* ─── Main Export ─── */
 export default function LandingPage() {
+  const router = useRouter()
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        window.location.href = '/' // Force reload to trigger Dashboard in RSC
+      } else {
+        setCheckingAuth(false)
+      }
+    }
+    checkUser()
+  }, [])
+
+  if (checkingAuth) {
+    return (
+      <div style={{ 
+        backgroundColor: 'var(--bg-main)', 
+        height: '100vh', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '20px'
+      }}>
+        <Image src="/logo-v2.png" alt="Loading" width={64} height={64} style={{ animation: 'pulse 2s infinite' }} />
+        <div style={{ color: 'var(--text-secondary)', fontSize: '14px', letterSpacing: '1px' }}>MENYIAPKAN DASHBOARD...</div>
+        <style>{`
+          @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.5; transform: scale(0.95); }
+          }
+        `}</style>
+      </div>
+    )
+  }
+
   return (
     <div style={{ backgroundColor: 'var(--bg-main)', minHeight: '100vh', color: 'var(--text-primary)' }}>
       <Navbar />

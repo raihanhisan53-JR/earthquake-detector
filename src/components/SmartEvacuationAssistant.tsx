@@ -17,16 +17,16 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
   const [activeCategory, setActiveCategory] = useState('safe-zones');
 
   const safeZones = [
-    { name: lang === 'ar' ? 'ساحة المدينة' : 'Alun-alun Kota', type: lang === 'ar' ? 'نقطة تجمع' : 'Titik Kumpul', dist: '1.2 km', status: 'Terbuka' },
-    { name: lang === 'ar' ? 'الملعب الرئيسي' : 'Stadion Utama', type: lang === 'ar' ? 'ملجأ رئيسي' : 'Shelter Utama', dist: '2.5 km', status: 'Terbuka' },
-    { name: lang === 'ar' ? 'المستشفى الإقليمي' : 'RSUD Daerah', type: lang === 'ar' ? 'مستشفى' : 'Rumah Sakit', dist: '3.1 km', status: 'Siaga' },
+    { name: t('titikKumpul'), type: t('titikKumpul'), dist: '1.2 km', status: 'Terbuka' },
+    { name: t('shelterUtama'), type: t('shelterUtama'), dist: '2.5 km', status: 'Terbuka' },
+    { name: t('rumahSakit'), type: t('rumahSakit'), dist: '3.1 km', status: 'Siaga' },
   ];
 
   const emergencyContacts = [
-    { name: 'SAR / BASARNAS', phone: '115' },
-    { name: 'Ambulans / Emergency', phone: '118' },
-    { name: 'Polisi', phone: '110' },
-    { name: 'Pemadam Kebakaran', phone: '113' },
+    { name: t('basarnas'), phone: '115' },
+    { name: t('ambulans'), phone: '118' },
+    { name: t('polisi'), phone: '110' },
+    { name: t('pemadam'), phone: '113' },
   ];
 
   const openInMaps = (query: string) => {
@@ -51,7 +51,7 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
           onClick={() => setActiveCategory('contacts')}
           style={{ flex: 1, padding: '12px', background: 'none', border: 'none', color: activeCategory === 'contacts' ? 'var(--accent)' : 'var(--text-muted)', borderBottom: activeCategory === 'contacts' ? '2px solid var(--accent)' : 'none', cursor: 'pointer', fontWeight: '600' }}
         >
-          {t('emergency')}
+          {t('emergencyContacts')}
         </button>
       </div>
 
@@ -81,7 +81,7 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
           </div>
 
           <button 
-            onClick={() => openInMaps(lang === 'ar' ? 'أقرب نقطة تجمع' : 'Titik Kumpul Terdekat')}
+            onClick={() => openInMaps(t('titikKumpul'))}
             className="btn btn-primary" 
             style={{ width: '100%', marginTop: '16px', gap: '8px' }}
           >
@@ -108,7 +108,7 @@ export default function SmartEvacuationAssistant({ userLocation }: SmartEvacuati
           <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', display: 'flex', gap: '12px' }}>
             <AlertTriangle size={24} className="text-danger" style={{ flexShrink: 0 }} />
             <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <strong>Prosedur Darurat:</strong> Tetap tenang, jauhi bangunan tinggi/kaca, dan cari area terbuka. Ikuti instruksi petugas setempat.
+              <strong>{t('evacuationProcedure')}:</strong> {t('evacuationProcedureDesc')}
             </div>
           </div>
         </div>

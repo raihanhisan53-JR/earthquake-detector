@@ -157,12 +157,13 @@ function DashboardInner({ user }: DashboardProps) {
       // Check for payment success from URL
       const params = new URLSearchParams(window.location.search)
       if (params.get('pay_success') === 'true') {
-        notifyUser({
+        const noticeId = notifyUser({
           type: 'info',
-          title: 'Pembayaran Berhasil!',
-          message: 'Paket Pro Anda telah aktif. Fitur ARIA AI kini terbuka.',
-          duration: 6000
+          title: 'Memverifikasi Pembayaran...',
+          message: 'Sistem sedang mengaktifkan fitur Pro Anda. Mohon tunggu sebentar.',
+          duration: 10000
         })
+        
         // Clear query param
         window.history.replaceState({}, '', '/')
         
@@ -173,14 +174,31 @@ function DashboardInner({ user }: DashboardProps) {
           fetch('/api/settings?t=' + Date.now())
             .then(res => res.json())
             .then(data => {
-              if (data.plan && data.plan.toUpperCase() === 'PROFESSIONAL') {
-                setUserPlan('PROFESSIONAL')
-                localStorage.setItem('userPlan', 'PROFESSIONAL')
+              if (data.plan && (data.plan.toUpperCase() === 'PROFESSIONAL' || data.plan.toUpperCase() === 'ENTERPRISE')) {
+                const currentPlan = data.plan.toUpperCase()
+                setUserPlan(currentPlan)
+                localStorage.setItem('userPlan', currentPlan)
+                dismissNotice(noticeId)
+                notifyUser({
+                  type: 'info',
+                  title: 'Aktivasi Berhasil!',
+                  message: `Selamat! Paket ${currentPlan} Anda kini aktif. Semua fitur telah terbuka.`,
+                  duration: 8000
+                })
                 clearInterval(interval)
               }
             })
-          if (attempts >= 10) clearInterval(interval)
-        }, 2000)
+          if (attempts >= 15) {
+            clearInterval(interval)
+            dismissNotice(noticeId)
+            notifyUser({
+              type: 'warning',
+              title: 'Verifikasi Tertunda',
+              message: 'Pembayaran terdeteksi, namun status belum update. Jika dalam 5 menit belum aktif, silakan hubungi bantuan.',
+              duration: 8000
+            })
+          }
+        }, 3000)
       }
 
       // Check for pending upgrade after login
