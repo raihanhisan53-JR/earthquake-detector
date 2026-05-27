@@ -666,5 +666,3 @@ export function I18nProvider({ children }) {
 export function useI18n() {
   return useContext(I18nContext);
 }
- useContext(I18nContext);
-}
