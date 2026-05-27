@@ -34,7 +34,7 @@ export class BillingService {
           amount: amount,
           payer_email: userEmail,
           description: `Pembayaran Paket ${planName} TECTRA PRO`,
-          success_redirect_url: `${env.NEXT_PUBLIC_APP_URL}/dashboard?pay_status=success`,
+          success_redirect_url: `${env.NEXT_PUBLIC_APP_URL}/?pay_success=true`,
           failure_redirect_url: `${env.NEXT_PUBLIC_APP_URL}/#harga`,
           currency: 'IDR',
         })

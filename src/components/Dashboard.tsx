@@ -139,15 +139,20 @@ function DashboardInner({ user }: DashboardProps) {
       if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
 
       // Fetch actual settings and plan from API
-      fetch('/api/settings')
-        .then(res => res.json())
-        .then(data => {
-          if (data.plan) {
-            setUserPlan(data.plan)
-            localStorage.setItem('userPlan', data.plan)
-          }
-        })
-        .catch(console.error)
+      const fetchPlan = () => {
+        fetch('/api/settings?t=' + Date.now())
+          .then(res => res.json())
+          .then(data => {
+            if (data.plan) {
+              const currentPlan = data.plan.toUpperCase()
+              setUserPlan(currentPlan)
+              localStorage.setItem('userPlan', currentPlan)
+            }
+          })
+          .catch(console.error)
+      }
+
+      fetchPlan()
 
       // Check for payment success from URL
       const params = new URLSearchParams(window.location.search)
@@ -160,6 +165,22 @@ function DashboardInner({ user }: DashboardProps) {
         })
         // Clear query param
         window.history.replaceState({}, '', '/')
+        
+        // Polling for plan update (it might take a few seconds for webhook to process)
+        let attempts = 0
+        const interval = setInterval(() => {
+          attempts++
+          fetch('/api/settings?t=' + Date.now())
+            .then(res => res.json())
+            .then(data => {
+              if (data.plan && data.plan.toUpperCase() === 'PROFESSIONAL') {
+                setUserPlan('PROFESSIONAL')
+                localStorage.setItem('userPlan', 'PROFESSIONAL')
+                clearInterval(interval)
+              }
+            })
+          if (attempts >= 10) clearInterval(interval)
+        }, 2000)
       }
 
       // Check for pending upgrade after login

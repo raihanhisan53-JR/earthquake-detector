@@ -132,8 +132,48 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
 
   const isPro = userPlan?.toUpperCase() === 'PROFESSIONAL' || userPlan?.toUpperCase() === 'ENTERPRISE'
+
+  const handleUpgrade = async () => {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'PROFESSIONAL' })
+      })
+      const data = await res.json()
+      if (data.invoiceUrl) {
+        window.location.href = data.invoiceUrl
+      } else {
+        alert('Gagal memproses upgrade. Silakan coba lagi.')
+      }
+    } catch (e) {
+      console.error(e)
+      alert('Terjadi kesalahan saat menghubungi server pembayaran.')
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
+
+  const handleRefreshPlan = async () => {
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/settings?t=' + Date.now())
+      const data = await res.json()
+      if (data.plan && data.plan.toUpperCase() === 'PROFESSIONAL') {
+        window.location.reload() // Reload to refresh all state
+      } else {
+        alert('Status Pro belum aktif. Jika Anda sudah membayar, mohon tunggu 1-2 menit agar sistem kami memverifikasi transaksi.')
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setCheckoutLoading(false)
+    }
+  }
 
   // Search state
   const [searchOpen, setSearchOpen] = useState(false)
@@ -321,16 +361,29 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
         </div>
 
         <button
-          onClick={() => window.location.href = '/#harga'}
+          onClick={handleUpgrade}
+          disabled={checkoutLoading}
           style={{
             padding: '16px 32px', borderRadius: '14px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)',
             color: '#fff', fontWeight: '700', border: 'none', cursor: 'pointer', display: 'flex',
-            alignItems: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(109,40,217,0.3)', transition: 'transform 0.2s'
+            alignItems: 'center', gap: '10px', boxShadow: '0 8px 24px rgba(109,40,217,0.3)', transition: 'transform 0.2s',
+            opacity: checkoutLoading ? 0.7 : 1
           }}
-          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          onMouseEnter={e => !checkoutLoading && (e.currentTarget.style.transform = 'scale(1.02)')}
+          onMouseLeave={e => !checkoutLoading && (e.currentTarget.style.transform = 'scale(1)')}
         >
-          Upgrade ke Paket PRO <ArrowRight size={18} />
+          {checkoutLoading ? 'Memproses...' : 'Upgrade ke Paket PRO'} <ArrowRight size={18} />
+        </button>
+
+        <button
+          onClick={handleRefreshPlan}
+          disabled={checkoutLoading}
+          style={{
+            marginTop: '12px', background: 'none', border: 'none', color: 'var(--text-muted)',
+            fontSize: '13px', cursor: 'pointer', textDecoration: 'underline'
+          }}
+        >
+          Sudah bayar? Klik untuk cek status
         </button>
       </div>
     )
