@@ -547,19 +547,3 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
     </div>
   )
 }
-nClick={() => sendMessage(input)}
-          disabled={loading || !input.trim()}
-          className={`aria-send-btn${loading || !input.trim() ? ' aria-send-btn--disabled' : ''}`}
-        >
-          <Send size={16} color="#fff" />
-        </button>
-      </div>
-
-      {/* ── Footer ── */}
-      <div className="aria-footer">
-        <Info size={10} style={{ display: 'inline', marginRight: '4px' }} />
-        Powered by Groq · ARIA dapat membuat kesalahan, selalu verifikasi dengan BMKG resmi
-      </div>
-    </div>
-  )
-}
