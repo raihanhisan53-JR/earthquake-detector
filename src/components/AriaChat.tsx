@@ -158,21 +158,46 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
     }
   }
 
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'failed'>('idle')
+
   const handleRefreshPlan = async () => {
+    if (verificationStatus === 'checking') return
+    setVerificationStatus('checking')
     setCheckoutLoading(true)
-    try {
-      const res = await fetch('/api/settings?t=' + Date.now())
-      const data = await res.json()
-      if (data.plan && (data.plan.toUpperCase() === 'PROFESSIONAL' || data.plan.toUpperCase() === 'ENTERPRISE')) {
-        window.location.reload() // Reload to refresh all state
-      } else {
-        alert('Status Pro belum aktif. Jika Anda sudah membayar, mohon tunggu 1-2 menit agar sistem kami memverifikasi transaksi.')
+    
+    let attempts = 0
+    const maxAttempts = 5
+    
+    const check = async () => {
+      try {
+        const res = await fetch('/api/settings?t=' + Date.now())
+        const data = await res.json()
+        if (data.plan && (data.plan.toUpperCase() === 'PROFESSIONAL' || data.plan.toUpperCase() === 'ENTERPRISE')) {
+          window.location.reload()
+          return true
+        }
+      } catch (e) {
+        console.error(e)
       }
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setCheckoutLoading(false)
+      return false
     }
+
+    const interval = setInterval(async () => {
+      attempts++
+      const success = await check()
+      if (success) {
+        clearInterval(interval)
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval)
+        setVerificationStatus('failed')
+        setCheckoutLoading(false)
+        setTimeout(() => setVerificationStatus('idle'), 5000)
+      }
+    }, 3000)
+    
+    // Initial check
+    const immediateSuccess = await check()
+    if (immediateSuccess) clearInterval(interval)
   }
 
   // Search state
@@ -507,6 +532,22 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
         />
         <button
           onClick={() => sendMessage(input)}
+          disabled={loading || !input.trim()}
+          className={`aria-send-btn${loading || !input.trim() ? ' aria-send-btn--disabled' : ''}`}
+        >
+          <Send size={16} color="#fff" />
+        </button>
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="aria-footer">
+        <Info size={10} style={{ display: 'inline', marginRight: '4px' }} />
+        Powered by Groq · ARIA dapat membuat kesalahan, selalu verifikasi dengan BMKG resmi
+      </div>
+    </div>
+  )
+}
+nClick={() => sendMessage(input)}
           disabled={loading || !input.trim()}
           className={`aria-send-btn${loading || !input.trim() ? ' aria-send-btn--disabled' : ''}`}
         >
