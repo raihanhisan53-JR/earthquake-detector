@@ -15,9 +15,12 @@ export async function GET(req: Request) {
   const transaction = await billingRepository.getTransactionByExternalId(externalId);
   if (!transaction) return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
 
+  const url = new URL(req.url);
+  const origin = `${url.protocol}//${req.headers.get('host')}`;
+
   // Simulate Webhook Call
   try {
-    const webhookUrl = `${env.NEXT_PUBLIC_APP_URL}/api/webhooks/xendit`;
+    const webhookUrl = `${origin}/api/webhooks/xendit`;
     await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,7 +32,7 @@ export async function GET(req: Request) {
       })
     });
 
-    return NextResponse.redirect(`${env.NEXT_PUBLIC_APP_URL}/?pay_success=true`);
+    return NextResponse.redirect(`${origin}/?pay_success=true`);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

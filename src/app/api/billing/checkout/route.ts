@@ -18,7 +18,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
-    const checkout = await billingService.createCheckout(user.id, user.email || '', plan as Plan);
+    const url = new URL(req.url);
+    const origin = `${url.protocol}//${req.headers.get('host')}`;
+
+    const checkout = await billingService.createCheckout(user.id, user.email || '', plan as Plan, origin);
 
     return NextResponse.json(checkout);
   } catch (error: any) {

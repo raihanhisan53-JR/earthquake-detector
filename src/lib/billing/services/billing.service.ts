@@ -5,12 +5,13 @@ import { isMockPayment, env } from '../utils/env';
 import { v4 as uuidv4 } from 'uuid';
 
 export class BillingService {
-  async createCheckout(userId: string, userEmail: string, planName: Plan): Promise<CheckoutResponse> {
+  async createCheckout(userId: string, userEmail: string, planName: Plan, origin?: string): Promise<CheckoutResponse> {
     const planConfig = PLANS[planName];
     if (!planConfig) throw new Error('Invalid plan selected');
 
     const externalId = `inv-${userId.slice(0, 8)}-${Date.now()}`;
     const amount = planConfig.price;
+    const baseOrigin = origin || env.NEXT_PUBLIC_APP_URL;
 
     let invoiceUrl = '';
     let invoiceId = '';
@@ -18,7 +19,7 @@ export class BillingService {
     if (isMockPayment) {
       // Simulation Mode
       invoiceId = `mock-${uuidv4()}`;
-      invoiceUrl = `${env.NEXT_PUBLIC_APP_URL}/api/billing/mock-payment?externalId=${externalId}`;
+      invoiceUrl = `${baseOrigin}/api/billing/mock-payment?externalId=${externalId}`;
     } else {
       // Xendit Mode (Sandbox/Production)
       const authHeader = Buffer.from(`${env.XENDIT_SECRET_KEY}:`).toString('base64');
@@ -34,8 +35,8 @@ export class BillingService {
           amount: amount,
           payer_email: userEmail,
           description: `Pembayaran Paket ${planName} TECTRA PRO`,
-          success_redirect_url: `${env.NEXT_PUBLIC_APP_URL}/?pay_success=true`,
-          failure_redirect_url: `${env.NEXT_PUBLIC_APP_URL}/#harga`,
+          success_redirect_url: `${baseOrigin}/?pay_success=true`,
+          failure_redirect_url: `${baseOrigin}/#harga`,
           currency: 'IDR',
         })
       });
