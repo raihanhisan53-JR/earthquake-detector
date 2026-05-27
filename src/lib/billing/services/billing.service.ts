@@ -42,7 +42,12 @@ export class BillingService {
       });
 
       const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Xendit error');
+      console.log('Xendit API Response:', result);
+      
+      if (!response.ok) {
+        console.error('Xendit API Error:', result);
+        throw new Error(result.message || result.error_code || 'Xendit error');
+      }
 
       invoiceId = result.id;
       invoiceUrl = result.invoice_url;

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 const envSchema = z.object({
-  PAYMENT_MODE: z.enum(['mock', 'sandbox', 'production']).default('mock'),
-  XENDIT_SECRET_KEY: z.string().min(1),
+  PAYMENT_MODE: z.enum(['mock', 'sandbox', 'production']).default('sandbox'),
+  XENDIT_SECRET_KEY: z.string().min(1, "XENDIT_SECRET_KEY is required"),
   XENDIT_WEBHOOK_TOKEN: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
