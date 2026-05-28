@@ -22,7 +22,14 @@ export async function GET() {
 
     // Determine plan from either user field or active subscription
     let activePlan = dbUser?.plan || 'STARTER'
-    if (dbUser?.subscription && dbUser.subscription.active) {
+
+    // Admin Bypass
+    const ADMIN_EMAILS = ['raihanhisan36@gmail.com']
+    const isAdmin = user.email && ADMIN_EMAILS.includes(user.email) || user.user_metadata?.role === 'admin'
+
+    if (isAdmin) {
+      activePlan = 'PROFESSIONAL'
+    } else if (dbUser?.subscription && dbUser.subscription.active) {
       // Check for expiration
       if (!dbUser.subscription.expiresAt || new Date(dbUser.subscription.expiresAt) > new Date()) {
         activePlan = dbUser.subscription.plan

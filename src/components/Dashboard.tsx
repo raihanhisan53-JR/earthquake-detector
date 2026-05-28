@@ -131,11 +131,14 @@ function DashboardInner({ user }: DashboardProps) {
       const savedTheme     = localStorage.getItem('theme') || 'dark'
       const savedNotif     = localStorage.getItem('notificationsEnabled')
       const savedPlan      = localStorage.getItem('userPlan') || 'Starter'
-      
+
+      const ADMIN_EMAILS = ['raihanhisan36@gmail.com']
+      const isAdminUser = user.email && ADMIN_EMAILS.includes(user.email) || user.app_metadata?.role === 'admin'
+
       setActiveTabState(savedTab)
       setSidebarCollapsed(savedCollapsed)
       setTheme(savedTheme)
-      setUserPlan(savedPlan)
+      setUserPlan(isAdminUser ? 'PROFESSIONAL' : savedPlan)
       if (savedNotif != null) setNotificationsEnabled(savedNotif === 'true')
 
       // Fetch actual settings and plan from API
@@ -163,10 +166,10 @@ function DashboardInner({ user }: DashboardProps) {
           message: 'Sistem sedang mengaktifkan fitur Pro Anda. Mohon tunggu sebentar.',
           duration: 10000
         })
-        
+
         // Clear query param
         window.history.replaceState({}, '', '/')
-        
+
         // Polling for plan update (it might take a few seconds for webhook to process)
         let attempts = 0
         const interval = setInterval(() => {
@@ -190,17 +193,29 @@ function DashboardInner({ user }: DashboardProps) {
             })
           if (attempts >= 15) {
             clearInterval(interval)
-            dismissNotice(noticeId)
-            notifyUser({
-              type: 'warning',
-              title: 'Verifikasi Tertunda',
-              message: 'Pembayaran terdeteksi, namun status belum update. Jika dalam 5 menit belum aktif, silakan hubungi bantuan.',
-              duration: 8000
-            })
+            // Final check after failure
+            fetch('/api/settings?t=' + Date.now())
+              .then(res => res.json())
+              .then(data => {
+                if (data.plan && (data.plan.toUpperCase() === 'PROFESSIONAL' || data.plan.toUpperCase() === 'ENTERPRISE')) {
+                  const currentPlan = data.plan.toUpperCase()
+                  setUserPlan(currentPlan)
+                  localStorage.setItem('userPlan', currentPlan)
+                  dismissNotice(noticeId)
+                  return
+                }
+
+                dismissNotice(noticeId)
+                notifyUser({
+                  type: 'warning',
+                  title: 'Verifikasi Tertunda',
+                  message: 'Pembayaran terdeteksi, namun status belum update. Jika dalam 5 menit belum aktif, silakan hubungi bantuan.',
+                  duration: 8000
+                })
+              })
           }
         }, 3000)
       }
-
       // Check for pending upgrade after login
       const pendingUpgrade = sessionStorage.getItem('pending_upgrade')
       if (pendingUpgrade) {
