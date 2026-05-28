@@ -3,8 +3,18 @@ import React, { useState } from 'react';
 import { Heart, Share2, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useHaptics } from '@/hooks/useHaptics';
 
-// ── 10 video edukasi gempa & bencana alam ──
+// ── 11 video edukasi gempa & bencana alam ──
 const EDUCATION_REELS = [
+  {
+    id: 'r0',
+    youtubeId: 'vBD1x9yAfgs',
+    title: 'Detik-detik Gempa M 7.5 Hantam Ishikawa Jepang',
+    author: 'CCTV News',
+    authorBadge: 'LIVE CAM',
+    badgeColor: '#dc2626',
+    description: 'Rekaman CCTV detik-detik gempa dahsyat M 7.5 mengguncang Ishikawa, Jepang. Lihat betapa pentingnya konstruksi tahan gempa. 🇯🇵',
+    likes: 25600,
+  },
   {
     id: 'r1',
     youtubeId: 'G61B0FVeyZA',

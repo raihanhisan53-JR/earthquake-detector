@@ -659,6 +659,11 @@ function PricingSection() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
+    if (plan.name === 'Enterprise') {
+      window.open('https://wa.me/6281234567890?text=Halo%20Sales%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20paket%20Enterprise.', '_blank')
+      return
+    }
+
     if (plan.name === 'Starter') {
       window.location.href = '/login'
       return
@@ -696,11 +701,6 @@ function PricingSection() {
       } finally {
         setLoading(null)
       }
-      return
-    }
-
-    if (plan.name === 'Enterprise') {
-      window.open('https://wa.me/6281234567890?text=Halo%20Sales%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20paket%20Enterprise.', '_blank')
       return
     }
 
