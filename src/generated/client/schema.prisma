@@ -163,6 +163,21 @@ model Comment {
 }
 
 // ============================================
+// LEAD - Inkuiri dari form Contact Sales
+// ============================================
+model Lead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  needs     String?  @db.Text
+  status    String   @default("NEW") // NEW, CONTACTED, CLOSED
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("leads")
+}
+
+// ============================================
 // ENUMS
 // ============================================
 enum Plan {

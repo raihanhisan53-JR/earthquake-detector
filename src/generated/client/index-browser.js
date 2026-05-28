@@ -212,6 +212,16 @@ exports.Prisma.CommentScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.LeadScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  email: 'email',
+  company: 'company',
+  needs: 'needs',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -271,7 +281,8 @@ exports.Prisma.ModelName = {
   EarthquakeLog: 'EarthquakeLog',
   SensorReading: 'SensorReading',
   UserSettings: 'UserSettings',
-  Comment: 'Comment'
+  Comment: 'Comment',
+  Lead: 'Lead'
 };
 
 /**

@@ -659,14 +659,33 @@ function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    // Simulate sending to sales team
-    setTimeout(() => {
-      setStep(2)
+    
+    try {
+      const res = await fetch('/api/inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      if (res.ok) {
+        setStep(2)
+        // Auto redirect to WA after 3 seconds for better experience
+        setTimeout(() => {
+          const text = `Halo Sales TECTRA PRO, saya ${formData.name} dari ${formData.company}. Saya baru saja mengirimkan inkuiri Enterprise via web.`
+          window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(text)}`, '_blank')
+        }, 3000)
+      } else {
+        alert('Gagal mengirim inkuiri. Silakan hubungi kami via WhatsApp.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Terjadi kesalahan koneksi.')
+    } finally {
       setSubmitting(false)
-    }, 1500)
+    }
   }
 
   return (
