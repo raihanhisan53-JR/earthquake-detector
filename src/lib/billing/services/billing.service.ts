@@ -81,17 +81,20 @@ export class BillingService {
     }
 
     const { external_id, status, paid_at } = payload;
+    console.log(`Processing webhook for ${external_id}. Status: ${status}`);
     
     // 2. Fetch Transaction
     const transaction = await billingRepository.getTransactionByExternalId(external_id);
-    if (!transaction) throw new Error('Transaction not found');
-
-    // 3. Handle Duplicates / Race Conditions
-    if (transaction.status === PaymentStatus.PAID) {
-      console.log(`Transaction ${external_id} already paid. Skipping.`);
-      return { success: true, alreadyProcessed: true };
+    if (!transaction) {
+      console.error(`Transaction not found for external_id: ${external_id}`);
+      throw new Error('Transaction not found');
     }
 
+    // 3. Handle Duplicates / Race Conditions
+    // If it's already paid, we still check if the user's plan is correctly set
+    // This handles cases where the transaction was updated but activateSubscription failed previously
+    const isAlreadyPaid = transaction.status === PaymentStatus.PAID;
+    
     // 4. Update Status and Activate Subscription
     if (status === 'PAID' || status === 'SETTLED') {
       const paidDate = paid_at ? new Date(paid_at) : new Date();
@@ -100,21 +103,29 @@ export class BillingService {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      await billingRepository.updateTransactionStatus(transaction.id, PaymentStatus.PAID, paidDate);
-      await billingRepository.activateSubscription(transaction.userId, transaction.plan, expiresAt);
+      console.log(`Activating plan ${transaction.plan} for user ${transaction.userId}`);
+      
+      await billingRepository.completePayment(
+        transaction.id, 
+        transaction.userId, 
+        transaction.plan, 
+        expiresAt, 
+        paidDate
+      );
 
       await billingRepository.createAuditLog({
         userId: transaction.userId,
         action: 'PAYMENT_SUCCESS',
         entity: 'SUBSCRIPTION',
         entityId: transaction.userId,
-        details: { plan: transaction.plan, externalId: external_id },
+        details: { plan: transaction.plan, externalId: external_id, alreadyPaid: isAlreadyPaid },
       });
 
-      return { success: true };
+      return { success: true, alreadyPaid: isAlreadyPaid };
     }
 
     if (status === 'EXPIRED') {
+      console.log(`Transaction ${external_id} expired`);
       await billingRepository.updateTransactionStatus(transaction.id, PaymentStatus.EXPIRED);
       return { success: true };
     }

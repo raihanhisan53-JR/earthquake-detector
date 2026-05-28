@@ -465,8 +465,8 @@ function DashboardInner({ user }: DashboardProps) {
         )
       case 'aria':
         return (
-          <div style={{ 
-            height: 'calc(100vh - 72px)', 
+          <div style={{
+            height: 'calc(100vh - 72px)',
             padding: '0',
             display: 'flex',
             flexDirection: 'column',
@@ -477,10 +477,10 @@ function DashboardInner({ user }: DashboardProps) {
               esp32Connected={esp32.connected}
               esp32Status={esp32.status}
               esp32AlertLevel={esp32.alertLevel}
+              isAdmin={user.email === 'raihanhisan36@gmail.com' || user.user_metadata?.role === 'admin'}
             />
           </div>
         )
-
 
       default: // overview
         const pts = bmkgMap.points || []

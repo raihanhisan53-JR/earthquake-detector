@@ -23,7 +23,10 @@ export async function GET(req: Request) {
     const webhookUrl = `${origin}/api/webhooks/xendit`;
     await fetch(webhookUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-callback-token': env.XENDIT_WEBHOOK_TOKEN || ''
+      },
       body: JSON.stringify({
         external_id: externalId,
         status: 'PAID',

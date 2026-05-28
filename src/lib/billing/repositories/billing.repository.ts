@@ -45,6 +45,38 @@ export class BillingRepository {
     });
   }
 
+  async completePayment(transactionId: string, userId: string, plan: Plan, expiresAt: Date, paidAt: Date) {
+    return this.db.$transaction([
+      // 1. Update Transaction
+      this.db.transaction.update({
+        where: { id: transactionId },
+        data: { status: PaymentStatus.PAID, paidAt },
+      }),
+      // 2. Update User Plan
+      this.db.user.update({
+        where: { id: userId },
+        data: { plan },
+      }),
+      // 3. Upsert Subscription
+      this.db.subscription.upsert({
+        where: { userId },
+        update: {
+          plan,
+          active: true,
+          expiresAt,
+          startedAt: new Date(),
+        },
+        create: {
+          userId,
+          plan,
+          active: true,
+          expiresAt,
+          startedAt: new Date(),
+        },
+      }),
+    ]);
+  }
+
   async activateSubscription(userId: string, plan: Plan, expiresAt?: Date) {
     return this.db.$transaction([
       // Update User Plan

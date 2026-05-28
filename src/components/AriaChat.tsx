@@ -23,6 +23,7 @@ interface AriaChatProps {
   esp32Connected?: boolean
   esp32Status?: string
   esp32AlertLevel?: number
+  isAdmin?: boolean
 }
 
 const QUICK_QUESTIONS = [
@@ -127,14 +128,14 @@ function MessageBubble({ msg, searchQuery }: { msg: Message; searchQuery: string
   )
 }
 
-export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel }: AriaChatProps) {
+export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel, isAdmin }: AriaChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
-  const isPro = userPlan?.toUpperCase() === 'PROFESSIONAL' || userPlan?.toUpperCase() === 'ENTERPRISE'
+  const isPro = isAdmin || userPlan?.toUpperCase() === 'PROFESSIONAL' || userPlan?.toUpperCase() === 'ENTERPRISE'
 
   const handleUpgrade = async () => {
     setCheckoutLoading(true)
