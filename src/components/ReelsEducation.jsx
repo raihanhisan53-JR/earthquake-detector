@@ -8,12 +8,12 @@ const EDUCATION_REELS = [
   {
     id: 'r0',
     youtubeId: 'vBD1x9yAfgs',
-    title: 'Detik-detik Gempa M 7.5 Hantam Ishikawa Jepang',
-    author: 'CCTV News',
-    authorBadge: 'LIVE CAM',
-    badgeColor: '#dc2626',
-    description: 'Rekaman CCTV detik-detik gempa dahsyat M 7.5 mengguncang Ishikawa, Jepang. Lihat betapa pentingnya konstruksi tahan gempa. 🇯🇵',
-    likes: 25600,
+    title: '12 Proyek ESP32 Keren yang Bisa Anda Coba!',
+    author: 'ToP Projects',
+    authorBadge: 'ESP32 IoT',
+    badgeColor: '#22c55e',
+    description: 'Kumpulan 12 proyek IoT berbasis ESP32 yang luar biasa. Sangat relevan bagi Anda yang ingin mengembangkan sensor getaran sendiri untuk TECTRA PRO. 🛠️',
+    likes: 32400,
   },
   {
     id: 'r1',

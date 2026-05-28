@@ -651,16 +651,121 @@ function LiveDataSection() {
   )
 }
 
+/* ─── Contact Sales Modal ─── */
+function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [step, setStep] = useState(1)
+  const [formData, setFormData] = useState({ name: '', email: '', company: '', needs: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  if (!isOpen) return null
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    // Simulate sending to sales team
+    setTimeout(() => {
+      setStep(2)
+      setSubmitting(false)
+    }, 1500)
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '20px', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)'
+    }}>
+      <div style={{
+        background: 'var(--bg-card)', width: '100%', maxWidth: '500px',
+        borderRadius: '24px', border: '1px solid var(--border-color)',
+        overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.5)'
+      }}>
+        <div style={{ padding: '32px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h3 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)' }}>
+              {step === 1 ? 'Inquiry Enterprise' : 'Pesan Terkirim'}
+            </h3>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <X size={24} />
+            </button>
+          </div>
+
+          {step === 1 ? (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '8px' }}>
+                Silakan isi data berikut. Tim Enterprise kami akan menghubungi Anda dalam 1x24 jam untuk konsultasi khusus.
+              </p>
+              <input
+                type="text" placeholder="Nama Lengkap" required
+                value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})}
+                style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+              <input
+                type="email" placeholder="Email Kantor / Pribadi" required
+                value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})}
+                style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+              <input
+                type="text" placeholder="Nama Instansi / Perusahaan" required
+                value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})}
+                style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+              />
+              <textarea
+                placeholder="Kebutuhan khusus (Misal: Integrasi Smart City, 100+ Sensor, dll)" rows={4}
+                value={formData.needs} onChange={e => setFormData({...formData, needs: e.target.value})}
+                style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'none' }}
+              />
+              <button
+                type="submit" disabled={submitting}
+                style={{
+                  padding: '16px', borderRadius: '14px', background: 'var(--warning)', color: '#000',
+                  fontWeight: '800', border: 'none', cursor: 'pointer', marginTop: '12px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                }}
+              >
+                {submitting ? 'Mengirim...' : 'Kirim Permintaan Konsultasi'} <ArrowRight size={18} />
+              </button>
+            </form>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <div style={{ 
+                width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(34,197,94,0.1)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px',
+                color: '#22c55e'
+              }}>
+                <CheckCircle size={40} />
+              </div>
+              <p style={{ color: 'var(--text-primary)', fontWeight: '700', fontSize: '18px', marginBottom: '8px' }}>Terima Kasih, {formData.name}!</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.6' }}>
+                Permintaan konsultasi Enterprise Anda telah kami terima. Tim ahli kami akan segera menghubungi Anda di <strong>{formData.email}</strong>.
+              </p>
+              <button 
+                onClick={onClose}
+                style={{
+                  marginTop: '32px', padding: '14px 32px', borderRadius: '12px', 
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)',
+                  color: 'var(--text-primary)', fontWeight: '600', cursor: 'pointer'
+                }}
+              >Tutup</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ─── Pricing Section ─── */
 function PricingSection() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [salesModalOpen, setSalesModalOpen] = useState(false)
 
   const handleCheckout = async (plan: any) => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (plan.name === 'Enterprise') {
-      window.open('https://wa.me/6281234567890?text=Halo%20Sales%20TECTRA%20PRO,%20saya%20tertarik%20dengan%20paket%20Enterprise.', '_blank')
+      setSalesModalOpen(true)
       return
     }
 
@@ -669,12 +774,13 @@ function PricingSection() {
       return
     }
     
-    // Jika belum login, simpan keinginan upgrade dan arahkan ke login
+    // Jika Professional, arahkan ke halaman checkout langsung atau promosi
     if (!user) {
       if (plan.name === 'Professional') {
         sessionStorage.setItem('pending_upgrade', 'Professional')
+        // Tunjukkan pesan promosi dulu sebelum login?
+        window.location.href = '/login?ref=upgrade_pro'
       }
-      window.location.href = '/login'
       return
     }
 
@@ -703,136 +809,129 @@ function PricingSection() {
       }
       return
     }
-
-    setLoading(plan.name)
-    try {
-      const res = await fetch('/api/billing/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: plan.name.toUpperCase(), // Match Plan enum: PROFESSIONAL
-        })
-      })
-      const data = await res.json()
-      if (data.invoiceUrl) {
-        window.location.href = data.invoiceUrl
-      } else {
-        throw new Error(data.error || 'Failed to create checkout')
-      }
-    } catch (e: any) {
-      console.error(e)
-      alert(`Gagal memproses pembayaran: ${e.message}. Silakan hubungi kami via WhatsApp.`)
-    } finally {
-      setLoading(null)
-    }
   }
 
   const plans = [
     {
-      name: 'Starter', price: 'Gratis', period: '/ selamanya', color: '#6d28d9',
-      desc: 'Cocok untuk personal monitoring & belajar seismologi.',
+      name: 'Starter', price: 'Gratis', period: '/ selamanya', color: '#8b5cf6',
+      desc: 'Solusi dasar bagi personal monitoring yang ingin tetap waspada.',
       features: [
-        'Data BMKG real-time',
-        'Notifikasi email dasar',
-        'Dashboard standar',
-        'Riwayat 30 hari',
-        '1 sensor ESP32',
-        'Community support',
+        'Data BMKG & USGS real-time',
+        'Notifikasi Email (Basic)',
+        'Dashboard Monitoring Standar',
+        'Riwayat Kejadian 30 Hari',
+        'Integrasi 1 Sensor ESP32',
       ],
-      cta: 'Mulai Gratis', ctaStyle: 'outline', popular: false,
+      cta: 'Mulai Sekarang', ctaStyle: 'outline', popular: false,
     },
     {
-      name: 'Professional', price: 'Rp 99K', period: '/ bulan', color: '#dc2626',
-      desc: 'Untuk tim SAR, sekolah, kantor, dan komunitas.',
+      name: 'Professional', price: 'Rp 99K', period: '/ bulan', color: '#ef4444',
+      desc: 'Fitur lengkap untuk komunitas, sekolah, dan perkantoran.',
       features: [
         'Semua fitur Starter',
         'ARIA AI Assistant (Chat 24/7)',
-        'Notifikasi push + SMS',
-        'AI magnitude prediction',
-        'Riwayat unlimited',
-        'Hingga 10 sensor ESP32',
-        'REST API access',
-        'Radius alert custom',
+        'Notifikasi Push, SMS & WA',
+        'AI Impact Prediction',
+        'Riwayat Tanpa Batas (Cloud)',
+        'Hingga 10 Sensor ESP32',
+        'Akses REST API Developer',
       ],
-      cta: 'Pilih Pro', ctaStyle: 'primary', popular: true,
+      cta: 'Pilih Paket Pro', ctaStyle: 'primary', popular: true,
     },
     {
-      name: 'Enterprise', price: 'Custom', period: '', color: '#e88a00',
-      desc: 'Untuk pemerintah, BNPB, NGO, dan korporasi besar.',
+      name: 'Enterprise', price: 'Custom', period: '', color: '#f59e0b',
+      desc: 'Solusi skala besar untuk Pemerintah & Korporasi.',
       features: [
-        'Semua fitur Pro',
-        'Unlimited sensors',
-        'White-label dashboard',
-        'SLA 99.9% uptime',
-        'Dedicated server',
-        'Custom AI model training',
-        'Webhook & integration',
-        'On-site training',
-        '24/7 phone support',
-        'Multi-tenant management',
+        'Semua fitur Professional',
+        'Sensor Tanpa Batas',
+        'White-label Dashboard',
+        'SLA 99.9% & Support Prioritas',
+        'Dedicated Cloud Instance',
+        'Custom Webhook Integration',
+        'Pelatihan On-site & Sertifikasi',
       ],
-      cta: 'Hubungi Sales', ctaStyle: 'outline', popular: false,
+      cta: 'Hubungi Sales', ctaStyle: 'warning', popular: false,
     },
   ]
 
   return (
     <section id="harga" style={{
-      padding: '100px 32px',
-      background: 'radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.06) 0%, transparent 60%)',
+      padding: '120px 32px',
+      background: 'radial-gradient(circle at 50% 0%, rgba(139,92,246,0.1) 0%, transparent 50%)',
     }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <AnimatedSection>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '80px' }}>
             <span style={{
-              display: 'inline-block', padding: '6px 16px', borderRadius: '50px',
-              background: 'rgba(232,138,0,0.1)', border: '1px solid rgba(232,138,0,0.3)',
-              color: 'var(--warning)', fontSize: '13px', fontWeight: '600', marginBottom: '16px',
-            }}>HARGA TRANSPARAN</span>
-            <h2 style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: '800', marginBottom: '16px', color: 'var(--text-primary)' }}>
-              Paket yang Sesuai <span style={{ color: 'var(--warning)' }}>Kebutuhan Anda</span>
+              display: 'inline-block', padding: '8px 20px', borderRadius: '50px',
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+              color: '#ef4444', fontSize: '14px', fontWeight: '700', marginBottom: '20px',
+              letterSpacing: '1px'
+            }}>PRICING PLANS</span>
+            <h2 style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: '900', marginBottom: '20px', color: 'var(--text-primary)', letterSpacing: '-1px' }}>
+              Investasi untuk <span style={{ color: '#ef4444' }}>Keselamatan</span> Tanpa Batas
             </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '16px', maxWidth: '500px', margin: '0 auto' }}>
-              Mulai gratis, upgrade kapan saja. Tanpa biaya tersembunyi.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '18px', maxWidth: '600px', margin: '0 auto', lineHeight: '1.6' }}>
+              Pilih paket yang sesuai dengan skala perlindungan Anda. Mulai dari penggunaan pribadi hingga infrastruktur nasional.
             </p>
           </div>
         </AnimatedSection>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+        <div style={{ 
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+          gap: '32px', alignItems: 'stretch' 
+        }}>
           {plans.map((plan, i) => (
             <AnimatedSection key={i} delay={i * 150}>
               <div style={{
-                position: 'relative', padding: '36px 28px',
-                background: 'var(--bg-card)', borderRadius: '20px',
-                border: plan.popular ? `2px solid ${plan.color}` : '1px solid var(--border-color)',
-                boxShadow: plan.popular ? `0 16px 48px ${plan.color}20` : 'none',
-                transition: 'transform 0.3s',
-                height: '100%',
+                position: 'relative', padding: '48px 32px',
+                background: plan.popular ? 'linear-gradient(180deg, #1e1b4b 0%, var(--bg-card) 100%)' : 'var(--bg-card)',
+                borderRadius: '32px',
+                border: plan.popular ? '2px solid #ef4444' : '1px solid var(--border-color)',
+                boxShadow: plan.popular ? '0 20px 60px rgba(239,68,68,0.15)' : 'none',
+                transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                height: '100%', display: 'flex', flexDirection: 'column'
               }}
-                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-8px)')}
-                onMouseLeave={e => (e.currentTarget.style.transform = '')}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-12px)'
+                  if (plan.popular) e.currentTarget.style.boxShadow = '0 30px 80px rgba(239,68,68,0.25)'
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)'
+                  if (plan.popular) e.currentTarget.style.boxShadow = '0 20px 60px rgba(239,68,68,0.15)'
+                }}
               >
                 {plan.popular && (
                   <div style={{
-                    position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
-                    background: `linear-gradient(135deg, ${plan.color}, ${plan.color}cc)`,
-                    color: '#fff', padding: '6px 20px', borderRadius: '50px',
-                    fontSize: '12px', fontWeight: '700', letterSpacing: '0.5px',
-                  }}>PALING POPULER</div>
+                    position: 'absolute', top: '-16px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#ef4444', color: '#fff', padding: '8px 24px', borderRadius: '50px',
+                    fontSize: '13px', fontWeight: '800', letterSpacing: '1px', boxShadow: '0 4px 12px rgba(239,68,68,0.3)'
+                  }}>REKOMENDASI</div>
                 )}
 
-                <h3 style={{ fontSize: '22px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '4px' }}>{plan.name}</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>{plan.desc}</p>
-
-                <div style={{ marginBottom: '28px' }}>
-                  <span style={{ fontSize: '42px', fontWeight: '900', color: plan.color }}>{plan.price}</span>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '14px' }}>{plan.period}</span>
+                <div style={{ marginBottom: '40px' }}>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-primary)', marginBottom: '8px' }}>{plan.name}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: '1.5', minHeight: '45px' }}>{plan.desc}</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                <div style={{ marginBottom: '40px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span style={{ fontSize: '48px', fontWeight: '900', color: 'var(--text-primary)', letterSpacing: '-2px' }}>{plan.price}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '16px', fontWeight: '500' }}>{plan.period}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '48px', flexGrow: 1 }}>
                   {plan.features.map((f, fi) => (
-                    <div key={fi} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <CheckCircle size={16} color={plan.color} />
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>{f}</span>
+                    <div key={fi} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{ 
+                        marginTop: '4px', width: '18px', height: '18px', borderRadius: '50%', 
+                        background: plan.popular ? '#ef444420' : 'rgba(255,255,255,0.05)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        <CheckCircle size={12} color={plan.popular ? '#ef4444' : '#8b5cf6'} />
+                      </div>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '15px', fontWeight: '500' }}>{f}</span>
                     </div>
                   ))}
                 </div>
@@ -841,27 +940,34 @@ function PricingSection() {
                   onClick={() => handleCheckout(plan)}
                   disabled={loading !== null}
                   style={{
-                    width: '100%',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                    padding: '14px', borderRadius: '12px', fontWeight: '700', fontSize: '15px',
-                    border: 'none', cursor: 'pointer',
-                    position: 'relative',
-                    zIndex: 2,
-                    ...(plan.ctaStyle === 'primary'
-                      ? { background: `linear-gradient(135deg, ${plan.color}, ${plan.color}cc)`, color: '#fff', boxShadow: `0 4px 16px ${plan.color}40` }
-                      : { background: 'transparent', border: `1px solid ${plan.color}`, color: plan.color }
+                    width: '100%', padding: '18px', borderRadius: '16px', fontWeight: '800', fontSize: '16px',
+                    cursor: 'pointer', transition: 'all 0.3s', border: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
+                    ...(plan.ctaStyle === 'primary' 
+                       ? { background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#fff', boxShadow: '0 8px 24px rgba(239,68,68,0.3)' } 
+                       : plan.ctaStyle === 'warning'
+                       ? { background: 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#000', boxShadow: '0 8px 24px rgba(245,158,11,0.2)' }
+                       : { background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }
                     ),
-                    transition: 'all 0.2s',
                     opacity: loading === plan.name ? 0.7 : 1,
                   }}
+                  onMouseEnter={e => {
+                    if (plan.ctaStyle === 'primary') e.currentTarget.style.transform = 'scale(1.02)'
+                    else e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'scale(1)'
+                    if (plan.ctaStyle !== 'primary') e.currentTarget.style.background = plan.ctaStyle === 'warning' ? 'linear-gradient(135deg, #f59e0b, #d97706)' : 'rgba(255,255,255,0.05)'
+                  }}
                 >
-                  {loading === plan.name ? 'Memproses...' : plan.cta} <ArrowRight size={16} />
+                  {loading === plan.name ? 'Memproses...' : plan.cta} <ArrowRight size={20} />
                 </button>
               </div>
             </AnimatedSection>
           ))}
         </div>
       </div>
+      <ContactSalesModal isOpen={salesModalOpen} onClose={() => setSalesModalOpen(false)} />
     </section>
   )
 }
