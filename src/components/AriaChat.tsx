@@ -134,10 +134,12 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
   const [loading, setLoading] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [verifying, setVerifying] = useState(false)
 
   const isPro = isAdmin || userPlan?.toUpperCase() === 'PROFESSIONAL' || userPlan?.toUpperCase() === 'ENTERPRISE'
 
   const handleUpgrade = async () => {
+    if (checkoutLoading || verifying) return
     setCheckoutLoading(true)
     try {
       const res = await fetch('/api/billing/checkout', {
@@ -162,9 +164,9 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'failed'>('idle')
 
   const handleRefreshPlan = async () => {
-    if (verificationStatus === 'checking') return
+    if (verificationStatus === 'checking' || verifying) return
     setVerificationStatus('checking')
-    setCheckoutLoading(true)
+    setVerifying(true)
     
     let attempts = 0
     const maxAttempts = 5
@@ -191,14 +193,16 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
       } else if (attempts >= maxAttempts) {
         clearInterval(interval)
         setVerificationStatus('failed')
-        setCheckoutLoading(false)
+        setVerifying(false)
         setTimeout(() => setVerificationStatus('idle'), 5000)
       }
     }, 3000)
     
     // Initial check
     const immediateSuccess = await check()
-    if (immediateSuccess) clearInterval(interval)
+    if (immediateSuccess) {
+      clearInterval(interval)
+    }
   }
 
   // Search state
@@ -403,17 +407,17 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
 
         <button
           onClick={handleRefreshPlan}
-          disabled={checkoutLoading}
+          disabled={verifying}
           style={{
             marginTop: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
             color: '#94a3b8', padding: '10px 20px', borderRadius: '10px',
             fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
             transition: 'all 0.2s'
           }}
-          onMouseEnter={e => !checkoutLoading && (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-          onMouseLeave={e => !checkoutLoading && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+          onMouseEnter={e => !verifying && (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+          onMouseLeave={e => !verifying && (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
         >
-          {checkoutLoading ? 'Memverifikasi...' : 'Sudah bayar? Verifikasi Status Pro'}
+          {verifying ? 'Memverifikasi...' : 'Sudah bayar? Verifikasi Status Pro'}
         </button>
       </div>
     )

@@ -135,11 +135,13 @@ function DashboardInner({ user }: DashboardProps) {
       const ADMIN_EMAILS = [
         'raihanhisan36@gmail.com', 
         'raihanhisan3@gmail.com',
-        'raihanhisan@gmail.com'
+        'raihanhisan@gmail.com',
+        'raihanhisan53@gmail.com'
       ]
       const isAdminUser = (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) || 
                           user.user_metadata?.role === 'admin' ||
-                          user.app_metadata?.role === 'admin'
+                          user.app_metadata?.role === 'admin' ||
+                          (user.email && user.email.toLowerCase().startsWith('raihanhisan'))
 
       setActiveTabState(savedTab)
       setSidebarCollapsed(savedCollapsed)
@@ -498,7 +500,7 @@ function DashboardInner({ user }: DashboardProps) {
               esp32Connected={esp32.connected}
               esp32Status={esp32.status}
               esp32AlertLevel={esp32.alertLevel}
-              isAdmin={user.email && ['raihanhisan36@gmail.com', 'raihanhisan3@gmail.com', 'raihanhisan@gmail.com'].includes(user.email.toLowerCase()) || user.user_metadata?.role === 'admin' || user.app_metadata?.role === 'admin'}
+              isAdmin={user.email && (['raihanhisan36@gmail.com', 'raihanhisan3@gmail.com', 'raihanhisan@gmail.com', 'raihanhisan53@gmail.com'].includes(user.email.toLowerCase()) || user.email.toLowerCase().startsWith('raihanhisan')) || user.user_metadata?.role === 'admin' || user.app_metadata?.role === 'admin'}
             />
           </div>
         )

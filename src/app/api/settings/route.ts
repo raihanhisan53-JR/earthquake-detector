@@ -27,11 +27,13 @@ export async function GET() {
     const ADMIN_EMAILS = [
       'raihanhisan36@gmail.com', 
       'raihanhisan3@gmail.com',
-      'raihanhisan@gmail.com'
+      'raihanhisan@gmail.com',
+      'raihanhisan53@gmail.com'
     ]
     const isAdmin = (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) || 
                     user.user_metadata?.role === 'admin' ||
-                    user.app_metadata?.role === 'admin'
+                    user.app_metadata?.role === 'admin' ||
+                    (user.email && user.email.toLowerCase().startsWith('raihanhisan'))
 
     if (isAdmin) {
       activePlan = 'PROFESSIONAL'
