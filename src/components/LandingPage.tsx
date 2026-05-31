@@ -652,16 +652,20 @@ function LiveDataSection() {
 }
 
 /* ─── Contact Sales Modal ─── */
+const WA_NUMBER = '6282261506339'
+
 function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [step, setStep] = useState(1)
   const [formData, setFormData] = useState({ name: '', email: '', company: '', needs: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
+    setErrorMsg('')
     
     try {
       const res = await fetch('/api/inquiry', {
@@ -672,17 +676,18 @@ function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
       
       if (res.ok) {
         setStep(2)
-        // Auto redirect to WA after 3 seconds for better experience
+        // Auto open WA after 3 seconds
         setTimeout(() => {
           const text = `Halo Sales TECTRA PRO, saya ${formData.name} dari ${formData.company}. Saya baru saja mengirimkan inkuiri Enterprise via web.`
-          window.open(`https://wa.me/6281234567890?text=${encodeURIComponent(text)}`, '_blank')
+          window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank')
         }, 3000)
       } else {
-        alert('Gagal mengirim inkuiri. Silakan hubungi kami via WhatsApp.')
+        const errData = await res.json().catch(() => ({}))
+        setErrorMsg(errData.error || 'Gagal mengirim inkuiri. Silakan coba lagi.')
       }
     } catch (err) {
       console.error(err)
-      alert('Terjadi kesalahan koneksi.')
+      setErrorMsg('Terjadi kesalahan koneksi. Silakan coba lagi.')
     } finally {
       setSubmitting(false)
     }
@@ -734,12 +739,23 @@ function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 value={formData.needs} onChange={e => setFormData({...formData, needs: e.target.value})}
                 style={{ padding: '14px', borderRadius: '12px', background: 'var(--bg-sidebar)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'none' }}
               />
+              {errorMsg && (
+                <div style={{
+                  padding: '12px 16px', borderRadius: '10px',
+                  background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.3)',
+                  color: '#f87171', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+                  {errorMsg}
+                </div>
+              )}
               <button
                 type="submit" disabled={submitting}
                 style={{
                   padding: '16px', borderRadius: '14px', background: 'var(--warning)', color: '#000',
                   fontWeight: '800', border: 'none', cursor: 'pointer', marginTop: '12px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer',
                 }}
               >
                 {submitting ? 'Mengirim...' : 'Kirim Permintaan Konsultasi'} <ArrowRight size={18} />
