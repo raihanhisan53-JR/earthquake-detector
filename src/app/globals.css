@@ -3826,20 +3826,20 @@ img {
   line-height: 1.5;
 }
 
-/* /* .esp-status-badge { */ */
-/* /*   display: inline-flex; */ */
-/* /*   align-items: center; */ */
-/* /*   gap: 8px; */ */
-/* /*   padding: 6px 16px; */ */
-/* /*   background: var(--bg-card-alt); */ */
-/* /*   border: 1px solid var(--border-color); */ */
-/* /*   border-radius: 99px; */ */
-/* /*   font-size: 13px; */ */
-/* /*   font-weight: 600; */ */
-/* /*   color: var(--text-secondary); */ */
-/* /*   white-space: nowrap; */ */
-/* /*   flex-shrink: 0; */ */
-/* /* } */ */
+/* .esp-status-badge { */
+/*   display: inline-flex; */
+/*   align-items: center; */
+/*   gap: 8px; */
+/*   padding: 6px 16px; */
+/*   background: var(--bg-card-alt); */
+/*   border: 1px solid var(--border-color); */
+/*   border-radius: 99px; */
+/*   font-size: 13px; */
+/*   font-weight: 600; */
+/*   color: var(--text-secondary); */
+/*   white-space: nowrap; */
+/*   flex-shrink: 0; */
+/* } */
 
 /* ===== KPI STAT CARDS ===== */
 .kpi-grid {
@@ -8255,16 +8255,16 @@ body:has(.alarm-banner) .dashboard-layout {
 .alarm-dismiss:hover { background: rgba(255,255,255,0.35); }
 
 /* ── ESP32 status badge di overview ── */
-/* /* .esp-status-badge { */ */
-/* /*   display: flex; */ */
-/* /*   align-items: center; */ */
-/* /*   gap: 10px; */ */
-/* /*   padding: 10px 16px; */ */
-/* /*   background: var(--bg-card); */ */
-/* /*   border: 1px solid var(--border-color); */ */
-/* /*   border-radius: var(--radius-sm); */ */
-/* /*   flex-shrink: 0; */ */
-/* /* } */ */
+/* .esp-status-badge { */
+/*   display: flex; */
+/*   align-items: center; */
+/*   gap: 10px; */
+/*   padding: 10px 16px; */
+/*   background: var(--bg-card); */
+/*   border: 1px solid var(--border-color); */
+/*   border-radius: var(--radius-sm); */
+/*   flex-shrink: 0; */
+/* } */
 
 /* .esp-status-detail { */
 /*   display: flex; */
@@ -8392,12 +8392,12 @@ body:has(.alarm-banner) .dashboard-layout {
     align-items: stretch;
   }
 
-/* /*   .esp-status-badge { justify-content: flex-start; } */ */
-/* /*  */ */
-/* /*   /* Health grid: wrap */ */ */
-/* /*   .health-grid { */ */
-/* /*     gap: 6px; */ */
-/* /*   } */ */
+/*   .esp-status-badge { justify-content: flex-start; } */
+/*  */
+/*   /* Health grid: wrap */ */
+/*   .health-grid { */
+/*     gap: 6px; */
+/*   } */
 
   .health-card {
     font-size: 11px;
