@@ -645,6 +645,7 @@ function DashboardInner({ user }: DashboardProps) {
       <div className="dashboard-body">
         {/* Sidebar — status ESP32 real */}
         <Sidebar
+          connected={false}
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           mobileOpen={sidebarOpen}
