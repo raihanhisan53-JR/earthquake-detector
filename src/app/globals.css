@@ -550,29 +550,29 @@ body {
   margin-top: auto;
 }
 
-.esp-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
+/* .esp-status { */
+/*   display: flex; */
+/*   align-items: center; */
+/*   gap: 8px; */
+/*   font-size: 12px; */
+/*   font-weight: 600; */
+/*   color: var(--text-secondary); */
+/* } */
 
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+/* .status-dot { */
+/*   width: 10px; */
+/*   height: 10px; */
+/*   border-radius: 50%; */
+/* } */
 
-.status-dot.online {
-  background: var(--safe);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-}
+/* .status-dot.online { */
+/*   background: var(--safe); */
+/*   box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); */
+/* } */
 
-.status-dot.offline {
-  background: var(--danger);
-}
+/* .status-dot.offline { */
+/*   background: var(--danger); */
+/* } */
 
 .sidebar--collapsed {
   width: 82px;
@@ -597,9 +597,9 @@ body {
 /* Base collapsed state */
 .sidebar--collapsed .sidebar-brand,
 .sidebar--collapsed .nav-item__label,
-.sidebar--collapsed .esp-status span {
-  display: none;
-}
+/* .sidebar--collapsed .esp-status span { */
+/*   display: none; */
+/* } */
 
 .sidebar--collapsed .sidebar-header {
   padding-inline: 14px;
@@ -629,9 +629,9 @@ body {
   padding-inline: 14px;
 }
 
-.sidebar--collapsed .esp-status {
-  justify-content: center;
-}
+/* .sidebar--collapsed .esp-status { */
+/*   justify-content: center; */
+/* } */
 
 /* Hover effect is removed as requested by user */
 
@@ -3525,18 +3525,18 @@ select option {
 
   .sidebar.sidebar--collapsed .sidebar-brand,
   .sidebar.sidebar--collapsed .nav-item__label,
-  .sidebar.sidebar--collapsed .esp-status span {
-    display: inline;
-  }
+/*   .sidebar.sidebar--collapsed .esp-status span { */
+/*     display: inline; */
+/*   } */
 
   .sidebar.sidebar--collapsed .nav-item {
     justify-content: flex-start;
     padding-inline: 16px;
   }
 
-  .sidebar.sidebar--collapsed .esp-status {
-    justify-content: flex-start;
-  }
+/*   .sidebar.sidebar--collapsed .esp-status { */
+/*     justify-content: flex-start; */
+/*   } */
 
   .mobile-overlay {
     display: block;
@@ -3826,20 +3826,20 @@ img {
   line-height: 1.5;
 }
 
-.esp-status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 16px;
-  background: var(--bg-card-alt);
-  border: 1px solid var(--border-color);
-  border-radius: 99px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
+/* /* .esp-status-badge { */ */
+/* /*   display: inline-flex; */ */
+/* /*   align-items: center; */ */
+/* /*   gap: 8px; */ */
+/* /*   padding: 6px 16px; */ */
+/* /*   background: var(--bg-card-alt); */ */
+/* /*   border: 1px solid var(--border-color); */ */
+/* /*   border-radius: 99px; */ */
+/* /*   font-size: 13px; */ */
+/* /*   font-weight: 600; */ */
+/* /*   color: var(--text-secondary); */ */
+/* /*   white-space: nowrap; */ */
+/* /*   flex-shrink: 0; */ */
+/* /* } */ */
 
 /* ===== KPI STAT CARDS ===== */
 .kpi-grid {
@@ -8255,33 +8255,33 @@ body:has(.alarm-banner) .dashboard-layout {
 .alarm-dismiss:hover { background: rgba(255,255,255,0.35); }
 
 /* ── ESP32 status badge di overview ── */
-.esp-status-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  flex-shrink: 0;
-}
+/* /* .esp-status-badge { */ */
+/* /*   display: flex; */ */
+/* /*   align-items: center; */ */
+/* /*   gap: 10px; */ */
+/* /*   padding: 10px 16px; */ */
+/* /*   background: var(--bg-card); */ */
+/* /*   border: 1px solid var(--border-color); */ */
+/* /*   border-radius: var(--radius-sm); */ */
+/* /*   flex-shrink: 0; */ */
+/* /* } */ */
 
-.esp-status-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+/* .esp-status-detail { */
+/*   display: flex; */
+/*   flex-direction: column; */
+/*   gap: 2px; */
+/* } */
 
-.esp-status-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
+/* .esp-status-label { */
+/*   font-size: 13px; */
+/*   font-weight: 600; */
+/*   color: var(--text-primary); */
+/* } */
 
-.esp-status-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-}
+/* .esp-status-sub { */
+/*   font-size: 11px; */
+/*   color: var(--text-muted); */
+/* } */
 
 /* ════════════════════════════════════════════════════
    RESPONSIVE MOBILE (≤ 768px)
@@ -8392,12 +8392,12 @@ body:has(.alarm-banner) .dashboard-layout {
     align-items: stretch;
   }
 
-  .esp-status-badge { justify-content: flex-start; }
-
-  /* Health grid: wrap */
-  .health-grid {
-    gap: 6px;
-  }
+/* /*   .esp-status-badge { justify-content: flex-start; } */ */
+/* /*  */ */
+/* /*   /* Health grid: wrap */ */ */
+/* /*   .health-grid { */ */
+/* /*     gap: 6px; */ */
+/* /*   } */ */
 
   .health-card {
     font-size: 11px;
