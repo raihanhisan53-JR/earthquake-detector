@@ -614,6 +614,7 @@ function DashboardInner({ user }: DashboardProps) {
 
       {/* Topbar — sekarang semua prop ESP32 terhubung */}
       <Topbar
+        connected={false}
         theme={theme}
         toggleTheme={() => setTheme((th: string) => th === 'dark' ? 'light' : 'dark')}
         notificationsEnabled={notificationsEnabled}
