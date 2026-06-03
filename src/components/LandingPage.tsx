@@ -387,16 +387,16 @@ function StatsSection() {
 /* ─── Features Section ─── */
 function FeaturesSection() {
   const features = [
-    { icon: <Activity size={24} />, color: '#6d28d9', title: 'Real-Time Detection', desc: 'Deteksi gempa secara real-time dari multiple sumber data — BMKG, USGS, dan sensor lokal ESP32. Update setiap detik tanpa delay.' },
+    { icon: <Activity size={24} />, color: '#6d28d9', title: 'Real-Time Detection', desc: 'Deteksi gempa secara real-time dari multiple sumber data — BMKG, USGS, dan feed global lainnya. Update setiap detik tanpa delay.' },
     { icon: <Bell size={24} />, color: '#dc2626', title: 'Instant Push Notification', desc: 'Notifikasi push langsung ke HP, email, dan webhook saat gempa terdeteksi. Bisa diatur berdasarkan radius, magnitudo, dan zona.' },
     { icon: <TrendingUp size={24} />, color: '#e88a00', title: 'AI-Powered Analysis', desc: 'Machine learning model yang terus belajar dari histori seismik untuk memberikan estimasi magnitude dan potensi tsunami lebih akurat.' },
-    { icon: <Waves size={24} />, color: '#0e9f6e', title: 'Seismograph Live', desc: 'Visualisasi gelombang seismik real-time dari sensor ESP32. Lihat gelombang P, S, dan surface langsung di dashboard.' },
+    { icon: <Waves size={24} />, color: '#0e9f6e', title: 'Seismograph Live', desc: 'Visualisasi gelombang seismik real-time dari pusat data geologi. Lihat gelombang P, S, dan surface langsung di dashboard.' },
     { icon: <BarChart3 size={24} />, color: '#3b82f6', title: 'Historical Analytics', desc: 'Database lengkap histori gempa — filter berdasarkan waktu, lokasi, magnitudo. Export data CSV/PDF untuk pelaporan.' },
     { icon: <Map size={24} />, color: '#8b5cf6', title: 'Interactive Map', desc: 'Peta interaktif dengan Leaflet.js. Lihat semua titik gempa, depth color coding, dan shake map langsung di peta Indonesia.' },
     { icon: <Smartphone size={24} />, color: '#ec4899', title: 'Multi-Platform PWA', desc: 'Progressive Web App — bisa diinstall di Android & iOS. Akses tanpa koneksi internet, notifikasi native, dan UI responsif.' },
     { icon: <Database size={24} />, color: '#14b8a6', title: 'REST API Access', desc: 'API endpoint lengkap untuk developer. Integrasikan data gempa ke aplikasi Anda sendiri. Dokumentasi Swagger tersedia.' },
     { icon: <Users size={24} />, color: '#f59e0b', title: 'Community Reports', desc: 'Laporan warga terstruktur — setiap user bisa melaporkan kondisi terkini (kerusakan, evakuasi, titik aman) pasca gempa.' },
-    { icon: <Cpu size={24} />, color: '#22c55e', title: 'IoT ESP32 Integration', desc: 'Hubungkan sensor accelerometer MPU6050 + modul WiFi ESP32 Anda. Deteksi getaran lokal tanpa bergantung pada data internet.' },
+    { icon: <Cpu size={24} />, color: '#22c55e', title: 'Smart Integration', desc: 'Integrasi dengan berbagai sumber data geologi internasional. Deteksi getaran global dengan akurasi tinggi.' },
     { icon: <Shield size={24} />, color: '#ef4444', title: 'Early Warning System', desc: 'Sistem peringatan dini otomatis. Alert suara + notifikasi saat magnitudo melebihi threshold yang Anda tentukan.' },
     { icon: <Globe size={24} />, color: '#06b6d4', title: 'Global Coverage', desc: 'Tidak hanya Indonesia — monitor gempa seluruh dunia melalui feed USGS. Sempurna untuk NGO, riset, dan persiapan bencana.' },
   ]
@@ -448,7 +448,7 @@ function FeaturesSection() {
 /* ─── How It Works ─── */
 function HowItWorksSection() {
   const steps = [
-    { num: '01', icon: <Radio size={32} />, color: '#6d28d9', title: 'Data Terkumpul', desc: 'Sensor ESP32, feed BMKG, dan USGS mengirimkan data getaran bumi ke server TECTRA PRO dalam hitungan detik.' },
+    { num: '01', icon: <Radio size={32} />, color: '#6d28d9', title: 'Data Terkumpul', desc: 'Feed BMKG dan USGS mengirimkan data getaran bumi ke server TECTRA PRO dalam hitungan detik.' },
     { num: '02', icon: <Cpu size={32} />, color: '#dc2626', title: 'AI Menganalisis', desc: 'Machine learning model mengolah data seismik — membedakan gempa signifikan dari noise, menghitung magnitudo, dan memproyeksikan dampak.' },
     { num: '03', icon: <Map size={32} />, color: '#e88a00', title: 'Visualisasi Real-Time', desc: 'Semua informasi ditampilkan di dashboard interaktif — peta, seismograf, statistik, dan status ancaman tsunami.' },
     { num: '04', icon: <Bell size={32} />, color: '#0e9f6e', title: 'Notifikasi & Aksi', desc: 'Alert dikirim ke semua perangkat terhubung. Evakuasi lebih cepat. Nyawa lebih banyak terselamatkan.' },
@@ -855,7 +855,7 @@ function PricingSection() {
         'Notifikasi Email (Basic)',
         'Dashboard Monitoring Standar',
         'Riwayat Kejadian 30 Hari',
-        'Integrasi 1 Sensor ESP32',
+        'Pembaruan Data Real-time',
       ],
       cta: 'Mulai Sekarang', ctaStyle: 'outline', popular: false,
     },
@@ -866,20 +866,20 @@ function PricingSection() {
         'Semua fitur Starter',
         'ARIA AI Assistant (Chat 24/7)',
         'Notifikasi Push, SMS & WA',
-        'AI Impact Prediction',
         'Riwayat Tanpa Batas (Cloud)',
-        'Hingga 10 Sensor ESP32',
+        'Akses Prioritas Global Feed',
         'Akses REST API Developer',
-      ],
-      cta: 'Pilih Paket Pro', ctaStyle: 'primary', popular: true,
-    },
-    {
-      name: 'Enterprise', price: 'Custom', period: '', color: '#f59e0b',
-      desc: 'Solusi skala besar untuk Pemerintah & Korporasi.',
-      features: [
+        ],
+        cta: 'Pilih Paket Pro', ctaStyle: 'primary', popular: true,
+        },
+        {
+        name: 'Enterprise', price: 'Custom', period: '', color: '#f59e0b',
+        desc: 'Solusi skala besar untuk Pemerintah & Korporasi.',
+        features: [
         'Semua fitur Professional',
-        'Sensor Tanpa Batas',
+        'Multi-Region Monitoring',
         'White-label Dashboard',
+        ...
         'SLA 99.9% & Support Prioritas',
         'Dedicated Cloud Instance',
         'Custom Webhook Integration',
@@ -1010,7 +1010,7 @@ function PricingSection() {
 /* ─── Testimonials ─── */
 function TestimonialsSection() {
   const [comments, setComments] = useState<any[]>([])
-  const [newComment, setNewComment] = useState({ name: '', text: '', role: '' })
+  const [newComment, setNewComment] = useState({ name: '', text: '', role: '', rating: 5 })
   const [submitting, setSubmitting] = useState(false)
 
   const fetchComments = async () => {
@@ -1045,12 +1045,11 @@ function TestimonialsSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...newComment,
-          avatar: newComment.name.substring(0, 2).toUpperCase(),
-          rating: 5
+          avatar: newComment.name.trim().split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
         })
       })
       if (res.ok) {
-        setNewComment({ name: '', text: '', role: '' })
+        setNewComment({ name: '', text: '', role: '', rating: 5 })
         fetchComments()
       }
     } catch (e) {
@@ -1099,11 +1098,12 @@ function TestimonialsSection() {
                   width: '44px', height: '44px', borderRadius: '50%',
                   background: 'linear-gradient(135deg, var(--accent), var(--danger))',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#fff', fontWeight: '700', fontSize: '14px',
-                }}>{t.avatar || 'U'}</div>
-                <div>
-                  <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px' }}>{t.name}</div>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{t.role}</div>
+                  color: '#fff', fontWeight: '800', fontSize: '14px', flexShrink: 0,
+                  overflow: 'hidden', textTransform: 'uppercase'
+                }}>{(t.avatar || t.name?.[0] || 'U').substring(0, 2)}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: '600', color: 'var(--text-primary)', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.name}</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.role}</div>
                 </div>
               </div>
             </div>
@@ -1119,6 +1119,25 @@ function TestimonialsSection() {
         }}>
           <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', textAlign: 'center' }}>Kirim Testimoni Anda</h3>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setNewComment({ ...newComment, rating: i + 1 })}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Star
+                    size={28}
+                    fill={i < newComment.rating ? '#e88a00' : 'none'}
+                    color={i < newComment.rating ? '#e88a00' : 'var(--text-muted)'}
+                    style={{ transition: 'transform 0.1s' }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                  />
+                </button>
+              ))}
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <input
                 type="text"
@@ -1167,11 +1186,10 @@ function FAQSection() {
 
   const faqs = [
     { q: 'Apakah TECTRA PRO gratis?', a: 'Ya! Kami menyediakan paket Starter yang gratis selamanya. Anda bisa akses data BMKG real-time, dashboard standar, dan notifikasi email tanpa biaya apapun. Upgrade ke Pro atau Enterprise jika butuh fitur lanjutan.' },
-    { q: 'Bagaimana cara kerja deteksi gempanya?', a: 'TECTRA PRO mengumpulkan data dari tiga sumber: (1) BMKG Indonesia via API resmi, (2) USGS global earthquake feed, dan (3) sensor IoT ESP32 yang bisa Anda pasang sendiri. Data diproses oleh AI model untuk membedakan gempa signifikan dari noise.' },
-    { q: 'Apakah bisa dipakai tanpa internet?', a: 'Jika menggunakan sensor ESP32 lokal, sistem tetap bisa mendeteksi getaran meski tanpa internet. Namun untuk data BMKG/USGS dan notifikasi push, koneksi internet diperlukan. Kami juga menyediakan PWA yang bisa cache data terakhir.' },
-    { q: 'Seberapa akurat datanya?', a: 'Data berasal langsung dari BMKG dan USGS — institusi resmi pemerintah. Akurasi waktu ±1 detik, lokasi ±5 km, dan magnitudo ±0.1 dari data resmi. Sensor ESP32 lokal memiliki akurasi yang bergantung pada kalibrasi hardware.' },
+    { q: 'Bagaimana cara kerja deteksi gempanya?', a: 'TECTRA PRO mengumpulkan data dari berbagai sumber: (1) BMKG Indonesia via API resmi, (2) USGS global earthquake feed, dan (3) pusat data seismik internasional lainnya. Data diproses oleh AI model untuk membedakan gempa signifikan dari noise.' },
+    { q: 'Apakah bisa dipakai tanpa internet?', a: 'Sistem TECTRA PRO memerlukan koneksi internet untuk menerima data BMKG/USGS dan notifikasi push. Namun kami menyediakan PWA yang bisa cache data terakhir.' },
+    { q: 'Seberapa akurat datanya?', a: 'Data berasal langsung dari BMKG dan USGS — institusi resmi pemerintah. Akurasi waktu ±1 detik, lokasi ±5 km, dan magnitudo ±0.1 dari data resmi.' },
     { q: 'Bisa untuk keperluan komersial?', a: 'Ya! Paket Enterprise mendukung white-label, multi-tenant, dan custom integration. Banyak mall, sekolah, dan kantor yang menggunakan TECTRA PRO untuk sistem keselamatan mereka.' },
-    { q: 'Bagaimana cara pasang sensor ESP32?', a: 'Kami menyediakan panduan lengkap di dashboard. Anda cukup membeli ESP32 + MPU6050 (sekitar Rp 50.000), flash firmware kami via USB, dan hubungkan ke WiFi. Data langsung masuk ke dashboard dalam hitungan menit.' },
     { q: 'Apakah ada API untuk developer?', a: 'Ya! Paket Pro dan Enterprise menyediakan REST API lengkap dengan dokumentasi Swagger. Anda bisa akses data gempa, histori, dan statistik dalam format JSON. Rate limit 1000 request/hour untuk Pro.' },
     { q: 'Bagaimana dengan privasi data saya?', a: 'Kami sangat menjaga privasi. Data lokasi hanya digunakan untuk radius alert. Kami tidak menjual data ke pihak ketiga. Semua data dienkripsi via HTTPS dan disimpan di server yang compliant dengan regulasi Indonesia.' },
   ]

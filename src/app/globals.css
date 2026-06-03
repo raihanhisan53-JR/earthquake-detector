@@ -241,11 +241,6 @@
   background: #f4f6f9;
 }
 
-/* Alarm banner di light mode */
-[data-theme="light"] .alarm-banner {
-  background: #c0392b;
-}
-
 /* Notifikasi toast */
 [data-theme="light"] .app-notice {
   background: #ffffff;
@@ -550,30 +545,6 @@ body {
   margin-top: auto;
 }
 
-.esp-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.status-dot.online {
-  background: var(--safe);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-}
-
-.status-dot.offline {
-  background: var(--danger);
-}
-
 .sidebar--collapsed {
   width: 82px;
   min-width: 82px;
@@ -596,8 +567,7 @@ body {
 
 /* Base collapsed state */
 .sidebar--collapsed .sidebar-brand,
-.sidebar--collapsed .nav-item__label,
-.sidebar--collapsed .esp-status span {
+.sidebar--collapsed .nav-item__label {
   display: none;
 }
 
@@ -627,10 +597,6 @@ body {
 
 .sidebar--collapsed .sidebar-footer {
   padding-inline: 14px;
-}
-
-.sidebar--collapsed .esp-status {
-  justify-content: center;
 }
 
 /* Hover effect is removed as requested by user */
@@ -1324,129 +1290,6 @@ body {
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-/* ===== SEISMOGRAPH ===== */
-.sensor-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.stat-item {
-  background: var(--bg-card-alt);
-  padding: 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.stat-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.status-main.safe .stat-value {
-  color: var(--safe);
-}
-
-.status-main.warning .stat-value {
-  color: var(--warning);
-}
-
-.status-main.danger .stat-value {
-  color: var(--danger);
-}
-
-.chart-container {
-  height: 220px;
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.chart-container canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.control-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.control-group {
-  background: var(--bg-card-alt);
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
-}
-
-.group-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.threshold-slider {
-  width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--border-color);
-  outline: none;
-}
-
-.threshold-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  cursor: pointer;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.sensor-control-note {
-  margin-top: 12px;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* ===== EARTHQUAKE CARD (BMKG Style) ===== */
@@ -3567,7 +3410,6 @@ select option {
     min-height: 56px;
   }
 
-  .sensor-stats-grid {
     grid-template-columns: 1fr;
   }
 
@@ -3826,7 +3668,6 @@ img {
   line-height: 1.5;
 }
 
-.esp-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -4068,7 +3909,6 @@ img {
 }
 
 /* Alarm banner icon — SVG support */
-.alarm-banner__icon {
   font-size: 1.4rem;
   flex-shrink: 0;
   animation: alarm-shake 0.4s ease-in-out infinite alternate;
@@ -6079,7 +5919,6 @@ img {
 /* ════════════════════════════════════════════════════════
    ALARM BANNER — tampil di atas semua konten saat alarm aktif
    ════════════════════════════════════════════════════════ */
-.alarm-banner {
   position: fixed;
   top: 0;
   left: 0;
@@ -6102,7 +5941,6 @@ img {
   to   { background: #991b1b; }
 }
 
-.alarm-banner__icon {
   font-size: 1.4rem;
   flex-shrink: 0;
   animation: alarm-shake 0.4s ease-in-out infinite alternate;
@@ -6113,12 +5951,10 @@ img {
   to   { transform: rotate(8deg); }
 }
 
-.alarm-banner__text {
   flex: 1;
   letter-spacing: 0.5px;
 }
 
-.alarm-banner__stop {
   flex-shrink: 0;
   padding: 8px 20px;
   background: #fff;
@@ -6132,17 +5968,14 @@ img {
   transition: background 0.15s, transform 0.1s;
 }
 
-.alarm-banner__stop:hover {
   background: #fee2e2;
   transform: scale(1.04);
 }
 
-.alarm-banner__stop:active {
   transform: scale(0.97);
 }
 
 /* Dorong konten ke bawah saat banner aktif */
-body:has(.alarm-banner) .dashboard-layout {
   padding-top: 52px;
 }
 
@@ -7151,7 +6984,6 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   /* ── Seismograph card ── */
-  .sensor-stats-grid {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
@@ -7283,18 +7115,15 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   /* ── Alarm banner ── */
-  .alarm-banner {
     padding: 10px 12px;
     font-size: 0.8rem;
     gap: 8px;
     flex-wrap: wrap;
   }
 
-  .alarm-banner__text {
     font-size: 0.78rem;
   }
 
-  .alarm-banner__stop {
     width: 100%;
     padding: 8px;
     text-align: center;
@@ -7381,7 +7210,6 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   /* ── ESP32 connection note ── */
-  .sensor-control-note {
     font-size: 0.72rem;
   }
 
@@ -7399,7 +7227,6 @@ body:has(.alarm-banner) .dashboard-layout {
     padding: 8px;
   }
 
-  .sensor-stats-grid {
     grid-template-columns: 1fr;
   }
 
@@ -8217,7 +8044,6 @@ body:has(.alarm-banner) .dashboard-layout {
    ════════════════════════════════════════════════════════════════ */
 
 /* ── Alarm banner saat gempa ESP32 terdeteksi ── */
-.alarm-banner {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -8255,7 +8081,6 @@ body:has(.alarm-banner) .dashboard-layout {
 .alarm-dismiss:hover { background: rgba(255,255,255,0.35); }
 
 /* ── ESP32 status badge di overview ── */
-.esp-status-badge {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -8392,7 +8217,6 @@ body:has(.alarm-banner) .dashboard-layout {
     align-items: stretch;
   }
 
-  .esp-status-badge { justify-content: flex-start; }
 
   /* Health grid: wrap */
   .health-grid {
@@ -8426,7 +8250,6 @@ body:has(.alarm-banner) .dashboard-layout {
   .card { border-radius: var(--radius-sm); }
 
   /* Alarm banner */
-  .alarm-banner {
     flex-wrap: wrap;
     font-size: 13px;
     padding: 12px 14px;
@@ -8446,7 +8269,6 @@ body:has(.alarm-banner) .dashboard-layout {
   }
 
   /* Sensor stats grid: 2 kolom */
-  .sensor-stats-grid {
     grid-template-columns: 1fr 1fr !important;
     gap: 10px;
   }

@@ -24,7 +24,6 @@ const getLevelMeta = (rawLevel: string) => {
 const SOURCE_COLORS: Record<string, string> = {
   BMKG: '#6d28d9',
   USGS: '#0891b2',
-  ESP32: '#059669',
   FALLBACK: '#64748b',
 }
 
@@ -192,7 +191,6 @@ export default function EventLogCard() {
             <option value="SEMUA">Semua Sumber</option>
             <option value="BMKG">BMKG</option>
             <option value="USGS">USGS</option>
-            <option value="ESP32">ESP32</option>
           </select>
         </div>
 

@@ -264,8 +264,6 @@ function DashboardInner({ user }: DashboardProps) {
     triggerTestAlarm,
     stopAlarm,
   } = useNotifications({
-    esp32AlertLevel: 0,
-    esp32Connected:  false,
     notificationsEnabled,
   })
 

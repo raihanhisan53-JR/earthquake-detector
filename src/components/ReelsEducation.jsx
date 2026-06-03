@@ -7,13 +7,13 @@ import { useHaptics } from '@/hooks/useHaptics';
 const EDUCATION_REELS = [
   {
     id: 'r0',
-    youtubeId: 'vBD1x9yAfgs',
-    title: '12 Proyek ESP32 Keren yang Bisa Anda Coba!',
-    author: 'ToP Projects',
-    authorBadge: 'ESP32 IoT',
-    badgeColor: '#22c55e',
-    description: 'Kumpulan 12 proyek IoT berbasis ESP32 yang luar biasa. Sangat relevan bagi Anda yang ingin mengembangkan sensor getaran sendiri untuk TECTRA PRO. 🛠️',
-    likes: 32400,
+    youtubeId: 'Wz3K9YhS3X0',
+    title: 'Bagaimana Cara Mendeteksi Gempa Bumi?',
+    author: 'Kok Bisa?',
+    authorBadge: 'TEKNOLOGI',
+    badgeColor: '#8b5cf6',
+    description: 'Bagaimana alat deteksi gempa bekerja? Penjelasan tentang seismometer dan teknologi peringatan dini global. 📡',
+    likes: 21500,
   },
   {
     id: 'r1',

@@ -223,7 +223,6 @@ export default function NotificationPanel({
           <div className="notif-panel__sources">
             <span className="notif-src-tag" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' }}>BMKG</span>
             <span className="notif-src-tag" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>USGS</span>
-            <span className="notif-src-tag" style={{ background: 'rgba(168,85,247,0.15)', color: '#a855f7', border: '1px solid rgba(168,85,247,0.3)' }}>ESP32</span>
             <span className="notif-panel__live-dot">● Live</span>
           </div>
 
