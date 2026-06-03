@@ -3909,6 +3909,7 @@ img {
 }
 
 /* Alarm banner icon — SVG support */
+.alarm-banner__icon {
   font-size: 1.4rem;
   flex-shrink: 0;
   animation: alarm-shake 0.4s ease-in-out infinite alternate;
