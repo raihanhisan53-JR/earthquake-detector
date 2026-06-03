@@ -872,21 +872,20 @@ function PricingSection() {
         ],
         cta: 'Pilih Paket Pro', ctaStyle: 'primary', popular: true,
         },
-        {
+      {
         name: 'Enterprise', price: 'Custom', period: '', color: '#f59e0b',
         desc: 'Solusi skala besar untuk Pemerintah & Korporasi.',
         features: [
-        'Semua fitur Professional',
-        'Multi-Region Monitoring',
-        'White-label Dashboard',
-        ...
-        'SLA 99.9% & Support Prioritas',
-        'Dedicated Cloud Instance',
-        'Custom Webhook Integration',
-        'Pelatihan On-site & Sertifikasi',
-      ],
-      cta: 'Hubungi Sales', ctaStyle: 'warning', popular: false,
-    },
+          'Semua fitur Professional',
+          'Multi-Region Monitoring',
+          'White-label Dashboard',
+          'SLA 99.9% & Support Prioritas',
+          'Dedicated Cloud Instance',
+          'Custom Webhook Integration',
+          'Pelatihan On-site & Sertifikasi',
+        ],
+        cta: 'Hubungi Sales', ctaStyle: 'warning', popular: false,
+      },
   ]
 
   return (
