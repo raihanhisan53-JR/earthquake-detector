@@ -753,7 +753,7 @@ function ContactSalesModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
                 type="submit" disabled={submitting}
                 style={{
                   padding: '16px', borderRadius: '14px', background: 'var(--warning)', color: '#000',
-                  fontWeight: '800', border: 'none', cursor: 'pointer', marginTop: '12px',
+                  fontWeight: '800', border: 'none', marginTop: '12px',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   opacity: submitting ? 0.7 : 1, cursor: submitting ? 'not-allowed' : 'pointer',
                 }}
