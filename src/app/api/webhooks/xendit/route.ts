@@ -6,7 +6,12 @@ export async function POST(req: Request) {
     const payload = await req.json();
     const signature = req.headers.get('x-callback-token');
 
-    console.log('Xendit Webhook Received:', payload.external_id, payload.status);
+    console.log('--- Xendit Webhook Received ---');
+    console.log('ID:', payload.id || payload.external_id);
+    console.log('Status:', payload.status);
+    console.log('External ID:', payload.external_id);
+    console.log('Token Match:', signature === process.env.XENDIT_WEBHOOK_TOKEN);
+    console.log('-------------------------------');
 
     const result = await billingService.handleWebhook(payload, signature || undefined);
 

@@ -20,7 +20,6 @@ Keahlian ARIA:
 - Analisis potensi tsunami.
 - Prosedur evakuasi dan keselamatan.
 - Penjelasan fenomena seismik.
-- Analisis data sensor ESP32.
 - Rekomendasi tindakan darurat.
 - Sejarah gempa Indonesia.
 - Zona rawan gempa di Indonesia.
@@ -28,7 +27,6 @@ Keahlian ARIA:
 Konteks sistem:
 - Dashboard monitoring gempa real-time.
 - Data dari BMKG (Badan Meteorologi, Klimatologi, dan Geofisika).
-- Sensor lokal ESP32 dengan MPU6500.
 - Lokasi: Indonesia (zona seismik aktif).
 
 Format respons:
@@ -70,9 +68,6 @@ export async function POST(request: Request) {
     if (context.latestEarthquake) {
       const eq = context.latestEarthquake
       contextStr += `\n\n[DATA GEMPA TERKINI BMKG]\nMagnitudo: M${eq.magnitude}\nLokasi: ${eq.location}\nWaktu: ${eq.time}\nKedalaman: ${eq.depth}\nPotensi: ${eq.potensi}`
-    }
-    if (context.esp32Connected) {
-      contextStr += `\n\n[STATUS SENSOR ESP32]\nStatus: ${context.esp32Status || 'AMAN'}\nAlert Level: ${context.esp32AlertLevel || 0}`
     }
 
     // Ingatan tentang user yang sedang login

@@ -228,7 +228,7 @@ function HeroSection() {
           }}>
             TECTRA PRO menggabungkan data resmi <strong style={{ color: 'var(--text-primary)' }}>BMKG</strong> &{' '}
             <strong style={{ color: 'var(--text-primary)' }}>USGS</strong>, sensor IoT{' '}
-            <strong style={{ color: 'var(--text-primary)' }}>ESP32</strong>, dan AI prediktif menjadi satu platform
+            <strong style={{ color: 'var(--text-primary)' }}>Global Monitoring</strong>, dan AI prediktif menjadi satu platform
             Command Center terlengkap. Dapatkan <strong style={{ color: '#dc2626' }}>notifikasi kilat</strong> sebelum bahaya datang.
           </p>
         </AnimatedSection>
@@ -273,7 +273,7 @@ function HeroSection() {
             {[
               { icon: <Satellite size={18} />, label: 'Data BMKG Resmi' },
               { icon: <Globe size={18} />, label: 'USGS Global Feed' },
-              { icon: <Radio size={18} />, label: 'IoT ESP32 Ready' },
+              { icon: <Radio size={18} />, label: 'Global Data Feed' },
               { icon: <Layers size={18} />, label: 'AI Predictive' },
             ].map((item, i) => (
               <div key={i} style={{

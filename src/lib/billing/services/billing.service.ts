@@ -96,7 +96,7 @@ export class BillingService {
     const isAlreadyPaid = transaction.status === PaymentStatus.PAID;
     
     // 4. Update Status and Activate Subscription
-    if (status === 'PAID' || status === 'SETTLED') {
+    if (status === 'PAID' || status === 'SETTLED' || status === 'COMPLETED') {
       const paidDate = paid_at ? new Date(paid_at) : new Date();
       
       // professional plan expires in 30 days (example)

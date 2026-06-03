@@ -11,9 +11,6 @@ import {
   Menu,
   Moon,
   Sun,
-  Unlink,
-  Wifi,
-  WifiOff,
   X,
   Camera,
   ChevronDown,
@@ -74,9 +71,6 @@ export default function Topbar({
   hidden = false,
   user = {},
   onLogout,
-  esp32Ip = '',
-  onConnect,
-  onDisconnect,
   onMenuClick,
   sidebarCollapsed,
   toggleSidebar,
@@ -96,11 +90,8 @@ export default function Topbar({
   stopAlarm,
 }) {
   const [time, setTime] = useState('');
-  const [ipInput, setIpInput] = useState(esp32Ip);
-  const [showIpPanel, setShowIpPanel] = useState(false);
   const [alarmActive, setAlarmActive] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const ipPanelWrapperRef = useRef(null);
   const accountMenuRef = useRef(null);
   const { t, lang } = useI18n();
 
@@ -109,13 +100,6 @@ export default function Topbar({
   const profilePhoto = user ? getProfilePhoto(user) : '';
   const profileInitials = user ? getProfileInitials(user) : '';
   const providerLabel = user ? getProviderLabel(user) : '';
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIpInput(esp32Ip);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [esp32Ip]);
 
   // Clock — format sesuai bahasa
   useEffect(() => {
@@ -150,25 +134,7 @@ export default function Topbar({
     return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
   }, [accountOpen]);
 
-  // Close IP panel on outside click / Escape
-  useEffect(() => {
-    if (!showIpPanel) return undefined;
-    const onDown = (e) => { if (ipPanelWrapperRef.current && !ipPanelWrapperRef.current.contains(e.target)) setShowIpPanel(false); };
-    const onKey  = (e) => { if (e.key === 'Escape') setShowIpPanel(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
-  }, [showIpPanel]);
-
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleConnect = () => {
-    if (ipInput.trim()) { onConnect?.(ipInput.trim()); setShowIpPanel(false); }
-  };
-  const handleDisconnect = () => {
-    onDisconnect?.(); setIpInput(''); setShowIpPanel(false);
-  };
-  const handleKeyDown = (e) => { if (e.key === 'Enter') handleConnect(); };
-
   const handleAlarm = () => {
     if (alarmActive) {
       stopAlarm?.();
@@ -230,37 +196,6 @@ export default function Topbar({
 
       <div className="topbar-right">
         <div className="topbar-actions">
-
-          {/* ESP32 IP Panel */}
-          <div ref={ipPanelWrapperRef} style={{ position: 'relative', display: 'inline-block' }}>
-            <div
-              className={`action-btn status-pill ${connected ? 'active' : ''}`}
-              title={connected ? `ESP32 ${t('online')} (${esp32Ip})` : `ESP32 ${t('offline')}`}
-              onClick={() => { setAccountOpen(false); setShowIpPanel((v) => !v); }}
-              style={{ cursor: 'pointer' }}
-            >
-              {connected ? <Wifi size={18} /> : <WifiOff size={18} />}
-              <span>{connected ? t('online') : t('offline')}</span>
-            </div>
-            {showIpPanel && (
-              <div className="ip-panel">
-                <div className="ip-panel__input-row">
-                  <input type="text" className="ip-panel__input" placeholder="IP ESP32"
-                    value={ipInput} onChange={(e) => setIpInput(e.target.value)} onKeyDown={handleKeyDown} />
-                </div>
-                <div className="ip-panel__buttons">
-                  <button type="button" className="ip-panel__btn ip-panel__btn--connect" onClick={handleConnect}>
-                    <Link size={14} /> Connect
-                  </button>
-                  {connected && (
-                    <button type="button" className="ip-panel__btn ip-panel__btn--disconnect" onClick={handleDisconnect}>
-                      <Unlink size={14} /> Reset
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Alert toggle */}
           <button type="button" className={`action-btn ${notificationsEnabled ? 'active' : ''}`}

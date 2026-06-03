@@ -63,7 +63,6 @@ export default function Sidebar({
     {
       title: t('navSystemPro') || 'Sistem Pro',
       items: [
-        { id: 'esp32',  icon: <Cpu size={18} />,  label: t('esp32') },
         { id: 'edukasi',icon: <Play size={18} />, label: t('education')      },
         { id: 'evakuasi', icon: <Shield size={18} />, label: t('evakuasi') },
         { id: 'timetravel', icon: <History size={18} />, label: t('timetravel') },
@@ -112,7 +111,7 @@ export default function Sidebar({
 
         {/* ── Nav ── */}
         <nav className="sidebar-nav">
-          {navSections.map((section, idx) => (
+          {navSections.map((section, idx) => (section.items.length > 0 && (
             <div key={idx} className="sidebar-nav-section">
               {/* Section label */}
               {section.title && !isVisuallyCollapsed && (
@@ -140,7 +139,7 @@ export default function Sidebar({
                 </a>
               ))}
             </div>
-          ))}
+          )))}
         </nav>
 
         {/* ── Footer / Profile ── */}
@@ -169,7 +168,7 @@ export default function Sidebar({
             <div className="sidebar-profile-info">
               <span className="sidebar-profile-name">{displayName}</span>
               <span className="sidebar-profile-sub">
-                {connected ? 'ESP32 Online' : 'ESP32 Offline'}
+                Tectra Pro
               </span>
             </div>
           </button>

@@ -11,7 +11,6 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useBMKG } from '@/hooks/useBMKG'
 import { useBMKGMap } from '@/hooks/useBMKGMap'
-import { useESP32 } from '@/hooks/useESP32'
 import { usePWA } from '@/hooks/usePWA'
 import { I18nProvider, useI18n } from '@/hooks/useI18n'
 const BMKGGoogleMap = dynamic(() => import('./BMKGGoogleMap'), { ssr: false })
@@ -33,7 +32,6 @@ interface UserLocation {
   lat: number;
   lon: number;
 }
-const SeismographCard = dynamic(() => import('./SeismographCard.jsx'), { ssr: false })
 const Topbar          = dynamic(() => import('./Topbar.jsx'), { ssr: false })
 const Sidebar         = dynamic(() => import('./Sidebar.jsx'), { ssr: false })
 const AriaChat        = dynamic(() => import('./AriaChat'), { ssr: false })
@@ -87,11 +85,6 @@ function DashboardInner({ user }: DashboardProps) {
   const mainContentRef   = useRef<HTMLElement>(null)
   const noticeTimersRef  = useRef(new Map())
 
-  // ══════════════════════════════════════════
-  // ESP32 Hook — semua data sensor real-time
-  // Ini yang sebelumnya TIDAK disambungkan!
-  // ══════════════════════════════════════════
-  const esp32 = useESP32()
   const { gempa } = useBMKG()
   const bmkgMap   = useBMKGMap()
   const { installPrompt, isInstalled, installApp } = usePWA()
@@ -199,7 +192,7 @@ function DashboardInner({ user }: DashboardProps) {
                 clearInterval(interval)
               }
             })
-          if (attempts >= 15) {
+          if (attempts >= 30) {
             clearInterval(interval)
             // Final check after failure
             fetch('/api/settings?t=' + Date.now())
@@ -271,8 +264,8 @@ function DashboardInner({ user }: DashboardProps) {
     triggerTestAlarm,
     stopAlarm,
   } = useNotifications({
-    esp32AlertLevel: esp32.alertLevel,
-    esp32Connected:  esp32.connected,
+    esp32AlertLevel: 0,
+    esp32Connected:  false,
     notificationsEnabled,
   })
 
@@ -288,9 +281,6 @@ function DashboardInner({ user }: DashboardProps) {
   useEffect(() => {
     if (mainContentRef.current) mainContentRef.current.scrollTop = 0
   }, [activeTab])
-
-  // ── Alarm banner global saat ESP32 deteksi gempa ──
-  const isEsp32Alert = esp32.connected && esp32.alertLevel > 0
 
   // ── Notifikasi otomatis saat ada gempa baru dari BMKG/USGS ──
   // Pakai Set untuk track ID yang sudah dinotifikasi (session ini)
@@ -340,65 +330,9 @@ function DashboardInner({ user }: DashboardProps) {
     })
   }, [bmkgMap.points, notificationsEnabled, addNotification])
 
-  // ── Auto-save ESP32 alert ke database (earthquake_logs & sensor_readings) ──
-  const prevEsp32AlertRef = useRef(0)
-  useEffect(() => {
-    if (esp32.connected && esp32.alertLevel > 0 && prevEsp32AlertRef.current === 0) {
-      const mag = esp32.pgaCms2 > 0 ? (Math.log10(esp32.pgaCms2) + 1.5).toFixed(1) : (esp32.alertLevel === 2 ? '5.5' : '4.0')
-      fetch('/api/earthquakes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          magnitude: parseFloat(mag), 
-          location: 'Sensor Lokal (Alat ESP32)',
-          source: 'ESP32',
-          level: esp32.alertLevel === 2 ? 'BAHAYA' : 'WASPADA',
-          detail: `Getaran lokal terdeteksi (PGA: ${esp32.pgaCms2} cm/s²)`
-        })
-      }).catch(console.error)
-
-      // Simpan juga ke sensor_readings
-      fetch('/api/sensors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pgaCms2: esp32.pgaCms2,
-          pgaPeak: esp32.pgaPeakCms2,
-          alertLevel: esp32.alertLevel,
-          status: esp32.status,
-          sensorIp: esp32.esp32Ip,
-        }),
-      }).catch(console.error)
-    }
-    prevEsp32AlertRef.current = esp32.alertLevel
-  }, [esp32.connected, esp32.alertLevel, esp32.pgaCms2, esp32.pgaPeakCms2, esp32.status, esp32.esp32Ip])
-
-  // ── Props seismograph — satu objek dipakai di dua tempat ──
-  const seismographProps = {
-    dataPoints:      esp32.dataPoints,
-    status:          esp32.status,
-    threshold:       esp32.threshold,
-    updateThreshold: esp32.updateThreshold,
-    calibrateSensor: esp32.calibrateSensor,
-    isCalibrating:   esp32.isCalibrating,
-    triggerSimulation: esp32.triggerSimulation,
-    resetAlert:      esp32.resetAlert,
-    alertLevel:      esp32.alertLevel,
-    connected:       esp32.connected,
-    sensorReady:     esp32.sensorReady,
-    currentModeLabel: esp32.currentModeLabel,
-    changeMode:      esp32.changeMode,
-    isChangingMode:  esp32.isChangingMode,
-    connectionIssue: esp32.connectionIssue,
-    notifyUser,
-    pgaCms2:         esp32.pgaCms2,
-    pgaPeakCms2:     esp32.pgaPeakCms2,
-  }
-
   const quickAccessItems = [
     { id: 'peta',     icon: <MapPinned size={18} />, label: t('map'),        desc: 'Peta gempa interaktif' },
     { id: 'globe',    icon: <Globe2 size={18} />,    label: t('googleMaps'), desc: 'Google Maps BMKG live' },
-    { id: 'esp32',    icon: <Cpu size={18} />,       label: t('esp32'),      desc: t('esp32') },
     { id: 'aria',     icon: <Bot size={18} />,       label: 'ARIA AI',       desc: 'Asisten AI Cerdas' },
   ]
 
@@ -439,12 +373,6 @@ function DashboardInner({ user }: DashboardProps) {
         )
       case 'cuaca':
         return <div className="tab-content"><VisualisasiCard /><WeatherCard /></div>
-      case 'esp32':
-        return (
-          <div className="tab-content">
-            <SeismographCard {...seismographProps} />
-          </div>
-        )
       case 'riwayat':
         return <div className="tab-content"><EventLogCard /></div>
       case 'evakuasi':
@@ -497,9 +425,6 @@ function DashboardInner({ user }: DashboardProps) {
             <AriaChat
               userPlan={userPlan}
               latestEarthquake={latestEarthquakeForAria}
-              esp32Connected={esp32.connected}
-              esp32Status={esp32.status}
-              esp32AlertLevel={esp32.alertLevel}
               isAdmin={user.email && (['raihanhisan36@gmail.com', 'raihanhisan3@gmail.com', 'raihanhisan@gmail.com', 'raihanhisan53@gmail.com'].includes(user.email.toLowerCase()) || user.email.toLowerCase().startsWith('raihanhisan')) || user.user_metadata?.role === 'admin' || user.app_metadata?.role === 'admin'}
             />
           </div>
@@ -519,10 +444,6 @@ function DashboardInner({ user }: DashboardProps) {
               <div className="overview-header-left">
                 <h2 className="overview-title">{t('summary')}</h2>
                 <p className="overview-desc">{t('summaryDesc')}</p>
-              </div>
-              <div className="esp-status-badge">
-                <div className={`status-dot ${esp32.connected ? 'online' : 'offline'}`} />
-                <span>{esp32.connected ? `${t('esp32Online')} · ${esp32.esp32Ip}` : t('esp32Offline')}</span>
               </div>
             </div>
 
@@ -553,18 +474,6 @@ function DashboardInner({ user }: DashboardProps) {
                 </div>
               </div>
               <div className="kpi-card">
-                <div className="kpi-icon" style={{ background: esp32.connected ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: esp32.connected ? '#10b981' : '#ef4444' }}>
-                  <Cpu size={20} />
-                </div>
-                <div className="kpi-info">
-                  <span className="kpi-label">{t('sensorStatus')}</span>
-                  <span className="kpi-value" style={{ color: esp32.connected ? '#10b981' : '#ef4444' }}>
-                    {esp32.connected ? t('online') : t('offline')}
-                  </span>
-                  <span className="kpi-sub">ESP32 · {esp32.connected ? esp32.esp32Ip : '-'}</span>
-                </div>
-              </div>
-              <div className="kpi-card">
                 <div className="kpi-icon" style={{ background: 'rgba(168,85,247,0.12)', color: '#a855f7' }}>
                   <Clock size={20} />
                 </div>
@@ -577,17 +486,6 @@ function DashboardInner({ user }: DashboardProps) {
                 </div>
               </div>
             </div>
-
-            {/* ── ALARM BANNER ── */}
-            {isEsp32Alert && (
-              <div className="alarm-banner" role="alert" aria-live="assertive">
-                <AlertTriangle size={22} className="alarm-banner__icon" />
-                <span className="alarm-banner__text">
-                  ALARM — {t('esp32')} Level {esp32.alertLevel} · {esp32.status}
-                </span>
-                <button className="alarm-banner__stop" onClick={() => esp32.resetAlert()}>■ RESET</button>
-              </div>
-            )}
 
             {/* ── SYSTEM HEALTH ── */}
             <div className="health-grid">
@@ -605,12 +503,6 @@ function DashboardInner({ user }: DashboardProps) {
               </div>
               <div className="health-card">
                 <Database size={14} />
-                <span className="health-label">ESP32</span>
-                <span className={`health-dot ${esp32.connected ? 'online' : 'offline'}`} />
-                <span className="health-status">{esp32.connected ? t('online') : t('offline')}</span>
-              </div>
-              <div className="health-card">
-                <Database size={14} />
                 <span className="health-label">Database</span>
                 <span className="health-dot online" />
                 <span className="health-status">{t('online')}</span>
@@ -619,8 +511,7 @@ function DashboardInner({ user }: DashboardProps) {
 
             {/* ── MAIN CONTENT GRID ── */}
             <div className="overview-grid">
-              <div className="grid-left"><EarthquakeCard /></div>
-              <div className="grid-right"><SeismographCard {...seismographProps} /></div>
+              <div className="grid-left" style={{ gridColumn: 'span 2' }}><EarthquakeCard /></div>
             </div>
 
             {/* ── RECENT ACTIVITY ── */}
@@ -695,7 +586,6 @@ function DashboardInner({ user }: DashboardProps) {
     livecctv:  t('liveCctv'),
     edukasi:   t('education'),
     cuaca:     t('weather'),
-    esp32:     t('esp32'),
     riwayat:   t('history'),
     evakuasi:  'Evakuasi',
     timetravel: 'History 3D',
@@ -730,14 +620,10 @@ function DashboardInner({ user }: DashboardProps) {
         toggleTheme={() => setTheme((th: string) => th === 'dark' ? 'light' : 'dark')}
         notificationsEnabled={notificationsEnabled}
         toggleNotifications={() => setNotificationsEnabled((v: boolean) => !v)}
-        connected={esp32.connected}
         compact={isCompact}
         pageLabel={tabLabelMap[activeTab] || ''}
         user={user}
         onLogout={handleLogout}
-        esp32Ip={esp32.esp32Ip}
-        onConnect={esp32.connectToESP32}
-        onDisconnect={esp32.disconnectESP32}
         onMenuClick={() => setSidebarOpen(true)}
         sidebarCollapsed={sidebarCollapsed}
         toggleSidebar={() => setSidebarCollapsed((v: boolean) => !v)}
@@ -760,7 +646,6 @@ function DashboardInner({ user }: DashboardProps) {
       <div className="dashboard-body">
         {/* Sidebar — status ESP32 real */}
         <Sidebar
-          connected={esp32.connected}
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           mobileOpen={sidebarOpen}

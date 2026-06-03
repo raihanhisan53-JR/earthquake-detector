@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: '%s | TECTRA PRO Earthquake Detector',
   },
   description:
-    'Monitor gempa bumi Indonesia secara real-time. Data langsung dari BMKG & USGS, sensor ESP32, peta interaktif, dan notifikasi otomatis. Sistem deteksi gempa terlengkap.',
+    'Monitor gempa bumi Indonesia secara real-time. Data langsung dari BMKG & USGS, peta interaktif, dan notifikasi otomatis. Sistem deteksi gempa terlengkap.',
   keywords: [
     'earthquake detector',
     'earthquake detector Indonesia',

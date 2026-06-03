@@ -20,9 +20,6 @@ interface AriaChatProps {
     depth: string
     potensi: string
   } | null
-  esp32Connected?: boolean
-  esp32Status?: string
-  esp32AlertLevel?: number
   isAdmin?: boolean
 }
 
@@ -128,7 +125,7 @@ function MessageBubble({ msg, searchQuery }: { msg: Message; searchQuery: string
   )
 }
 
-export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel, isAdmin }: AriaChatProps) {
+export default function AriaChat({ userPlan, latestEarthquake, isAdmin }: AriaChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -234,7 +231,7 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
         setMessages([{
           id: 'welcome',
           role: 'assistant',
-          content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n• ⚡ Interpretasi data sensor ESP32\n\nAda yang ingin kamu tanyakan?`,
+          content: `Halo! Saya **ARIA** 🤖 — AI asisten khusus gempa bumi untuk TECTRA PRO.\n\nSaya bisa membantu kamu:\n• 📊 Analisis data gempa real-time\n• 🌊 Informasi potensi tsunami\n• 🏃 Prosedur keselamatan & evakuasi\n• 🔬 Penjelasan fenomena seismik\n\nAda yang ingin kamu tanyakan?`,
           timestamp: new Date(),
         }])
       }
@@ -290,7 +287,7 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
         body: JSON.stringify({
           message: text.trim(),
           history,
-          context: { latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel },
+          context: { latestEarthquake },
         }),
       })
 
@@ -318,7 +315,7 @@ export default function AriaChat({ userPlan, latestEarthquake, esp32Connected, e
       setLoading(false)
       inputRef.current?.focus()
     }
-  }, [loading, messages, latestEarthquake, esp32Connected, esp32Status, esp32AlertLevel])
+  }, [loading, messages, latestEarthquake])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input) }

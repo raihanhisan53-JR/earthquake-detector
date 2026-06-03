@@ -61,8 +61,6 @@ function loadThreshold() {
 
 // ══════════════════════════════════════════════════════
 export function useNotifications({
-  esp32AlertLevel = 0,
-  esp32Connected  = false,
   notificationsEnabled = true,
   sirenEnabled = true,
 } = {}) {
@@ -72,7 +70,6 @@ export function useNotifications({
   // Magnitude threshold — hanya notifikasi gempa di atas nilai ini
   const [notifThreshold, setNotifThresholdState] = useState(loadThreshold);
 
-  const esp32PrevLevelRef = useRef(0);
   const sirenActiveRef    = useRef(false);
 
   // Persist threshold
@@ -124,30 +121,6 @@ export function useNotifications({
     if (mag !== null && Number.isFinite(mag) && mag < notifThresholdRef.current) return;
     addNotificationInternal(n);
   }, [addNotificationInternal]);
-
-  // ── Notifikasi ESP32 ────────────────────────────────
-  useEffect(() => {
-    if (!esp32Connected || !notificationsEnabled) return;
-    const prev = esp32PrevLevelRef.current;
-    if (esp32AlertLevel <= prev) {
-      esp32PrevLevelRef.current = esp32AlertLevel;
-      return;
-    }
-    esp32PrevLevelRef.current = esp32AlertLevel;
-
-    // ESP32 alerts bypass magnitude threshold (sensor lokal selalu penting)
-    if (esp32AlertLevel >= 3) {
-      if (sirenEnabled) { sirenActiveRef.current = true; playSiren({ level: esp32AlertLevel }); }
-      setTimeout(() => {
-        addNotificationInternal({ type: 'error', title: '🚨 Gempa Terdeteksi Sensor!', message: `Level bahaya ESP32: ${esp32AlertLevel}` });
-      }, 0);
-    } else if (esp32AlertLevel >= 1) {
-      playBeep();
-      setTimeout(() => {
-        addNotificationInternal({ type: 'warning', title: '⚠️ Getaran Terdeteksi', message: `Sensor level: ${esp32AlertLevel}` });
-      }, 0);
-    }
-  }, [esp32AlertLevel, esp32Connected, notificationsEnabled, sirenEnabled, addNotificationInternal]);
 
   const dismissNotification = useCallback((id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));

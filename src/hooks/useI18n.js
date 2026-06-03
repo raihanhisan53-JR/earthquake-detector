@@ -8,7 +8,7 @@ const translations = {
   id: {
     // App
     appName: 'Earthquake Detector',
-    appSubtitle: 'Data BMKG & Sensor ESP32 Lokal',
+    appSubtitle: 'BMKG Data & Global Monitoring',
 
     // Nav / Sidebar
     overview: 'Ringkasan',
@@ -19,7 +19,6 @@ const translations = {
     liveCctv: 'Pantau Live',
     education: 'Edukasi',
     weather: 'Cuaca & Iklim',
-    esp32: 'ESP32 Sensor',
     history: 'Riwayat',
     aria: 'ARIA AI',
     profile: 'Profil',
@@ -143,10 +142,6 @@ const translations = {
     earthquakesInRadius: 'gempa terdeteksi dalam radius',
     fromYourLocation: 'dari lokasi Anda',
 
-    // ESP32
-    esp32Online: 'ESP32 Online',
-    esp32Offline: 'ESP32 Offline',
-
     // Auth
     signOut: 'Sign out',
     manageAccount: 'Manage your Account',
@@ -165,7 +160,7 @@ const translations = {
   en: {
     // App
     appName: 'Earthquake Detector',
-    appSubtitle: 'BMKG Data & Local ESP32 Sensor',
+    appSubtitle: 'BMKG Data & Global Monitoring',
 
     // Nav / Sidebar
     overview: 'Overview',
@@ -176,7 +171,6 @@ const translations = {
     liveCctv: 'Live Monitor',
     education: 'Education',
     weather: 'Weather & Climate',
-    esp32: 'ESP32 Sensor',
     history: 'History',
     aria: 'ARIA AI',
     profile: 'Profile',
@@ -300,10 +294,6 @@ const translations = {
     earthquakesInRadius: 'earthquakes detected within radius',
     fromYourLocation: 'from your location',
 
-    // ESP32
-    esp32Online: 'ESP32 Online',
-    esp32Offline: 'ESP32 Offline',
-
     // Auth
     signOut: 'Sign out',
     manageAccount: 'Manage your Account',
@@ -333,7 +323,7 @@ const translations = {
   },
   ar: {
     appName: 'كاشف الزلازل',
-    appSubtitle: 'بيانات BMKG ومستشعر ESP32 المحلي',
+    appSubtitle: 'بيانات BMKG والمراقبة العالمية',
     overview: 'ملخص',
     earthquake: 'أحدث الزلازل',
     map: 'خريطة الزلازل',
@@ -342,7 +332,6 @@ const translations = {
     liveCctv: 'مراقبة مباشرة',
     education: 'تعليم',
     weather: 'الطقس والمناخ',
-    esp32: 'مستشعر ESP32',
     history: 'سجل',
     aria: 'ARIA AI',
     profile: 'الملف الشخصي',
@@ -451,8 +440,6 @@ const translations = {
     noEarthquakeInRadius: 'لا توجد زلازل ضمن نصف القطر',
     earthquakesInRadius: 'تم اكتشاف زلازل ضمن نصف القطر',
     fromYourLocation: 'من موقعك',
-    esp32Online: 'ESP32 متصل',
-    esp32Offline: 'ESP32 غير متصل',
     signOut: 'تسجيل خروج',
     manageAccount: 'إدارة حسابك',
     hi: 'أهلاً',
@@ -489,7 +476,7 @@ const translations = {
   },
   ja: {
     appName: '地震検出器',
-    appSubtitle: 'BMKGデータとローカルESP32センサー',
+    appSubtitle: 'BMKGデータとグローバルモニタリング',
     overview: '概要',
     earthquake: '最新の地震',
     map: '地震マップ',
@@ -498,7 +485,6 @@ const translations = {
     liveCctv: 'ライブモニター',
     education: '教育',
     weather: '天気と気候',
-    esp32: 'ESP32センサー',
     history: '履歴',
     aria: 'ARIA AI',
     profile: 'プロフィール',
@@ -617,8 +603,6 @@ const translations = {
     noEarthquakeInRadius: '半径内に地震はありません',
     earthquakesInRadius: '半径内で検出された地震',
     fromYourLocation: 'あなたの場所から',
-    esp32Online: 'ESP32オンライン',
-    esp32Offline: 'ESP32オフライン',
     signOut: 'サインアウト',
     manageAccount: 'アカウントを管理する',
     hi: 'こんにちは',
