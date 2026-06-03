@@ -5935,7 +5935,7 @@ img {
   font-size: 0.95rem;
   box-shadow: 0 4px 24px rgba(220, 38, 38, 0.6);
   animation: alarm-pulse 0.8s ease-in-out infinite alternate;
-
+}
 
 @keyframes alarm-pulse {
   from { background: #dc2626; }
@@ -5945,7 +5945,7 @@ img {
   font-size: 1.4rem;
   flex-shrink: 0;
   animation: alarm-shake 0.4s ease-in-out infinite alternate;
-
+}
 
 @keyframes alarm-shake {
   from { transform: rotate(-8deg); }
@@ -5954,7 +5954,7 @@ img {
 
   flex: 1;
   letter-spacing: 0.5px;
-
+}
 
   flex-shrink: 0;
   padding: 8px 20px;
@@ -5967,18 +5967,18 @@ img {
   cursor: pointer;
   letter-spacing: 0.5px;
   transition: background 0.15s, transform 0.1s;
-
+}
 
   background: #fee2e2;
   transform: scale(1.04);
-
+}
 
   transform: scale(0.97);
-
+}
 
 /* Dorong konten ke bawah saat banner aktif */
   padding-top: 52px;
-
+}
 
 /* ════════════════════════════════════════════════════════
    BMKG VIDEO EMBED
@@ -7120,15 +7120,15 @@ img {
     font-size: 0.8rem;
     gap: 8px;
     flex-wrap: wrap;
-  
+  }
 
     font-size: 0.78rem;
-  
+  }
 
     width: 100%;
     padding: 8px;
     text-align: center;
-  
+  }
 
   /* ── Notifikasi toast ── */
   .app-notice-stack {
@@ -7212,7 +7212,7 @@ img {
 
   /* ── ESP32 connection note ── */
     font-size: 0.72rem;
-  
+  }
 
   /* ── Footer ── */
   .app-footer {
@@ -7220,7 +7220,7 @@ img {
     font-size: 0.72rem;
     text-align: center;
   }
-
+}
 
 /* ── Tambahan untuk layar sangat kecil (< 360px) ── */
 @media (max-width: 360px) {
@@ -7242,7 +7242,7 @@ img {
   .gempa-stats-row {
     grid-template-columns: 1fr;
   }
-
+}
 
 /* ── YouTube embed frame untuk ReelsEducation ── */
 .reels-edu-yt-frame {
@@ -8056,7 +8056,7 @@ img {
   border-radius: var(--radius-sm);
   margin-bottom: 16px;
   animation: pulse-alarm 1s ease-in-out infinite;
-
+}
 
 @keyframes pulse-alarm {
   0%, 100% { opacity: 1; }
@@ -8090,7 +8090,7 @@ img {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
-
+}
 
 .esp-status-detail {
   display: flex;
@@ -8272,7 +8272,7 @@ img {
   /* Sensor stats grid: 2 kolom */
     grid-template-columns: 1fr 1fr !important;
     gap: 10px;
-  
+  }
 
   /* Chart: tinggi lebih kecil di HP */
   .chart-container { height: 140px !important; }
@@ -8289,7 +8289,7 @@ img {
     text-align: center;
     gap: 8px;
   }
-
+}
 
 /* ════════════════════════════════════════════════════
    RESPONSIVE TABLET (769px – 1024px)
