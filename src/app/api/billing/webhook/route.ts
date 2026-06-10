@@ -5,7 +5,7 @@ import { env } from '@/lib/billing/utils/env';
 export async function POST(req: Request) {
   try {
     // Get Xendit webhook token from headers for verification
-    const xenditToken = req.headers.get('x-callback-token');
+    const xenditToken = req.headers.get('x-callback-token') ?? undefined;
     
     // Verify webhook token if provided (recommended for security)
     if (env.XENDIT_WEBHOOK_TOKEN && xenditToken !== env.XENDIT_WEBHOOK_TOKEN) {
