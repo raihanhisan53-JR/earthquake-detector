@@ -155,6 +155,22 @@ const translations = {
     navMonitoring: 'Monitoring',
     navAnalytics: 'Analytics & Data',
     navSystemPro: 'System Pro',
+
+    // Evacuation & Globe
+    smartEvacuation: 'Smart Evacuation Assistant',
+    survivalVault: 'Survival & Document Vault',
+    safeZones: 'Safe Zones',
+    emergency: 'Emergency',
+    safeZonesDesc: 'Showing safe areas around your location',
+    enableLocation: 'Enable location to see nearby evacuation routes.',
+    findInMaps: 'Find in Google Maps',
+    nearLocation: 'near your location',
+    checklist: 'Checklist',
+    documents: 'Documents',
+    readiness: 'Emergency Bag Readiness',
+    addItems: 'Add More Items',
+    globalHistory: 'Sejarah Gempa Global',
+    visualize3d: 'Visualisasi 3D semua gempa terkini',
   },
 
   en: {

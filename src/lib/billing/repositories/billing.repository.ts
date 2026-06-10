@@ -38,6 +38,24 @@ export class BillingRepository {
     });
   }
 
+  async getTransactionsByUserId(userId: string, status?: PaymentStatus) {
+    const where: any = { userId };
+    if (status) where.status = status;
+    return this.db.transaction.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getLatestPendingTransaction(userId: string, plan?: Plan) {
+    const where: any = { userId, status: PaymentStatus.PENDING };
+    if (plan) where.plan = plan;
+    return this.db.transaction.findFirst({
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async updateTransactionStatus(id: string, status: PaymentStatus, paidAt?: Date) {
     return this.db.transaction.update({
       where: { id },

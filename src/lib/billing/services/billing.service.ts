@@ -6,6 +6,33 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class BillingService {
   async createCheckout(userId: string, userEmail: string, planName: Plan, origin?: string): Promise<CheckoutResponse> {
+    // First, check if there's already a pending transaction for this plan
+    const existingPending = await billingRepository.getLatestPendingTransaction(userId, planName);
+    if (existingPending) {
+      // If there's a pending transaction, check if it's still valid (not expired)
+      const isExpired = existingPending.expiresAt && new Date(existingPending.expiresAt) < new Date();
+      if (!isExpired) {
+        // Check if we can get the invoice URL (if it's Xendit)
+        let invoiceUrl = '';
+        if (existingPending.metadata?.source === 'MOCK') {
+          invoiceUrl = `${origin || env.NEXT_PUBLIC_APP_URL}/api/billing/mock-payment?externalId=${existingPending.externalId}`;
+        } else if (existingPending.invoiceId) {
+          // Try to get the invoice from Xendit
+          const authHeader = Buffer.from(`${env.XENDIT_SECRET_KEY}:`).toString('base64');
+          const response = await fetch(`https://api.xendit.co/v2/invoices/${existingPending.invoiceId}`, {
+            headers: { 'Authorization': `Basic ${authHeader}` }
+          });
+          if (response.ok) {
+            const invoice = await response.json();
+            invoiceUrl = invoice.invoice_url;
+          }
+        }
+        if (invoiceUrl) {
+          return { invoiceUrl, externalId: existingPending.externalId };
+        }
+      }
+    }
+
     const planConfig = PLANS[planName];
     if (!planConfig) throw new Error('Invalid plan selected');
 
@@ -72,6 +99,84 @@ export class BillingService {
     });
 
     return { invoiceUrl, externalId };
+  }
+
+  async verifyPayment(userId: string, externalId?: string) {
+    let transaction;
+    if (externalId) {
+      transaction = await billingRepository.getTransactionByExternalId(externalId);
+    } else {
+      // Get latest pending transaction for user
+      transaction = await billingRepository.getLatestPendingTransaction(userId);
+    }
+
+    if (!transaction) {
+      return { success: false, message: 'Transaction not found' };
+    }
+
+    // If transaction is already paid, just confirm
+    if (transaction.status === PaymentStatus.PAID) {
+      return { success: true, message: 'Payment already confirmed' };
+    }
+
+    // If it's a mock payment, just mark it as paid for testing
+    if (transaction.metadata?.source === 'MOCK') {
+      const paidDate = new Date();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      await billingRepository.completePayment(
+        transaction.id,
+        transaction.userId,
+        transaction.plan,
+        expiresAt,
+        paidDate
+      );
+
+      return { success: true, message: 'Mock payment confirmed' };
+    }
+
+    // Otherwise, check Xendit API
+    if (!transaction.invoiceId) {
+      return { success: false, message: 'Invoice ID not found' };
+    }
+
+    const authHeader = Buffer.from(`${env.XENDIT_SECRET_KEY}:`).toString('base64');
+    const response = await fetch(`https://api.xendit.co/v2/invoices/${transaction.invoiceId}`, {
+      headers: { 'Authorization': `Basic ${authHeader}` }
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('Xendit verify error:', error);
+      return { success: false, message: 'Failed to verify payment with Xendit' };
+    }
+
+    const invoice = await response.json();
+    console.log('Xendit invoice status:', invoice.status);
+
+    if (invoice.status === 'PAID' || invoice.status === 'SETTLED' || invoice.status === 'COMPLETED') {
+      const paidDate = invoice.paid_at ? new Date(invoice.paid_at) : new Date();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30);
+
+      await billingRepository.completePayment(
+        transaction.id,
+        transaction.userId,
+        transaction.plan,
+        expiresAt,
+        paidDate
+      );
+
+      return { success: true, message: 'Payment confirmed successfully' };
+    }
+
+    if (invoice.status === 'EXPIRED') {
+      await billingRepository.updateTransactionStatus(transaction.id, PaymentStatus.EXPIRED);
+      return { success: false, message: 'Invoice expired' };
+    }
+
+    return { success: false, message: 'Payment still pending' };
   }
 
   async handleWebhook(payload: any, signature?: string) {

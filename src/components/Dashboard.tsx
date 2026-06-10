@@ -47,12 +47,22 @@ interface AppNotice {
   timestamp?: number
   source?: string
   magnitude?: number
+  button?: {
+    text: string
+    onClick: () => void
+    isLoading?: boolean
+  }
 }
 interface NotifyPayload {
   type?: 'info' | 'warning' | 'error'
   title?: string
   message?: string
   duration?: number
+  button?: {
+    text: string
+    onClick: () => void
+    isLoading?: boolean
+  }
 }
 
 // Inner component — needs I18nProvider wrapper
@@ -82,8 +92,56 @@ function DashboardInner({ user }: DashboardProps) {
   const [appNotices, setAppNotices]     = useState<AppNotice[]>([])
   const [mounted, setMounted]           = useState(false)
   const [now, setNow]                   = useState(0)
+  const [isVerifying, setIsVerifying]   = useState(false)
   const mainContentRef   = useRef<HTMLElement>(null)
   const noticeTimersRef  = useRef(new Map())
+
+  const handleManualVerify = useCallback(async () => {
+    setIsVerifying(true)
+    try {
+      const response = await fetch('/api/billing/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+      const result = await response.json()
+      if (result.success) {
+        notifyUser({
+          type: 'info',
+          title: 'Verifikasi Berhasil!',
+          message: result.message,
+          duration: 8000
+        })
+        // Refresh plan
+        fetch('/api/settings?t=' + Date.now())
+          .then(res => res.json())
+          .then(data => {
+            if (data.plan) {
+              const currentPlan = data.plan.toUpperCase()
+              setUserPlan(currentPlan)
+              localStorage.setItem('userPlan', currentPlan)
+            }
+          })
+      } else {
+        notifyUser({
+          type: 'warning',
+          title: 'Verifikasi Gagal',
+          message: result.message,
+          duration: 8000
+        })
+      }
+    } catch (error) {
+      console.error('Verify error:', error)
+      notifyUser({
+        type: 'error',
+        title: 'Terjadi Kesalahan',
+        message: 'Gagal melakukan verifikasi pembayaran',
+        duration: 8000
+      })
+    } finally {
+      setIsVerifying(false)
+    }
+  }, [notifyUser])
 
   const { gempa } = useBMKG()
   const bmkgMap   = useBMKGMap()
@@ -95,12 +153,14 @@ function DashboardInner({ user }: DashboardProps) {
     setAppNotices(current => current.filter(n => n.id !== id))
   }, [])
 
-  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600 }: NotifyPayload) => {
+  const notifyUser = useCallback(({ type = 'info', title, message = '', duration = 4600, button }: NotifyPayload) => {
     if (!title) return ''
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-    setAppNotices(current => [...current, { id, type, title, message, timestamp: Date.now() }].slice(-4))
-    const timeoutId = window.setTimeout(() => dismissNotice(id), duration)
-    noticeTimersRef.current.set(id, timeoutId)
+    setAppNotices(current => [...current, { id, type, title, message, timestamp: Date.now(), button }].slice(-4))
+    if (duration) {
+      const timeoutId = window.setTimeout(() => dismissNotice(id), duration)
+      noticeTimersRef.current.set(id, timeoutId)
+    }
     return id
   }, [dismissNotice])
 
@@ -605,6 +665,27 @@ function DashboardInner({ user }: DashboardProps) {
               <div className="app-notice__copy">
                 <strong>{notice.title}</strong>
                 {notice.message && <span>{notice.message}</span>}
+                {notice.button && (
+                  <button 
+                    type="button" 
+                    onClick={notice.button.onClick} 
+                    disabled={notice.button.isLoading}
+                    style={{ 
+                      marginTop: '8px',
+                      padding: '6px 16px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: notice.type === 'warning' ? '#f59e0b' : notice.type === 'error' ? '#ef4444' : '#3b82f6',
+                      color: '#fff',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: notice.button.isLoading ? 'not-allowed' : 'pointer',
+                      opacity: notice.button.isLoading ? 0.6 : 1
+                    }}
+                  >
+                    {notice.button.isLoading ? 'Memverifikasi...' : notice.button.text}
+                  </button>
+                )}
               </div>
               <button type="button" className="app-notice__close" onClick={() => dismissNotice(notice.id)}>×</button>
             </div>

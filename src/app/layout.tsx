@@ -6,22 +6,25 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://earthquake-detector.
 export const metadata: Metadata = {
   // ── Core SEO ──────────────────────────────────────────────
   title: {
-    default: 'TECTRA PRO — Earthquake Detector Indonesia Real-Time',
-    template: '%s | TECTRA PRO Earthquake Detector',
+    default: 'Earthquake Detector Indonesia Real-Time | TECTRA PRO',
+    template: '%s | Earthquake Detector',
   },
   description:
-    'Monitor gempa bumi Indonesia secara real-time. Data langsung dari BMKG & USGS, peta interaktif, dan notifikasi otomatis. Sistem deteksi gempa terlengkap.',
+    'Earthquake detector for Indonesia with real-time BMKG and USGS data, interactive map, and instant notifications. Complete earthquake monitoring system.',
   keywords: [
     'earthquake detector',
-    'earthquake detector Indonesia',
-    'deteksi gempa bumi',
-    'monitoring gempa real-time',
-    'BMKG gempa',
-    'seismograf online',
-    'sensor gempa ESP32',
-    'earthquake alarm',
-    'TECTRA PRO',
-    'gempa bumi hari ini',
+    'earthquake monitor',
+    'gempa bumi',
+    'BMKG',
+    'seismograph',
+    'earthquake alert',
+    'Indonesia earthquake',
+    'real-time earthquake',
+    'earthquake tracker',
+    'earthquake map',
+    'gempa hari ini',
+    'deteksi gempa',
+    'monitor gempa',
   ],
 
   // ── Canonical & Indexing ──────────────────────────────────
@@ -45,17 +48,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'id_ID',
-    url: APP_URL,
-    siteName: 'TECTRA PRO Earthquake Detector',
-    title: 'TECTRA PRO — Earthquake Detector Indonesia Real-Time',
+    siteName: 'Earthquake Detector',
+    title: 'Earthquake Detector Indonesia Real-Time | TECTRA PRO',
     description:
-      'Monitor gempa bumi Indonesia secara real-time. Data BMKG & USGS, sensor ESP32, peta interaktif, dan notifikasi otomatis.',
+      'Monitor earthquakes in Indonesia in real-time using BMKG and USGS data, with an interactive map and instant notifications.',
     images: [
       {
         url: `${APP_URL}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: 'TECTRA PRO Earthquake Detector Dashboard',
+        alt: 'Earthquake Detector Dashboard',
       },
     ],
   },
@@ -63,8 +65,8 @@ export const metadata: Metadata = {
   // ── Twitter / X Card ──────────────────────────────────────
   twitter: {
     card: 'summary_large_image',
-    title: 'TECTRA PRO — Earthquake Detector Indonesia',
-    description: 'Monitor gempa bumi real-time. Data BMKG & USGS langsung di dashboard.',
+    title: 'Earthquake Detector Indonesia Real-Time',
+    description: 'Real-time earthquake monitoring using BMKG and USGS data directly on the dashboard.',
     images: [`${APP_URL}/og-image.png`],
   },
 
@@ -73,7 +75,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'TECTRA PRO',
+    title: 'Earthquake Detector',
   },
   icons: {
     icon:     [{ url: '/logo-v2.png', sizes: '32x32' }],
@@ -110,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="TECTRA PRO" />
+        <meta name="apple-mobile-web-app-title" content="Earthquake Detector" />
         <link rel="apple-touch-icon" href="/logo-v2.png" />
         {/* Structured Data — JSON-LD untuk Google */}
         <script
@@ -119,10 +121,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'TECTRA PRO Earthquake Detector',
+              name: 'Earthquake Detector',
               url: APP_URL,
               description:
-                'Sistem monitoring gempa bumi real-time Indonesia menggunakan data BMKG, USGS, dan sensor ESP32.',
+                'Real-time earthquake monitoring system for Indonesia using BMKG, USGS, and ESP32 sensor data.',
               applicationCategory: 'UtilityApplication',
               operatingSystem: 'Web',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'IDR' },
@@ -136,4 +138,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
-

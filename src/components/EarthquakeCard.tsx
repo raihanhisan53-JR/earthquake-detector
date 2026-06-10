@@ -62,9 +62,9 @@ export default function EarthquakeCard({ fullView = false }: { fullView?: boolea
   const lonLabel  = isFinite(longitude) ? Math.abs(longitude).toFixed(3) : '-'
   const areaText  = gempa?.Wilayah ? gempa.Wilayah.replace(/^pusat gempa berada /i, '') : '-'
   const feltQuake = (gempa?.Potensi ?? '').toLowerCase().includes('dirasakan')
-  const shakeMapUrl = gempa
-    ? `https://api.codetabs.com/v1/proxy?quest=https://data.bmkg.go.id/DataMKG/TEWS/${gempa.Shakemap}`
-    : ''
+  const shakeMapUrl = gempa?.Shakemap
+    ? `/api/bmkg-shakemap?filename=${gempa.Shakemap}`
+    : 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?q=80&w=2070&auto=format&fit=crop'
 
   // Google Maps embed — Gedung BMKG Pusat Jakarta (tanpa API key)
   const bmkgBuildingEmbed = `https://maps.google.com/maps?q=Badan+Meteorologi+Klimatologi+dan+Geofisika+Jakarta&z=17&output=embed`
